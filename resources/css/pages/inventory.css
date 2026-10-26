@@ -1,0 +1,75 @@
+/* Kayan ERP — Inventory & Movements Page Styles */
+.inventory-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.inventory-kpi-card {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.inventory-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.inventory-kpi-icon.primary {
+    background: rgba(13, 148, 136, 0.1);
+    color: var(--primary, #0d9488);
+}
+
+.inventory-kpi-icon.info {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.inventory-kpi-icon.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.inventory-kpi-icon.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.movement-type-tab {
+    border: 1px solid var(--border-light);
+    padding: 8px;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.15s ease-in-out;
+}
+
+.movement-type-tab.active {
+    background: var(--primary, #0d9488);
+    color: #fff;
+    border-color: var(--primary, #0d9488);
+}
+
+.movement-type-tab:not(.active) {
+    background: transparent;
+    color: var(--text-main);
+    border-color: var(--border-light);
+}
+
+.text-movement-in {
+    color: var(--primary, #0d9488);
+}
+
+.text-movement-out {
+    color: var(--danger, #ef4444);
+}

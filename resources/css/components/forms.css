@@ -1,0 +1,307 @@
+/* ==========================================================================
+   Kayan ERP — Form Components & Controls
+   Inputs, Grids, Labels, Radio Cards, Radio Pills, Alerts & Currency Overlays
+   ========================================================================== */
+
+.erp-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.erp-form-full {
+    grid-column: 1 / -1;
+}
+
+.erp-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.erp-form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.erp-form-label .required {
+    color: var(--danger);
+    font-weight: bold;
+}
+
+.erp-form-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.erp-input,
+.erp-select,
+.erp-textarea {
+    width: 100%;
+    height: 38px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0 12px;
+    font-size: 14px;
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+/* Inputs with search icon and camera button */
+.erp-search-input {
+    padding-right: 42px !important;
+    padding-left: 38px !important;
+}
+
+.erp-textarea {
+    height: auto;
+    min-height: 80px;
+    padding: 8px 12px;
+}
+
+select.erp-input,
+.erp-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 12px center;
+    background-size: 14px;
+    padding-left: 36px;
+    padding-right: 12px;
+    cursor: pointer;
+}
+
+.erp-input:focus,
+.erp-select:focus,
+.erp-textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.erp-input.is-invalid,
+.erp-select.is-invalid,
+.erp-textarea.is-invalid,
+.erp-input.erp-input-error,
+.erp-select.erp-input-error,
+.erp-textarea.erp-input-error {
+    border-color: var(--danger);
+    background-color: var(--danger-soft);
+}
+
+.erp-error-msg {
+    font-size: 11px;
+    color: var(--danger-text);
+    font-weight: 500;
+    margin-top: 3px;
+}
+
+/* Currency Input Overlay */
+.erp-input-currency-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.erp-input-currency-wrapper .erp-input {
+    padding-left: 54px;
+}
+
+.erp-currency-suffix {
+    position: absolute;
+    left: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Radio Option Cards (Multi-Row Rich Selection) */
+.erp-radio-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.erp-radio-card {
+    position: relative;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 14px 16px;
+    background-color: var(--bg-surface);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.erp-radio-card:hover {
+    border-color: var(--primary-border);
+    background-color: var(--bg-hover);
+}
+
+.erp-radio-card input[type="radio"] {
+    margin-top: 3px;
+    accent-color: var(--primary);
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.erp-radio-card.selected {
+    border-color: var(--primary);
+    background-color: var(--primary-soft);
+}
+
+.erp-radio-card-body {
+    flex: 1;
+}
+
+.erp-radio-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.erp-radio-card-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* Radio Pill Options (Compact Toggle Selection) */
+.erp-radio-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.erp-radio-pill:has(input:checked) {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.erp-radio-pill input {
+    accent-color: var(--primary);
+}
+
+/* System Alerts */
+.erp-alert {
+    padding: 12px 16px;
+    border-radius: var(--border-radius);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.erp-alert-success {
+    background-color: var(--success-soft);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+}
+
+.erp-alert-danger {
+    background-color: var(--danger-soft);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+}
+
+@media (max-width: 768px) {
+    .erp-form-grid,
+    .erp-radio-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Responsive 2-Column Form Row */
+.erp-form-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+@media (max-width: 640px) {
+    .erp-form-row-2col {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+/* Universal Filter & Search Form */
+.erp-filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .erp-filter-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .erp-filter-form > div,
+    .erp-filter-form > .erp-input,
+    .erp-filter-form > .erp-select,
+    .erp-filter-form > select,
+    .erp-filter-form > button,
+    .erp-filter-form > a,
+    .erp-filter-form > .erp-btn {
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+
+    .erp-filter-form > .erp-btn {
+        justify-content: center;
+    }
+
+    /* Embedded action buttons inside input wrappers (e.g. barcode camera button) must preserve compact dimensions */
+    .erp-filter-form [data-action="open-barcode-scanner"],
+    [data-action="open-barcode-scanner"] {
+        width: 1.75rem !important;
+        min-width: 1.75rem !important;
+        max-width: 1.75rem !important;
+        height: 1.75rem !important;
+        padding: 0 !important;
+        position: absolute !important;
+        left: 0.25rem !important;
+        right: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 5 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+}

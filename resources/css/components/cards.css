@@ -1,0 +1,99 @@
+/* ==========================================================================
+   Kayan ERP — Card & Panel Containers
+   Enterprise Card, Header, Title & Body
+   ========================================================================== */
+
+.erp-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-xs);
+    overflow: hidden;
+    margin-bottom: 16px;
+    transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.erp-card.overflow-visible,
+.erp-card-filter {
+    overflow: visible !important;
+}
+
+.erp-card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.erp-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.erp-card-body {
+    padding: 16px;
+}
+
+/* Reusable Kayan ERP KPI Summary Card */
+.kpi-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--primary-border);
+}
+
+.kpi-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.kpi-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.kpi-icon {
+    font-size: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-soft);
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.kpi-value {
+    font-size: 21px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.25;
+    margin-bottom: 4px;
+}
+
+.kpi-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}

@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+@import './erp.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+
+@theme {
+    --font-sans: 'Cairo', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-primary: #714B67;
+    --color-primary-hover: #5d3b54;
+    --color-primary-active: #4a2e43;
+    --color-primary-soft: #f4ebf2;
+    --color-primary-border: #d9c4d5;
+}

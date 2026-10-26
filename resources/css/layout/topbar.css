@@ -1,0 +1,296 @@
+/* ==========================================================================
+   Kayan ERP — Top Navigation Bar (Odoo Web Client Style)
+   Topbar, Brand, Global Search, Action Buttons & User Menu
+   ========================================================================== */
+
+.erp-topbar {
+    height: var(--topbar-height);
+    flex-shrink: 0;
+    background-color: var(--primary);
+    color: var(--primary-text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    position: relative;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.erp-topbar-start,
+.erp-topbar-end {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* App Launcher Button */
+.erp-app-launcher-btn {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius-sm);
+    color: #FFFFFF;
+    transition: background-color 0.15s ease;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.erp-app-launcher-btn:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.erp-app-launcher-btn:active {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Brand */
+.erp-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    color: #FFFFFF;
+}
+
+.erp-brand-badge {
+    background: #FFFFFF;
+    color: var(--primary);
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    box-shadow: var(--shadow-xs);
+}
+
+.erp-topbar-divider {
+    width: 1px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 0 4px;
+}
+
+.erp-module-badge {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 500;
+}
+
+/* Topbar Global Search */
+.erp-global-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.erp-global-search-input {
+    width: 240px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 4px;
+    padding: 0 34px 0 54px;
+    color: #FFFFFF;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+.erp-global-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.erp-global-search-input:focus {
+    width: 320px;
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border-color: var(--primary-border);
+    box-shadow: var(--shadow-md);
+}
+
+.erp-global-search-input:focus::placeholder {
+    color: var(--text-muted);
+}
+
+.erp-global-search-icon {
+    position: absolute;
+    right: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+    font-size: 13px;
+}
+
+.erp-global-search-input:focus ~ .erp-global-search-icon {
+    color: var(--text-muted);
+}
+
+.erp-search-kbd {
+    position: absolute;
+    left: 6px;
+    font-size: 10px;
+    background: rgba(0, 0, 0, 0.18);
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+}
+
+.erp-global-search-input:focus ~ .erp-search-kbd {
+    display: none;
+}
+
+/* Topbar Action Buttons */
+.erp-top-btn {
+    height: 30px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: var(--border-radius-sm);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 12px;
+    transition: background-color 0.15s ease;
+    position: relative;
+}
+
+.erp-top-btn:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+    color: #FFFFFF;
+}
+
+/* Dynamic Theme Toggle Icons (Pure CSS zero-lag switching) */
+#themeSunIcon,
+#themeMoonIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+[data-theme="dark"] #themeMoonIcon {
+    display: none !important;
+}
+
+[data-theme="dark"] #themeSunIcon {
+    display: inline-flex !important;
+}
+
+:root:not([data-theme="dark"]) #themeSunIcon,
+[data-theme="light"] #themeSunIcon {
+    display: none !important;
+}
+
+:root:not([data-theme="dark"]) #themeMoonIcon,
+[data-theme="light"] #themeMoonIcon {
+    display: inline-flex !important;
+}
+
+/* Sidebar toggle inside topbar: hidden on desktop, shown on mobile */
+.erp-topbar #sidebarToggleBtn {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .erp-topbar #sidebarToggleBtn {
+        display: inline-flex;
+    }
+}
+
+.erp-top-badge {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    background-color: var(--danger);
+    color: #FFFFFF;
+    font-size: 9px;
+    font-weight: bold;
+    min-width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+}
+
+/* User Menu & Avatar */
+.erp-user-dropdown-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: var(--border-radius-sm);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.erp-user-dropdown-btn:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.erp-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.24);
+    color: #FFFFFF;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+/* Responsive Topbar */
+@media (max-width: 600px) {
+    .erp-topbar {
+        padding: 0 8px;
+        gap: 6px;
+    }
+
+    .erp-topbar-start,
+    .erp-topbar-end {
+        gap: 6px;
+    }
+
+    .erp-topbar-divider,
+    .erp-module-badge {
+        display: none;
+    }
+
+    #densityLabel {
+        display: none;
+    }
+
+    .erp-user-dropdown-btn span:not(.erp-avatar) {
+        display: none;
+    }
+
+    .erp-global-search {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .erp-brand span:not(.erp-brand-badge) {
+        display: none;
+    }
+
+    #kayanDensityToggle {
+        display: none;
+    }
+}

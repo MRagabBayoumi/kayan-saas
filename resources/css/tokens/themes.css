@@ -1,0 +1,66 @@
+/* ==========================================================================
+   Kayan ERP — Theme Definitions
+   Light & Dark Theme Specific Overrides
+   ========================================================================== */
+
+:root,
+[data-theme="light"] {
+    color-scheme: light;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
+    --primary: #9B6C90;
+    --primary-hover: #B07DA4;
+    --primary-active: #84577B;
+    --primary-soft: rgba(155, 108, 144, 0.22);
+    --primary-border: rgba(155, 108, 144, 0.4);
+    --primary-text: #FFFFFF;
+
+    --bg-app: #121316;
+    --bg-main: #121316;
+    --bg-surface: #1B1D22;
+    --bg-surface-alt: #22252B;
+    --bg-elevated: #282C34;
+    --bg-hover: #262930;
+    --bg-active: #323640;
+    --bg-card: #1B1D22;
+    --surface-card: #1B1D22;
+    --surface-muted: #22252B;
+
+    --border-color: #2E323B;
+    --border-light: #252830;
+    --border-focus: #9B6C90;
+
+    --text-main: #F3F4F6;
+    --text-secondary: #D1D5DB;
+    --text-muted: #9CA3AF;
+    --text-light: #6B7280;
+    --text-inverse: #111827;
+
+    --success: #10B981;
+    --success-soft: rgba(16, 185, 129, 0.18);
+    --success-border: rgba(16, 185, 129, 0.35);
+    --success-text: #6EE7B7;
+
+    --warning: #F59E0B;
+    --warning-soft: rgba(245, 158, 11, 0.18);
+    --warning-border: rgba(245, 158, 11, 0.35);
+    --warning-text: #FCD34D;
+
+    --danger: #EF4444;
+    --danger-soft: rgba(239, 68, 68, 0.18);
+    --danger-border: rgba(239, 68, 68, 0.35);
+    --danger-text: #FCA5A5;
+
+    --info: #3B82F6;
+    --info-soft: rgba(59, 130, 246, 0.18);
+    --info-border: rgba(59, 130, 246, 0.35);
+    --info-text: #93C5FD;
+
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --shadow-dropdown: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}

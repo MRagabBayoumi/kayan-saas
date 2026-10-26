@@ -1,0 +1,50 @@
+/* ==========================================================================
+   Kayan ERP — Tabs Navigation Component
+   Reusable Tab Bar, Navigation Links & Active / Disabled States
+   ========================================================================== */
+
+.erp-tab-nav-card {
+    padding: 6px;
+    margin-bottom: 20px;
+    background-color: var(--bg-surface-alt);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.erp-tab-bar,
+.erp-settings-tab-bar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.erp-tab-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: var(--border-radius-sm);
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--text-secondary);
+    background: transparent;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.erp-tab-link:hover:not(.disabled) {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.erp-tab-link.active {
+    background: var(--bg-surface);
+    color: var(--primary);
+    border-color: var(--border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.erp-tab-link.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}

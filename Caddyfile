@@ -1,0 +1,16 @@
+# Kayan ERP — Caddy Local Network HTTPS Server
+{
+	admin off
+}
+
+:443, :8443 {
+	tls internal {
+		on_demand
+	}
+
+	reverse_proxy 127.0.0.1:8000 {
+		transport http {
+			keepalive off
+		}
+	}
+}

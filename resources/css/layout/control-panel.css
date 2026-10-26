@@ -1,0 +1,183 @@
+/* ==========================================================================
+   Kayan ERP — Control Panel (Odoo Web Client Action Bar)
+   Breadcrumbs, Actions Bar, Search/Filter, View Switchers & Responsive Queries
+   ========================================================================== */
+
+.erp-control-panel {
+    background-color: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 80;
+    box-shadow: var(--shadow-xs);
+}
+
+.erp-cp-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.erp-cp-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Breadcrumbs */
+.erp-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.erp-breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.erp-breadcrumb-item:last-child {
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.erp-breadcrumb-sep {
+    color: var(--text-light);
+    font-size: 11px;
+}
+
+/* Control Panel Action Buttons Container */
+.erp-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Filter / Search Bar inside Control Panel */
+.erp-cp-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    max-width: 520px;
+}
+
+.erp-search-box {
+    position: relative;
+    flex: 1;
+}
+
+.erp-search-input {
+    width: 100%;
+    height: 32px;
+    background-color: var(--bg-surface-alt);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0 30px 0 10px;
+    font-size: var(--density-font-size);
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+.erp-search-input:focus {
+    background-color: var(--bg-surface);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-soft);
+}
+
+.erp-search-icon {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 13px;
+    pointer-events: none;
+}
+
+/* View Switchers (Odoo List, Kanban, Pivot, Graph) */
+.erp-view-switchers {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--bg-surface-alt);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 2px;
+    gap: 2px;
+}
+
+.erp-view-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    color: var(--text-muted);
+    transition: all 0.12s ease;
+}
+
+.erp-view-btn:hover {
+    color: var(--text-main);
+}
+
+.erp-view-btn.active {
+    background-color: var(--bg-surface);
+    color: var(--primary);
+    font-weight: 700;
+    box-shadow: var(--shadow-xs);
+}
+
+/* Responsive Adaptations */
+@media (max-width: 768px) {
+    .erp-control-panel {
+        padding: 10px 14px;
+    }
+
+    .erp-cp-top,
+    .erp-cp-bottom {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .erp-breadcrumb {
+        flex-wrap: wrap;
+        font-size: 12px;
+    }
+
+    .erp-actions-bar {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .erp-actions-bar .erp-btn {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 130px;
+        font-size: 12px;
+        padding: 8px 10px;
+        justify-content: center;
+    }
+
+    .erp-cp-search {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .erp-actions-bar .erp-btn {
+        flex: 1 1 100%;
+        min-width: 100%;
+    }
+}

@@ -1,0 +1,109 @@
+/* ==========================================================================
+   Kayan ERP — Odoo-Inspired Enterprise Design System (Modular Architecture)
+   Arabic RTL First · Light/Dark Themes · Enterprise Dense Mode
+   ========================================================================== */
+
+/* Design Tokens & Theme Palettes */
+@import './tokens/variables.css';
+@import './tokens/themes.css';
+
+/* Base Normalize & Cairo Typography */
+@import './base/reset.css';
+
+/* Application Shell Layout */
+@import './layout/shell.css';
+@import './layout/topbar.css';
+@import './layout/sidebar.css';
+@import './layout/control-panel.css';
+
+/* Shared Enterprise Components */
+@import './components/buttons.css';
+@import './components/badges.css';
+@import './components/cards.css';
+@import './components/tables.css';
+@import './components/forms.css';
+@import './components/dropdowns.css';
+@import './components/modals.css';
+@import './components/tabs.css';
+@import './components/toasts.css';
+@import './components/empty-states.css';
+@import './components/scanner.css';
+
+/* Page-Specific Styles */
+@import './pages/dashboard.css';
+@import './pages/products.css';
+@import './pages/categories.css';
+@import './pages/inventory.css';
+@import './pages/warehouses.css';
+@import './pages/settings.css';
+@import './pages/customers.css';
+@import './pages/suppliers.css';
+@import './pages/shipping-offices.css';
+@import './pages/print-templates.css';
+@import './pages/purchases.css';
+@import './pages/auth.css';
+@import './pages/users.css';
+@import './pages/roles.css';
+@import './pages/units.css';
+@import './pages/sales.css';
+@import './pages/home.css';
+@import './pages/shifts.css';
+@import './pages/finance.css';
+
+/* Core Utility Classes */
+.hidden, .is-hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+/* Primary Utility Fallbacks */
+.text-\[var\(--primary\)\], .text-primary {
+    color: var(--primary) !important;
+}
+
+.bg-\[var\(--primary\)\], .bg-primary {
+    background-color: var(--primary) !important;
+}
+
+.border-\[var\(--primary\)\], .border-primary {
+    border-color: var(--primary) !important;
+}
+
+.bg-\[var\(--primary-soft\)\], .bg-primary-soft {
+    background-color: var(--primary-soft) !important;
+}
+
+/* Odoo Pill Button for Topbars and Banners */
+.erp-btn-pill-white {
+    background-color: #FFFFFF !important;
+    color: #714B67 !important;
+    font-weight: 700 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s ease, background-color 0.15s ease !important;
+}
+
+.erp-btn-pill-white:hover {
+    background-color: #F8F9FA !important;
+    color: #5D3B54 !important;
+}
+
+.erp-btn-pill-white:active {
+    transform: scale(0.96) !important;
+}
+
+/* Hotwire Turbo SPA Progress Bar */
+.turbo-progress-bar {
+    height: 3px !important;
+    background: linear-gradient(90deg, #714B67, #a26993, #714B67) !important;
+    box-shadow: 0 0 10px rgba(113, 75, 103, 0.7) !important;
+    z-index: 999999 !important;
+}
+
+

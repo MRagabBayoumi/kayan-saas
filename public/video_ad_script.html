@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إسكربت تصوير فيديو إعلاني — شركة كيان للاستيراد والتوزيع</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #714B67;
+            --primary-dark: #53334c;
+            --secondary: #0284c7;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --bg-light: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+            background-color: #f1f5f9;
+            color: var(--text-dark);
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .no-print-toolbar {
+            max-width: 900px;
+            margin: 0 auto 20px auto;
+            background: #ffffff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-print {
+            background-color: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-print:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .page-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Header */
+        .doc-header {
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .doc-badge {
+            background-color: #fdf2f8;
+            color: var(--primary);
+            border: 1px solid #fbcfe8;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* Metadata Card */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 25px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .meta-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .meta-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        /* Script Table */
+        .script-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+
+        .script-table th {
+            background-color: var(--primary);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 10px;
+            text-align: right;
+            border: 1px solid var(--primary-dark);
+        }
+
+        .script-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            vertical-align: top;
+            font-size: 12.5px;
+        }
+
+        .scene-col {
+            width: 12%;
+            text-align: center;
+            font-weight: 800;
+            background-color: #faf5ff;
+        }
+
+        .scene-num {
+            font-size: 14px;
+            color: var(--primary);
+            display: block;
+        }
+
+        .scene-time {
+            display: inline-block;
+            background: #ede9fe;
+            color: #5b21b6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-top: 4px;
+            font-weight: 700;
+        }
+
+        .visual-col {
+            width: 32%;
+            background-color: #ffffff;
+        }
+
+        .visual-title {
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .audio-col {
+            width: 36%;
+            background-color: #fdfdfe;
+        }
+
+        .audio-dialogue {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            line-height: 1.6;
+        }
+
+        .text-col {
+            width: 20%;
+            background-color: #fffbeb;
+        }
+
+        .screen-badge {
+            background-color: #fef3c7;
+            border: 1px dashed #d97706;
+            color: #92400e;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Checklists and Tips */
+        .notes-section {
+            border-top: 2px dashed var(--border-color);
+            padding-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .notes-box {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .notes-box h4 {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+        }
+
+        .checklist-item {
+            font-size: 12px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .checkbox-square {
+            display: inline-block;
+            width: 13px;
+            height: 13px;
+            border: 1.5px solid var(--text-muted);
+            border-radius: 3px;
+        }
+
+        /* Print Media Styles */
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+
+            .no-print, .no-print-toolbar {
+                display: none !important;
+            }
+
+            .page-container {
+                max-width: 100%;
+                border: none;
+                padding: 0;
+                box-shadow: none;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 12mm 15mm;
+            }
+
+            .script-table th {
+                background-color: #714B67 !important;
+                color: #ffffff !important;
+            }
+
+            .screen-badge {
+                background-color: #fffbeb !important;
+                border-color: #d97706 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Action Bar (Hidden on Print) -->
+    <div class="no-print-toolbar">
+        <div>
+            <strong style="color: var(--primary);">إسكربت تصوير الفيديو الإعلاني — شركة كيان</strong>
+            <span style="font-size: 12px; color: var(--text-muted); display: block;">جاهز للطباعة المباشرة على ورق A4 أو الحفظ كملف PDF</span>
+        </div>
+        <button class="btn-print" onclick="window.print()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            <span>طباعة الإسكربت الآن (Ctrl + P)</span>
+        </button>
+    </div>
+
+    <!-- Main Printable Document Container -->
+    <div class="page-container">
+        
+        <!-- Document Header -->
+        <div class="doc-header">
+            <div>
+                <h1 class="brand-title">شركة كيان للاستيراد والتوزيع</h1>
+                <p style="font-size: 13px; color: var(--text-muted); font-weight: 600;">إسكربت تصوير فيديو ترويجي: استقطاب مناديب مبيعات وموزعين معتمدين بالمحافظات</p>
+            </div>
+            <div style="text-align: left;">
+                <span class="doc-badge">إصدار الإنتاج الرسمي v2.0</span>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">تاريخ التجهيز: 24 أكتوبر 2026</div>
+            </div>
+        </div>
+
+        <!-- Metadata Info Grid -->
+        <div class="meta-grid">
+            <div class="meta-item">
+                <span class="meta-label">المدة الزمنية المستهدفة</span>
+                <span class="meta-val">60 ثانية (1 دقيقة)</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">المنصات المستهدفة</span>
+                <span class="meta-val">Reels / TikTok / Shorts (9:16)</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">موقع التصوير الميداني</span>
+                <span class="meta-val">المعرض المركزي + مخزن الشحن</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">الهدف التسويقي</span>
+                <span class="meta-val">توظيف مناديب + فتح قنوات موزعين</span>
+            </div>
+        </div>
+
+        <!-- Master Storyboard & Script Table -->
+        <table class="script-table">
+            <thead>
+                <tr>
+                    <th style="width: 12%; text-align: center;">المشهد والزمن</th>
+                    <th style="width: 30%;">حركة الكاميرا والمشهد البصري</th>
+                    <th style="width: 38%;">الحوار وما يُقال صوتياً (Script)</th>
+                    <th style="width: 20%;">الكتابة على الشاشة (On-Screen Text)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Scene 1: Hook -->
+                <tr>
+                    <td class="scene-col">
+                        <span class="scene-num">المشهد 1</span>
+                        <span class="scene-time">00:00 - 00:06</span>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">(الخطاف Hook)</div>
+                    </td>
+                    <td class="visual-col">
+                        <div class="visual-title">📹 وقفة أمام بضاعة المعرض</div>
+                        المتحدث يتحرك خطوتين بثقة باتجاه الكاميرا وسط المعرض أو أمام كراتين الشحنات الجديدة، ممسكاً بيده عينة من أحدث التوك والإكسسوارات.
+                    </td>
+                    <td class="audio-col">
+                        <div class="audio-dialogue">
+                            "لو إنت شغال في المبيعات وعايز تعمل دخل شهري محترم بجد.. أو عندك محلك وعايز تكبر وتكون موزع معتمد في محافظتك.. ركز معايا في الدقيقة دي كويس!"
+                        </div>
+                    </td>
+                    <td class="text-col">
+                        <div class="screen-badge">🔥 فرصة مش هتتكرر</div>
+                        <div class="screen-badge">مطلوب مناديب وموزعين في كل المحافظات</div>
+                    </td>
+                </tr>
+
+                <!-- Scene 2: Sales Reps -->
+                <tr>
+                    <td class="scene-col">
+                        <span class="scene-num">المشهد 2</span>
+                        <span class="scene-time">00:07 - 00:26</span>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">(عرض المناديب)</div>
+                    </td>
+                    <td class="visual-col">
+                        <div class="visual-title">📹 حركة عمل ميداني وتطبيق</div>
+                        لقطات سريعة (B-Roll) لمسؤول يمسك تابلت/موبايل ويسجل طلبات في البوابة، مع لقطات لكراتين تُفرز وتُرتب، ثم عودة لوجه المتحدث يشرح بحماس.
+                    </td>
+                    <td class="audio-col">
+                        <div class="audio-dialogue">
+                            "شركة <strong>كيان</strong> بتفتح الباب لضم مناديب مبيعات طموحين، ومش بنديك أي نظام عمولات.. إحنا بنقدملك <strong>نظام دخل ثلاثي</strong> مفيش زيه في السوق:<br>
+                            1️⃣ عمولة مجزية جداً على كل جنيه مبيعات.<br>
+                            2️⃣ عمولة تانية خاصة على التحصيل.<br>
+                            3️⃣ وبونص فوري كبير على أي عميل جديد تفتحه وفاتورته تعدي الـ 10 آلاف جنيه!"
+                        </div>
+                    </td>
+                    <td class="text-col">
+                        <div class="screen-badge">💰 عمولة مبيعات + عمولة تحصيل</div>
+                        <div class="screen-badge">🎁 بونص فوري لكل عميل جديد (+10,000 ج.م)</div>
+                    </td>
+                </tr>
+
+                <!-- Scene 3: Distributors -->
+                <tr>
+                    <td class="scene-col">
+                        <span class="scene-num">المشهد 3</span>
+                        <span class="scene-time">00:27 - 00:46</span>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">(عرض الموزعين)</div>
+                    </td>
+                    <td class="visual-col">
+                        <div class="visual-title">📹 لقطات مقربة (Close-Ups)</div>
+                        تصوير سينمائي مقرب لتفاصيل التوك، أطواق الشعر، إكسسوارات الهدايا المستوردة لتوضيح الفينيش العالي، ثم لقطة تغليف كراتين وشحن سريع.
+                    </td>
+                    <td class="audio-col">
+                        <div class="audio-dialogue">
+                            "ولو إنت تاجر وعندك محلك أو بتوزع في محافظتك.. بنقدملك <strong>سعر الموزع الحصري</strong>!<br>
+                            سعر أقل من سعر بيع المعرض والجملة، عشان تعرف تنافس وتكسب هامش ربح عالي يريحك.. وبضاعتك واصلة لحد عندك في محافظتك بكل سهولة ومن غير ما تشيل هم الشحن!"
+                        </div>
+                    </td>
+                    <td class="text-col">
+                        <div class="screen-badge">📦 أسعار حرق للموزعين (أقل من المعرض)</div>
+                        <div class="screen-badge">🚚 توصيل سريع لباب محلك في محافظتك</div>
+                    </td>
+                </tr>
+
+                <!-- Scene 4: Call to Action -->
+                <tr>
+                    <td class="scene-col">
+                        <span class="scene-num">المشهد 4</span>
+                        <span class="scene-time">00:47 - 01:00</span>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">(الدعوة للقرار CTA)</div>
+                    </td>
+                    <td class="visual-col">
+                        <div class="visual-title">📹 إشارة وشعار الشركة</div>
+                        المتحدث يبتسم ويوجه إصبعه لأسفل الشاشة (مكان زر الإرسال والتعليق)، ثم تظهر شاشة النهاية التي تضم أرقام التواصل وشعار شركة كيان.
+                    </td>
+                    <td class="audio-col">
+                        <div class="audio-dialogue">
+                            "بضاعتنا مستوردة من المصنع مباشرة، وأقوى تشكيلة توك وإكسسوارات حريمي وهدايا في مصر.<br>
+                            الأماكن محدودة في كل محافظة.. ابعتلنا رسالة دلوقتي على الواتساب أو سيب تعليق بكلمة <strong>(مندوب)</strong> أو <strong>(موزع)</strong> وفريقنا هيتواصل معاك فوراً!"
+                        </div>
+                    </td>
+                    <td class="text-col">
+                        <div class="screen-badge" style="background:#dcfce7; border-color:#16a34a; color:#15803d;">📲 سيب تعليق بـ (مندوب) أو (موزع)</div>
+                        <div class="screen-badge">📞 واتساب: [أدخل الرقم]</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Production Notes & Checklist -->
+        <div class="notes-section">
+            <div class="notes-box">
+                <h4>📋 قائمة تدقيق يوم التصوير (Equipment Checklist)</h4>
+                <div class="checklist-item"><span class="checkbox-square"></span> مايك لاسلكي (Lavalier Mic) لمنع صدى الصوت وضمان نقاء التسجيل.</div>
+                <div class="checklist-item"><span class="checkbox-square"></span> إضاءة بيضاء موجهة (Softbox / Ring Light) على الوجه واستاندات العرض.</div>
+                <div class="checklist-item"><span class="checkbox-square"></span> تجهيز 5 عينات من أقوى وأحدث توك وإكسسوارات للشوت المقرب.</div>
+                <div class="checklist-item"><span class="checkbox-square"></span> تجهيز تابلت أو موبايل مفتوح عليه سيستم/بوابة المندوب للتصوير.</div>
+            </div>
+
+            <div class="notes-box">
+                <h4>⚙️ نصائح المونتاج والإخراج (Post-Production Tips)</h4>
+                <div class="checklist-item"><span class="checkbox-square"></span> تصوير رأسي بنسبة 9:16 بجودة 4K أو 1080p بمعدل 60 إطار في الثانية.</div>
+                <div class="checklist-item"><span class="checkbox-square"></span> تقطيع سريع (Jump Cuts): منع أي مشهد ثابت أكثر من 2.5 ثانية.</div>
+                <div class="checklist-item"><span class="checkbox-square"></span> إضافة صوت مؤثرات خفيفة (Whoosh / Pop) مع كل نص يظهر على الشاشة.</div>
+                <div class="checklist-item"><span class="checkbox-square"></span> موسيقى خلفية حماسية ومحفزة بدون حقوق ملكية وبصوت منخفض (15%).</div>
+            </div>
+        </div>
+
+        <!-- Footer Signoff -->
+        <div style="margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 10px; display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted);">
+            <span>شركة كيان للتجارة والاستيراد — قسم التسويق والمبيعات</span>
+            <span>وثيقة عمل داخلية — جاهزة للتنفيذ الفوري</span>
+        </div>
+
+    </div>
+
+</body>
+</html>

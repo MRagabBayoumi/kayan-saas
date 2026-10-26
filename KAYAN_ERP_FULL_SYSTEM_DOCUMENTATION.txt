@@ -1,0 +1,397 @@
+================================================================================
+KAYAN ERP — COMPLETE SYSTEM TECHNICAL & ARCHITECTURAL DOCUMENTATION
+نظام كايان لإدارة موارد المؤسسات والمبيعات ونقاط البيع والمخازن — التوثيق الشامل الكامل
+================================================================================
+تاريخ إنشاء التوثيق: أكتوبر 2026
+بيئة التطوير والتشغيل: Laravel 12 / PHP 8.4+ / MySQL 8.0 / Vite 8 / Tailwind CSS v4
+المؤلف والمطور: فريق تطوير كايان بالتعاون مع BayoSoft
+الغرض من الملف: تغذية الذكاء الاصطناعي (ChatGPT / LLMs) بكافة تفاصيل المشروع التقنية والمعمارية والمنطقية.
+
+================================================================================
+فهرس المحتويات (TABLE OF CONTENTS)
+================================================================================
+1. نبذة عامة عن المشروع وطبيعة النشاط (Project Overview & Business Domain)
+2. الحزمة التقنية ومتطلبات التشغيل (Tech Stack & Prerequisites)
+3. المبادئ المعمارية الصارمة للتصميم والكود (Strict Architectural Principles)
+4. هيكل قاعدة البيانات والنماذج والعلاقات (Database Schema, Models & Relations)
+5. المنطق البرمجي والمالي الحسابي (Core Business & Financial Algorithms)
+   - 5.1 خوارزمية الوحدات والتحويل التلقائي (Unit Conversions: Dozen / Carton / Piece)
+   - 5.2 خوارزمية تتبع المخزون والوارد أولاً يصرف أولاً (FIFO Inventory Depletion)
+   - 5.3 نظام السداد المالي (نقدي / آجل بالكامل / دفع جزئي) والربط مع دفتر الأستاذ
+   - 5.4 نظام سقوف الائتمان للعملاء والتحذيرات المالية (Credit Limits & Ledger)
+   - 5.5 دورة حياة ورديات الكاشير والدرج النقدي (Cashier Shifts Lifecycle)
+   - 5.6 صلاحيات رؤية صافي الأرباح وتعديل الأسعار (Role-Based Visibility)
+6. الوحدات والوظائف الرئيسية بالتفصيل (Detailed System Modules)
+   - 6.1 نقطة البيع وفواتير المبيعات السريعة (POS & Sales Invoices)
+   - 6.2 إدارة المخازن وحركات المخزون (Inventory & Stock Movements)
+   - 6.3 المشتريات ودفعات الوارد وحسابات الموردين (Purchases & Supplier Accounts)
+   - 6.4 إدارة العملاء وحسابات الآجل (Customers & Accounts Receivable)
+   - 6.5 إدارة ورديات الكاشير والخزينة (Shifts & Cash Management)
+   - 6.6 مصمم قوالب الطباعة المتكامل (Interactive Print Templates Engine)
+   - 6.7 إدارة المستخدمين والأدوار والصلاحيات (Users, Roles & Permissions)
+   - 6.8 إعدادات النظام والهوية التجارية (Company Settings & Branding)
+7. بنية الواجهة الأمامية ونظام التصميم (Frontend Architecture & Design System)
+8. منظومة الاختبارات الآلية وضمان الجودة (Automated Testing & QA - Pest PHP)
+9. خريطة المسارات وموجّهات العمليات (Routes & Controllers Map)
+10. دليل التشغيل، البناء، والنشر (Deployment & Execution Guide)
+
+================================================================================
+1. نبذة عامة عن المشروع وطبيعة النشاط (PROJECT OVERVIEW & BUSINESS DOMAIN)
+================================================================================
+- الاسم التجاري: Kayan ERP (نظام كايان لإدارة المؤسسات)
+- القطاع: استيراد وتوزيع إكسسوارات حريمي، توك شعر، أدوات زينة وهدايا ومستلزمات عامة من الصين وتوزيعها على تجار الجملة والموزعين ونقاط البيع بالتجزئة في مصر والسوق العربي.
+- خصوصية النشاط التجاري:
+  1. التعامل بوحدات قياس متعددة لنفس الصنف (قطعة، دستة = 12 قطعة، كرتونة = س دستة أو ص قطعة).
+  2. تسعير رباعي للأصناف (تكلفة، جملة، موزع، قطاعي تجزئة).
+  3. دورة شراء دولية (مصانع بالصين، حسابات WeChat ID، شحن دولي، جمارك، دفعات مخزنية).
+  4. شاشة كاشير ومبيعات فائقة السرعة (High-Speed POS) تدعم أجهزة الباركود الليزرية وكاميرا الهاتف، وتعمل دون الحاجة للفأرة عبر اختصارات لوحة المفاتيح (F2, F9, Enter).
+  5. تتبع مالي مزدوج (نقدي فوري بالدرج، أو آجل مديونية على العميل مع تاريخ استحقاق، أو دفع جزئي).
+  6. ورديات كاشير إلزامية لضبط الخزينة ومطابقة الرصيد الدفتري والفعلي ومنع التلاعب والعجز.
+
+================================================================================
+2. الحزمة التقنية ومتطلبات التشغيل (TECH STACK & PREREQUISITES)
+================================================================================
+- Backend Framework: Laravel 12 / 13
+- Programming Language: PHP 8.4 / 8.5
+- Database Management System: MySQL 8.0 (Active DB: `kayan_erp`)
+- Frontend Template Engine: Laravel Blade Components
+- Frontend Bundler: Vite 8
+- CSS Framework & Styling: CSS Design Tokens (Odoo-inspired) + Tailwind CSS v4
+- Typography: خط Cairo العربي الأصيل مع تفعيل الأرقام الجدولية (tabular-nums / font-numeric)
+- Testing Framework: Pest PHP (أكثر من 250 اختبار آلي متكامل ومباشر)
+- Code Style: Laravel Pint (PSR-12 compliant)
+- Server Environment: Windows (XAMPP / Herd / Apache) ويدعم بيئات Linux (Nginx/PHP-FPM)
+- Printing: محرك طباعة مدمج يدعم A4 القياسي، A5 الاقتصادي، والورق الحراري 80mm، بالإضافة لملصقات الباركود الحرارية (38x25mm و 38x15mm).
+
+================================================================================
+3. المبادئ المعمارية الصارمة للتصميم والكود (STRICT ARCHITECTURAL PRINCIPLES)
+================================================================================
+1. العزل الصارم بين العرض والتنسيق والبرمجة (Zero Inline JS & Zero Inline CSS):
+   - ممنوع منعاً باتاً كتابة أي وسوم `<script>` داخل ملفات Blade.
+   - ممنوع منعاً باتاً كتابة أي وسوم `<style>` أو سمات `style="..."` داخل ملفات Blade.
+   - ممنوع منعاً باتاً كتابة معالجات الأحداث المضمنة مثل `onclick="..."` أو `onchange="..."`.
+   - يتم التحكم في كافة التنسيقات عبر ملفات CSS المجمعة في `resources/css/`، وكافة التفاعلات عبر ملفات JavaScript المجمعة في `resources/js/`.
+   - توجد اختبارات آلية في `tests/Feature/BladeArchitectureSeparationTest.php` تفحص كافة ملفات العرض للتأكد من خلوها 100% من أي مخالفة لهذه المعمارية.
+2. تصميم واجهات مستلهم من Odoo Web Client:
+   - شريط علوي (Topbar) مع قائمة سريعة، منتقي الفروع واللغات، ومحول الوضع الليلي والنهاري.
+   - قائمة برامج 3x3 App Launcher شبيهة بـ Odoo لفتح النوافذ والتطبيقات.
+   - قائمة جانبية قابلة للطي والحفظ في LocalStorage.
+   - تذييل صفحة مؤسسي (Enterprise Sticky Footer) ثابت في الأسفل عبر `margin-top: auto` لمنع أي فراغات أو قفزات.
+3. التوافق الكامل مع شاشات اللمس (POS Touch Screens) والشاشات اللوحية واللابتوب.
+
+================================================================================
+4. هيكل قاعدة البيانات والنماذج والعلاقات (DATABASE SCHEMA & MODELS)
+================================================================================
+قاعدة البيانات تحتوي على جداول مترابطة بالكامل بمفاتيح أجنبية وقيود ذرية:
+
+1. جدول `users`:
+   - الحقول: id, name, email, password, role_id, is_active, timestamps
+   - العلاقات: belongsTo(Role), hasMany(Shift), hasMany(SalesInvoice), hasMany(StockMovement)
+
+2. جدول `roles`:
+   - الحقول: id, name, slug, description, permissions (JSON), timestamps
+   - الأدوار الافتراضية: admin (مدير النظام), company_manager (مدير الشركة), cashier (كاشير), warehouse_manager (أمين مستودع), accountant (محاسب).
+
+3. جدول `categories`:
+   - الحقول: id, name, code, description, is_active, timestamps
+   - العلاقات: hasMany(Product)
+
+4. جدول `units`:
+   - الحقول: id, name, symbol, base_unit (boolean), conversion_factor (decimal), timestamps
+   - أمثلة: قطعة (1.00), دستة (12.00), كرتونة (144.00)
+
+5. جدول `products`:
+   - الحقول: id, name, sku, barcode, category_id, cost_price, wholesale_price, distributor_price, retail_price, min_stock_alert, image_path, is_active, timestamps
+   - العلاقات: belongsTo(Category), hasMany(InventoryBatch), hasMany(StockMovement), hasMany(SalesInvoiceItem)
+
+6. جدول `warehouses`:
+   - الحقول: id, name, code, location, is_active, timestamps
+   - العلاقات: hasMany(InventoryBatch), hasMany(StockMovement), hasMany(Shift)
+
+7. جدول `inventory_batches`:
+   - الغرض: تطبيق خوارزمية الوارد أولاً يصرف أولاً (FIFO) وتتبع تواريخ ورود البضاعة وتكلفتها الحقيقية.
+   - الحقول: id, product_id, warehouse_id, purchase_invoice_id, batch_number, quantity, remaining_quantity, unit_cost, expiry_date, timestamps
+   - العلاقات: belongsTo(Product), belongsTo(Warehouse), belongsTo(PurchaseInvoice)
+
+8. جدول `stock_movements`:
+   - الغرض: سجل تدقيق مالي ومخزني لكافة حركات الأصناف (Ledger).
+   - الحقول: id, movement_number, product_id, warehouse_id, source_warehouse_id, user_id, movement_type (in, out, transfer, adjustment), quantity, unit_cost, reference_type, reference_id, notes, timestamps
+
+9. جدول `customers`:
+   - الحقول: id, name, phone, email, address, customer_type (retail, wholesale, distributor), pricing_tier (retail, wholesale, distributor), credit_limit, current_balance, is_active, timestamps
+   - العميل الخاص الافتراضي: "عميل نقدي" (Cash Customer) رصيده الائتماني 0 وممنوع من البيع الآجل.
+   - العلاقات: hasMany(SalesInvoice), hasMany(Payment)
+
+10. جدول `suppliers`:
+    - الحقول: id, name, company_name, phone, wechat_id, country, address, current_balance, currency, notes, is_active, timestamps
+    - العلاقات: hasMany(PurchaseInvoice), hasMany(Payment)
+
+11. جدول `shipping_offices`:
+    - الحقول: id, name, phone, contact_person, address, timestamps
+    - العلاقات: hasMany(PurchaseInvoice)
+
+12. جدول `shifts`:
+    - الغرض: إدارة ورديات الكاشير والدرج المالي.
+    - الحقول: id, shift_number, user_id, warehouse_id, opening_balance, actual_closing_balance, expected_closing_balance, difference_amount, status (open, closed), opened_at, closed_at, notes, timestamps
+    - العلاقات: belongsTo(User), belongsTo(Warehouse), hasMany(SalesInvoice)
+
+13. جدول `sales_invoices`:
+    - الحقول: id, invoice_number, invoice_date, customer_id, user_id, shift_id, warehouse_id, payment_type (cash, credit, partial), total_amount, discount_amount, discount_type, shipping_cost, paid_amount, remaining_amount, due_date, status (draft, posted, cancelled), payment_status (paid, partial, unpaid), notes, timestamps
+    - العلاقات: belongsTo(Customer), belongsTo(User), belongsTo(Shift), belongsTo(Warehouse), hasMany(SalesInvoiceItem)
+
+14. جدول `sales_invoice_items`:
+    - الحقول: id, sales_invoice_id, product_id, unit_id, conversion_factor, quantity, unit_price, line_discount, subtotal, unit_cost, net_profit, notes, timestamps
+    - العلاقات: belongsTo(SalesInvoice), belongsTo(Product), belongsTo(Unit)
+
+15. جدول `purchase_invoices`:
+    - الحقول: id, invoice_number, invoice_date, supplier_id, warehouse_id, shipping_office_id, user_id, payment_type (cash, credit, partial), total_amount, discount_amount, tax_amount, shipping_fee, paid_amount, remaining_amount, due_date, status (draft, received, posted), payment_status (paid, partial, unpaid), notes, timestamps
+    - العلاقات: belongsTo(Supplier), belongsTo(Warehouse), belongsTo(ShippingOffice), hasMany(PurchaseInvoiceItem)
+
+16. جدول `purchase_invoice_items`:
+    - الحقول: id, purchase_invoice_id, product_id, unit_id, conversion_factor, quantity, unit_price, subtotal, notes, timestamps
+
+17. جدول `print_templates`:
+    - الحقول: id, name, document_type (sales_invoice, purchase_invoice, shift_receipt, product_barcode), page_format (a4, a5, thermal_80mm, barcode_label), is_default, settings (JSON), timestamps
+
+18. جدول `company_settings`:
+    - الحقول: id, company_name, tax_number, commercial_registry, phone, address, logo_path, currency, timestamps
+
+================================================================================
+5. المنطق البرمجي والمالي الحسابي (CORE BUSINESS & FINANCIAL ALGORITHMS)
+================================================================================
+
+--------------------------------------------------------------------------------
+5.1 خوارزمية الوحدات والتحويل التلقائي (Unit Conversions: Dozen / Carton / Piece)
+--------------------------------------------------------------------------------
+- وحدة الأساس في النظام هي "القطعة" (Base Unit = Piece = 1.0).
+- وحدة "الدستة" = 12 قطعة (Conversion Factor = 12.0).
+- وحدة "الكرتونة" = س قطعة (حسب إعداد الصنف).
+- منطق الحساب في شاشة البيع والمخزون:
+  1. عند اختيار العميل لوحدة "دستة" بسعر 120 ج.م، تكون الكمية المباعة 1 دستة.
+  2. يقوم النظام بتحويل الكمية إلى قطع أساسية: 1 × 12 = 12 قطعة، ويخصم 12 قطعة من رصيد المستودع.
+  3. إذا بيعت قطعة واحدة فقط تجزئة (0.0833 دستة أو 1 قطعة)، يقوم النظام بالآتي:
+     - رصيد المخزن الأصلي: 55 دستة (أي 55 × 12 = 660 قطعة).
+     - تم صرف: 1 قطعة.
+     - الرصيد المتبقي الحقيقي: 659 قطعة.
+     - دالة العرض الرياضية `formatStockBreakdown()` تقوم بتفكيك الرصيد إلى وحدات مقروءة للبائع:
+       659 ÷ 12 = 54 دستة ويتبقى 11 قطعة (54 دستة و 11 قطعة).
+- المعادلة البرمجية في JavaScript و PHP:
+  ```php
+  $totalPieces = $product->current_stock; // e.g. 659
+  $dozenFactor = 12;
+  $dozens = floor($totalPieces / $dozenFactor); // 54
+  $remPieces = $totalPieces % $dozenFactor; // 11
+  $formatted = "{$dozens} دستة و {$remPieces} قطعة ({$totalPieces} قطعة)";
+  ```
+
+--------------------------------------------------------------------------------
+5.2 خوارزمية تتبع المخزون والوارد أولاً يصرف أولاً (FIFO Inventory Depletion)
+--------------------------------------------------------------------------------
+- تتم إدارة التكلفة وحركة الصرف عبر الخدمة `App\Services\InventoryService::depleteStockFIFO()`:
+  1. عند ترحيل فاتورة مبيعات، يستعلم النظام عن الدفعات المخزنية المتاحة للصنف في المستودع المحدد (`inventory_batches`) المرتبة تصاعدياً حسب تاريخ الإنشاء أو تاريخ الورود (`created_at ASC`).
+  2. يقوم النظام باستهلاك الكميات من الدفعة الأقدم أولاً حتى تنفد، ثم ينتقل للدفعة التي تليها.
+  3. يتم تسجيل التكلفة الفعلية المستهلكة من كل دفعة لحساب تكلفة البضاعة المباعة (COGS) بدقة شديدة:
+     `Net Profit = (Selling Price * Quantity) - (Actual FIFO Unit Cost * Quantity) - Line Discounts`
+  4. يتم تحديث حقل `remaining_quantity` في كل دفعة وحفظ حركة مخزنية في `stock_movements`.
+
+--------------------------------------------------------------------------------
+5.3 نظام السداد المالي (نقدي / آجل بالكامل / دفع جزئي) والربط مع دفتر الأستاذ
+--------------------------------------------------------------------------------
+- خيارات السداد في الفواتير (المبيعات والمشتريات):
+  1. `cash` (نقدي بالكامل):
+     - المدفوع نقداً = كامل إجمالي الفاتورة.
+     - المتبقي الآجل = 0.00 ج.م.
+     - يتم قفل حقل تاريخ الاستحقاق وتوريد المبلغ مباشرة إلى خزينة الدرج (Shift Expected Balance).
+     - رصيد العميل لا يتغير.
+  2. `credit` (آجل بالكامل - مديونية):
+     - المدفوع نقداً = 0.00 ج.م.
+     - المتبقي الآجل = كامل إجمالي الفاتورة.
+     - يتم تفعيل حقل تاريخ الاستحقاق (`due_date`) وهو إلزامي.
+     - يضاف كامل المبلغ إلى رصيد مديونية العميل (`customer->current_balance += total`).
+     - لا تدخل أي نقدية لدرج الكاشير.
+  3. `partial` (دفع جزئي - مقدم نقدي + متبقي آجل):
+     - يقوم المستخدم بإدخال المبلغ المحصل نقداً في `paid_amount`.
+     - يحسب النظام تلقائياً: `remaining_amount = total_amount - paid_amount`.
+     - يدخل المبلغ المدفوع لدرج الكاشير، ويضاف المتبقي الآجل فقط إلى حساب العميل مع تحديد تاريخ الاستحقاق.
+
+--------------------------------------------------------------------------------
+5.4 نظام سقوف الائتمان للعملاء والتحذيرات المالية (Credit Limits & Ledger)
+--------------------------------------------------------------------------------
+- العميل النقدي العام ("عميل نقدي"):
+  - عميل معرف بالنظام لمبيعات المارة والجمهور.
+  - يمنع منعاً باتاً تسجيل أي بيع آجل أو جزئي عليه (إذا حاول المستخدم اختيار آجل تظهر رسالة منع مالي فورية).
+- العملاء المسجلون (تجار الجملة والموزعين):
+  - لكل عميل حد ائتماني أقصى (`credit_limit`).
+  - في شاشة المبيعات، وبمجرد اختيار العميل والتبديل إلى بيع آجل أو جزئي، يظهر شريط فوري يوضح:
+    الرصيد الحالي، الحد الائتماني، المتاح، وتنبيه أحمر إذا كانت الفاتورة ستتجاوز سقف الائتمان مع إيضاح قيمة التجاوز بدقة.
+
+--------------------------------------------------------------------------------
+5.5 دورة حياة ورديات الكاشير والدرج النقدي (Cashier Shifts Lifecycle)
+--------------------------------------------------------------------------------
+1. فتح الوردية (Open Shift):
+   - يدخل الكاشير رصيد بداية العهدة بالدرج (`opening_balance`) ويحدد المستودع.
+   - تنشأ وردية جديدة برقم كودي فريد وتصبح حالتها `open`.
+   - لا يمكن فتح أكثر من وردية لنفس الكاشير في نفس الوقت.
+2. تتبع العمليات أثناء الوردية:
+   - كافة المبيعات النقدية ترفع الرصيد الدفتري المتوقع تلقائياً:
+     `Expected Balance = Opening Float + Sum(Cash Sales Paid Amount) + Cash In - Cash Out`
+3. إغلاق الوردية والمطابقة النقدية (Shift Closure & Reconciliation):
+   - يضغط الكاشير أو المشرف على "قفل الشيفت".
+   - يظهر للمشرف الرصيد الدفتري المتوقع، ويطلب النظام إدخال الجرد الفعلي للنقدية بالدرج (`actual_closing_balance`).
+   - يقوم النظام فورياً بحساب الفرق:
+     * إذا كان الفعلي = الدفتري: تظهر شارة خضراء "مطابق تماماً".
+     * إذا كان الفعلي < الدفتري: تظهر شارة حمراء "عجز نقدية بمقدار س ج.م".
+     * إذا كان الفعلي > الدفتري: تظهر شارة زرقاء "فائض نقدية بمقدار س ج.م".
+   - تطبع الوردية تقرير بون حراري ملخص بكافة التفاصيل.
+
+--------------------------------------------------------------------------------
+5.6 صلاحيات رؤية صافي الأرباح وتعديل الأسعار (Role-Based Visibility)
+--------------------------------------------------------------------------------
+- صافي الربح (`net_profit`):
+  - يظهر فقط لمدير النظام (`admin`) ومدير الشركة (`company_manager`) عبر Gate مالي محمي.
+  - في شاشات عرض الفاتورة وتقارير المبيعات، يتم حجب وإخفاء أعمدة التكلفة وصافي الأرباح عن الكاشير والمستخدمين العاديين حماية لسرية أرباح الشركة وأسعار استيراد الصين.
+- تعديل أسعار البيع في الكاشير:
+  - محكوم بصلاحية `canEditPrice`. إذا كان المستخدم لا يملك الصلاحية، تكون خانة سعر الوحدة للقراءة فقط (`readonly`) لمنع تلاعب الكاشير في أسعار الأصناف.
+
+================================================================================
+6. الوحدات والوظائف الرئيسية بالتفصيل (DETAILED SYSTEM MODULES)
+================================================================================
+
+6.1 شاشة المبيعات ونقاط البيع السريعة (`/sales/create` & `/sales`):
+- شريط علوي ذكي لمعلومات الوردية ومطابقة رصيد الدرج المتوقع.
+- مربع البحث السريع وقراءة الباركود بالمسدس (اختصار F2 للتركيز الفوري).
+- زر ماسح الكاميرا الذكي للهواتف والتابلت لمسح الباركود عبر الكاميرا الخلفية.
+- مفتاح "المسح السريع": عند تفعيله، مسح نفس الباركود يزيد كمية الصنف مباشرة في السلة دون الحاجة لإدخال يدوي.
+- جدول بنود السلة:
+  * أحدث صنف يضاف يظهر في أول صف (Prepend) لسهولة المتابعة البصرية.
+  * مؤشر كمية (+ و -) متسع وسلس الاستخدام باللمس.
+  * اختيار وحدة القياس وتحديث السعر تلقائياً بناءً على فئة تسعير العميل وعامل التحويل.
+  * احتساب فوري للمجاميع والخصومات وصافي الفاتورة دون أي تأخير في المتصفح.
+- بطاقة السداد والتحصيل المالي (نقدي، آجل بالكامل، دفع جزئي) مع شريط تنبيهات الائتمان.
+- أزرار الحفظ السريع: حفظ كمسودة، وترحيل وصرف الفاتورة مباشرة (اختصار F9).
+- تعديل الفواتير (`/sales/{id}/edit`): للمدير والمفوضين لإلغاء الترحيل وإعادة الأصناف والتعديل ثم إعادة الحفظ.
+
+6.2 إدارة المخازن وحركات المخزون (`/warehouses` & `/stock-movements`):
+- تعدد المخازن والمستودعات (مخزن رئيسي، مخزن العتبة، معرض الموسكي، إلخ).
+- أنواع الحركات: إيداع وارد، صرف مبيعات، تحويل بين المخازن، تسوية جردية (عجز/زيادة).
+- كشف حركة الصنف التفصيلي (Stock Movement Ledger) مع الرصيد التراكمي وتاريخ الحركة ورقم المستند وطباعته بـ 3 مقاسات.
+- شاشة مراقبة نواقص المخزون والتنبيه عند الوصول لحد الطلب الأدنى.
+
+6.3 المشتريات والتوريدات (`/purchases` & `/suppliers`):
+- تسجيل فواتير الوارد وشحنات الاستيراد متعددة الأصناف.
+- ربط الفاتورة بمصانع الصين ومكاتب التخليص والشحن الدولي.
+- توليد دفعات المخزون الذرية (`inventory_batches`) لضمان تسلسل FIFO.
+- دعم السداد النقدي والآجل والجزئي، وتحديث رصيد المورد الدائن والمدين فورياً.
+- كشف حساب المورد وطباعة الفاتورة بمقاسات A4 و A5 و 80mm.
+
+6.4 العملاء وإدارة المديونيات (`/customers`):
+- دليل تجار الجملة والموزعين والتجزئة.
+- فئات التسعير المرتبطة بالعميل (تجزئة، جملة، موزع).
+- سقف الائتمان (Credit Limit) ومتابعة مديونيات العملاء وتواريخ الاستحقاق.
+- كشف حساب عميل مفصل (Customer Statement) وطباعته.
+
+6.5 الورديات والدرج النقدي (`/shifts`):
+- فتح الوردية برصيد بداية اليوم.
+- متابعة المبيعات النقدية اللحظية.
+- إغلاق الوردية والمطابقة الفعلية وكشف الفروقات النقدية.
+- طباعة إيصال إغلاق الشيفت بون حراري للتوثيق المالي.
+
+6.6 مصمم قوالب الطباعة التفاعلي (`/settings?tab=print_templates`):
+- محرك تصميم مباشر مع معاينة حية تفاعلية (Live Interactive Preview).
+- خيارات الهوية: إظهار الشعار، رفع شعار مخصص، تحديد حجم الشعار (صغير، متوسط، كبير).
+- تخصيص اللون الرئيسي للفاتورة عبر Color Picker.
+- تخصيص ترويسة الفاتورة (Header) وتذييلها (Footer)، وأرقام الهواتف، والسجل التجاري، والبطاقة الضريبية.
+- إظهار/إخفاء باركود الفاتورة وكود الاستجابة السريعة (QR Code).
+- تخصيص هوامش الورقة في ملفات الطباعة عبر CSS `@page`.
+
+6.7 إدارة المستخدمين والأدوار (`/users` & `/roles`):
+- نظام صلاحيات مرن مبني على Gates و Policies.
+- تقييد الوصول للشاشات والوظائف الحساسة (تعديل الأسعار، إغلاق الورديات، رؤية الأرباح، حذف الفواتير).
+
+================================================================================
+7. بنية الواجهة الأمامية ونظام التصميم (FRONTEND ARCHITECTURE)
+================================================================================
+- ملفات CSS منظمة في `resources/css/`:
+  * `tokens/variables.css`: رموز التصميم، المتغيرات، الألوان، وأنماط الكثافة (Comfortable / Enterprise).
+  * `tokens/themes.css`: دعم الوضع الليلي والنهاري الكامل (`data-theme="light"` و `data-theme="dark"`).
+  * `base/reset.css`: إعادة ضبط العناصر والخطوط وتفعيل خط Cairo.
+  * `layout/shell.css`: الهيكل العام للتطبيق، الشريط العلوي، القائمة الجانبية، والفوتر الثابت.
+  * `components/*.css`: أزرار، بطاقات، جداول، حقول إدخال، نوافذ منبثقة (Modals)، تنبيهات (Badges).
+  * `pages/*.css`: ملفات مخصصة لكل صفحة (sales.css, purchases.css, products.css, shifts.css, etc.).
+- ملفات JavaScript منظمة في `resources/js/`:
+  * `app.js`: الملف الرئيسي المستدعى في الترويسة مع Vite.
+  * `theme-init.js`: سكربت خفيف يتم تنفيذه قبل اكتمال تحميل الصفحة لمنع الوميض الأبيض (FOUC).
+  * `pages/sales.js`: محرك نقطة البيع والحسابات والباركود.
+  * `pages/purchases.js`: محرك فواتير المشتريات.
+  * `pages/print-templates.js`: محرك المعاينة الحية لمصمم الطباعة.
+- المكونات المنفصلة (Blade Components) في `resources/views/components/`:
+  * `<x-topbar>`: الشريط العلوي.
+  * `<x-sidebar>`: القائمة الجانبية المنسدلة.
+  * `<x-control-panel>`: شريط التحكم العلوي لكل شاشة مع مسار التنقل (Breadcrumbs) والأزرار.
+  * `<x-icon>`: محرك أيقونات SVG خفيف ومدمج (Lucide Icons).
+  * `<x-barcode-scanner-modal>`: نافذة فحص الباركود بالكاميرا.
+
+================================================================================
+8. منظومة الاختبارات الآلية وضمان الجودة (TESTING & QA)
+================================================================================
+- النظام محمي ومغطى بـ 250 اختبار آلي متكامل باستخدام Pest PHP:
+  * `BladeArchitectureSeparationTest`: يتحقق من عدم وجود أي inline script أو inline style أو inline event handlers في كافة قوالب Blade.
+  * `DeferredPaymentAndLedgerTest`: يتحقق من صحة حسابات البيع النقدي والآجل والجزئي وتحديث دفتر الأستاذ والمخزون.
+  * `PrintTemplateDesignerTest`: يتحقق من حفظ وتحديث إعدادات قوالب الطباعة والهوية والشعار والمعاينة.
+  * `ShiftManagementTest`: يتحقق من دورة حياة الوردية، منع فتح ورديتين، واحتساب الفروقات النقدية.
+  * `FIFOInventoryTest`: يتحقق من تسلسل صرف الدفعات وحساب تكلفة البضاعة المباعة.
+- لتشغيل الاختبارات:
+  ```bash
+  php artisan test
+  ```
+
+================================================================================
+9. خريطة المسارات وموجّهات العمليات (KEY ROUTES & CONTROLLERS)
+================================================================================
+- `/sales` -> SalesInvoiceController@index (قائمة فواتير المبيعات)
+- `/sales/create` -> SalesInvoiceController@create (شاشة نقطة البيع POS)
+- `/sales` (POST) -> SalesInvoiceController@store (حفظ وترحيل الفاتورة وصرف المخزون FIFO)
+- `/sales/{id}` -> SalesInvoiceController@show (عرض الفاتورة وتفاصيلها المالية)
+- `/sales/{id}/edit` -> SalesInvoiceController@edit (تعديل الفاتورة وإلغاء ترحيلها)
+- `/sales/{id}/print` -> SalesInvoiceController@print (طباعة الفاتورة A4/A5/Thermal)
+- `/purchases` -> PurchaseInvoiceController (إدارة فواتير الشراء والتوريد)
+- `/stock-movements` -> StockMovementController (سجل حركات المخزون)
+- `/products` -> ProductController (إدارة المنتجات والأصناف والباركود)
+- `/customers` -> CustomerController (دليل العملاء وكشوف الحسابات)
+- `/suppliers` -> SupplierController (دليل الموردين وحسابات الصين)
+- `/shifts` -> ShiftController (الورديات ومطابقة الخزينة)
+- `/settings` -> SettingsController (إعدادات النظام وقوالب الطباعة)
+
+================================================================================
+10. دليل التشغيل، البناء، والنشر (DEPLOYMENT & EXECUTION GUIDE)
+================================================================================
+1. تثبيت الحزم:
+   ```bash
+   composer install
+   npm install
+   ```
+2. تهيئة البيئة وقاعدة البيانات:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   php artisan migrate --seed
+   ```
+3. بناء وتجميع الواجهة الأمامية:
+   ```bash
+   npm run build
+   # أو أثناء التطوير:
+   npm run dev
+   ```
+4. تشغيل خادم التطوير:
+   ```bash
+   php artisan serve --host=127.0.0.1 --port=8000
+   ```
+5. تشغيل الاختبارات الآلية:
+   ```bash
+   php artisan test
+   ```
+
+================================================================================
+نهاية التوثيق الشامل لنظام KAYAN ERP
+هذا الملف معد وجاهز بالكامل لرفعه إلى ChatGPT أو أي نموذج ذكاء اصطناعي لتقديم سياق برمجي ومعماري وتجاري كامل عن المشروع.
+================================================================================

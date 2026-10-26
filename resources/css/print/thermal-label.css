@@ -1,0 +1,417 @@
+/* ==========================================================================
+   Kayan ERP — Thermal Sticker Label Printing Styles
+   Xprinter XP-233B & Continuous Thermal Rolls (38x25mm & 38x15mm)
+   Screen Preview Toolbar + High Precision @media print Rules
+   ========================================================================== */
+
+:root {
+    --label-width: 38mm;
+    --label-height: 25mm;
+}
+
+[data-size="38x25"] {
+    --label-width: 38mm;
+    --label-height: 25mm;
+}
+
+[data-size="38x15"] {
+    --label-width: 38mm;
+    --label-height: 15mm;
+}
+
+[data-size="40x20"] {
+    --label-width: 40mm;
+    --label-height: 20mm;
+}
+
+[data-size="50x25"] {
+    --label-width: 50mm;
+    --label-height: 25mm;
+}
+
+[data-size="50x30"] {
+    --label-width: 50mm;
+    --label-height: 30mm;
+}
+
+@page {
+    size: var(--label-width) var(--label-height);
+    margin: 0mm !important;
+}
+
+.thermal-label {
+    width: var(--label-width);
+    height: var(--label-height);
+    min-width: var(--label-width);
+    max-width: var(--label-width);
+    min-height: var(--label-height);
+    max-height: var(--label-height);
+}
+
+.thermal-label svg {
+    width: var(--label-width);
+    height: var(--label-height);
+    display: block;
+}
+
+.preview-title-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.preview-btn-group {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-preset-size {
+    padding: 4px 10px;
+    font-size: 11.5px;
+    text-decoration: none;
+}
+
+.btn-preset-settings {
+    padding: 4px 10px;
+    font-size: 11.5px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.preview-badge-qty {
+    font-weight: 700;
+    color: #166534;
+    background: #dcfce7;
+}
+
+.btn-inline-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.preview-tips-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.preview-tips-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+}
+
+.preview-tips-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    color: #1e40af;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Cairo', Tahoma, sans-serif;
+    background-color: #f1f5f9;
+    color: #1e293b;
+    direction: rtl;
+}
+
+.preview-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #ffffff;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.preview-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.preview-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.preview-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.preview-badge-primary {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.preview-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn,
+.print-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.btn-primary,
+.print-btn-primary {
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+.btn-primary:hover,
+.print-btn-primary:hover {
+    background: #4338ca;
+}
+
+.btn-secondary,
+.print-btn-secondary {
+    background: #ffffff;
+    color: #334155;
+    border-color: #cbd5e1;
+}
+
+.btn-secondary:hover,
+.print-btn-secondary:hover {
+    background: #f8fafc;
+}
+
+.preview-tips {
+    max-width: 900px;
+    margin: 16px auto 0;
+    padding: 10px 16px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #1e40af;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.roll-stage {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 0 16px;
+}
+
+.roll-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    padding: 24px 0;
+}
+
+.label-card-preview {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.label-card-preview .card-index {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #334155;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.thermal-label {
+    background: #ffffff;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.thermal-label svg {
+    display: block;
+}
+
+/* Toast Notification on Print Label Screen */
+.erp-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 99999;
+    background-color: #0f172a;
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    font-size: 13.5px;
+    font-weight: 600;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    animation: toastSlideUp 0.2s ease;
+}
+
+.erp-toast.hidden {
+    display: none !important;
+}
+
+.erp-toast-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.erp-toast-message {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+@keyframes toastSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Print Overrides */
+@media print {
+    *, *::before, *::after {
+        box-sizing: border-box !important;
+    }
+
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .roll-stage {
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .roll-grid {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .label-card-preview {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        display: block !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        height: var(--label-height) !important;
+        max-height: var(--label-height) !important;
+        width: var(--label-width) !important;
+        overflow: hidden !important;
+        line-height: 0 !important;
+        font-size: 0 !important;
+    }
+
+    .label-card-preview:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+    }
+
+    .label-card-preview .card-index {
+        display: none !important;
+    }
+
+    .thermal-label {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-sizing: border-box !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: #ffffff !important;
+        width: var(--label-width) !important;
+        height: var(--label-height) !important;
+    }
+
+    .thermal-label svg {
+        display: block !important;
+    }
+}

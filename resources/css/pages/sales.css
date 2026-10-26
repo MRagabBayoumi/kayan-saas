@@ -1,0 +1,677 @@
+/* ==========================================================================
+   Kayan ERP — High-Speed Sales & Point of Sale (POS) Styles
+   Touch-Friendly Steppers, Scan Animations, Compact Metas & Fast Navigation
+   ========================================================================== */
+
+/* Flash Animation when re-scanning an existing item */
+@keyframes posItemUpdated {
+    0% {
+        background-color: var(--primary-soft, rgba(16, 185, 129, 0.25));
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.sales-item-row.item-updated {
+    animation: posItemUpdated 0.8s ease-out;
+}
+
+/* POS Top Meta Strip */
+.pos-meta-strip {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md, 8px);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-xs);
+}
+
+.pos-meta-grid {
+    display: grid;
+    grid-template-columns: minmax(180px, 1.4fr) minmax(150px, 1fr) minmax(140px, 1fr) minmax(130px, 1fr) minmax(110px, 0.8fr);
+    gap: 12px;
+    align-items: flex-end;
+}
+
+@media (max-width: 1024px) {
+    .pos-meta-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .pos-meta-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Stock Availability Badge */
+.pos-stock-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pos-stock-badge.in-stock {
+    background-color: var(--success-soft);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+}
+
+.pos-stock-badge.low-stock {
+    background-color: var(--warning-soft);
+    color: var(--warning-text);
+    border: 1px solid var(--warning-border);
+}
+
+.pos-stock-badge.out-of-stock {
+    background-color: var(--danger-soft);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+}
+
+/* Fast Scan Mode Switch */
+.pos-fast-scan-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: var(--border-radius-sm, 6px);
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface-alt);
+    color: var(--text-main);
+    transition: all 0.15s ease;
+}
+
+.pos-fast-scan-badge.active {
+    background: var(--success-soft);
+    border-color: var(--success);
+    color: var(--success-text);
+}
+
+/* Quantity Stepper in Sales Table */
+.pos-qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm, 6px);
+    background: var(--bg-surface);
+    overflow: hidden;
+    height: 34px;
+    width: 120px;
+}
+
+.pos-qty-btn {
+    width: 28px;
+    height: 100%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-surface-alt);
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-main);
+    transition: background 0.1s ease;
+    user-select: none;
+}
+
+.pos-qty-btn:hover {
+    background: var(--bg-hover);
+}
+
+.pos-qty-btn:active {
+    background: var(--bg-active);
+}
+
+.pos-qty-input {
+    flex: 1;
+    min-width: 58px;
+    width: 64px;
+    height: 100%;
+    border: none !important;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    background: transparent;
+    padding: 0 4px;
+    color: var(--text-main);
+    -moz-appearance: textfield;
+}
+
+.pos-qty-input::-webkit-inner-spin-button,
+.pos-qty-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.pos-qty-input:focus {
+    outline: none;
+    background: var(--primary-soft);
+}
+
+/* POS Sales Items Table Cells & Inputs Optimization */
+#salesItemsTable th {
+    padding: 9px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#salesItemsTable td {
+    padding: 6px 8px;
+    vertical-align: middle;
+}
+
+.sales-item-row .erp-input {
+    height: 34px;
+    padding: 0 8px;
+    font-size: 12.5px;
+    border-radius: var(--border-radius-sm, 6px);
+}
+
+.sales-item-row .row-unit-select {
+    min-width: 120px;
+    padding-right: 8px;
+    padding-left: 20px;
+}
+
+.sales-item-row .row-price {
+    min-width: 95px;
+    font-weight: 700;
+}
+
+.sales-item-row .row-discount {
+    min-width: 85px;
+    font-weight: 700;
+}
+
+.sales-item-row .row-subtotal-text {
+    min-width: 95px;
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+
+/* Quick Bar Button */
+.pos-commit-btn {
+    height: 36px;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+/* Cashier Action Bar */
+.pos-cashier-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md, 8px);
+    margin-top: 16px;
+    box-shadow: var(--shadow-xs);
+}
+
+@media (max-width: 640px) {
+    .pos-cashier-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* POS 5-Card Centered Summary Grid (Spans full width evenly) */
+[data-page="sales-create"] .purchases-summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin: 16px 0 !important;
+}
+
+@media (max-width: 1200px) {
+    [data-page="sales-create"] .purchases-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    [data-page="sales-create"] .purchases-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    [data-page="sales-create"] .purchases-summary-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* POS Quick Entry Row 2: 6 Columns with Search Box Prominence */
+[data-page="sales-create"] .purchases-quick-row-2 {
+    display: grid !important;
+    grid-template-columns: minmax(320px, 3.5fr) minmax(110px, 1.1fr) minmax(100px, 1fr) minmax(110px, 1.1fr) minmax(100px, 1fr) auto !important;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+@media (max-width: 1024px) {
+    [data-page="sales-create"] .purchases-quick-row-2 {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+@media (max-width: 640px) {
+    [data-page="sales-create"] .purchases-quick-row-2 {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Shift Info Banner on POS screen */
+.pos-shift-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md, 8px);
+    margin-bottom: 16px;
+}
+
+.pos-shift-banner.no-shift {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.pos-shift-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pos-shift-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ==========================================================================
+   Step 1: POS Hero Search Input & Dropdown Autocomplete Styling
+   ========================================================================== */
+[data-page="sales-create"] .erp-hero-search-input,
+#quickProductInput {
+    height: 44px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    background: var(--bg-surface) !important;
+    border: 1.5px solid var(--border-color) !important;
+    border-radius: var(--border-radius-md, 8px) !important;
+    color: var(--text-main) !important;
+    padding: 0 16px !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.15s ease-in-out !important;
+}
+
+[data-page="sales-create"] .erp-hero-search-input:focus,
+#quickProductInput:focus {
+    border-color: var(--primary) !important;
+    background: var(--bg-surface) !important;
+    box-shadow: 0 0 0 3px var(--primary-soft), 0 2px 4px rgba(0, 0, 0, 0.08) !important;
+    outline: none !important;
+}
+
+/* Ensure quick entry containers never clip the absolute dropdown */
+[data-page="sales-create"] .purchases-quick-entry,
+[data-page="sales-edit"] .purchases-quick-entry,
+[data-page="sales-create"] .purchases-quick-entry-body,
+[data-page="sales-edit"] .purchases-quick-entry-body,
+[data-page="sales-create"] .purchases-quick-row-2,
+[data-page="sales-edit"] .purchases-quick-row-2,
+[data-page="sales-create"] .erp-form-group.relative,
+[data-page="sales-edit"] .erp-form-group.relative {
+    overflow: visible !important;
+}
+
+[data-page="sales-create"] #quickSearchResults.purchases-autocomplete-dropdown,
+[data-page="sales-edit"] #quickSearchResults.purchases-autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    min-width: 500px;
+    max-height: 340px;
+    overflow-y: auto;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--border-radius-md, 8px);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+    z-index: 9999 !important;
+}
+
+.pos-suggestion-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    background: var(--bg-surface);
+    transition: background-color 0.12s ease, border-right 0.12s ease;
+}
+
+.pos-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.pos-suggestion-item:hover,
+.pos-suggestion-item.active,
+.pos-suggestion-item.bg-selected {
+    background-color: var(--primary-soft) !important;
+    border-right: 4px solid var(--primary);
+}
+
+.pos-suggestion-item .item-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.pos-suggestion-item .item-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+}
+
+.pos-suggestion-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.pos-suggestion-badge.stock-in {
+    background: var(--success-soft);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+}
+
+.pos-suggestion-badge.stock-low {
+    background: var(--warning-soft);
+    color: var(--warning-text);
+    border: 1px solid var(--warning-border);
+}
+
+.pos-suggestion-badge.stock-out {
+    background: var(--danger-soft);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+}
+
+.pos-suggestion-price {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   Step 7: Dark & Light Mode Theme Adaptations for Sales & POS
+   ========================================================================== */
+[data-theme="dark"] [data-page="sales-create"] .pos-meta-strip,
+[data-theme="dark"] [data-page="sales-create"] .purchases-table-container,
+[data-theme="dark"] [data-page="sales-create"] .pos-cashier-actions,
+[data-theme="dark"] [data-page="sales-create"] .pos-shift-banner {
+    background-color: var(--bg-surface);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .purchases-summary-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .purchases-summary-label {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .purchases-summary-value {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .purchases-summary-unit {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .purchases-table thead th {
+    background-color: var(--bg-surface-alt);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .purchases-table tbody tr {
+    background-color: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .purchases-table tbody tr:hover {
+    background-color: var(--bg-hover);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .pos-qty-stepper {
+    background-color: var(--bg-surface-alt);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .pos-qty-btn {
+    background-color: var(--bg-surface-alt);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .pos-qty-btn:hover {
+    background-color: var(--bg-hover);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .pos-qty-input {
+    background-color: transparent;
+    color: var(--text-main);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .erp-modal-container {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .erp-modal-header,
+[data-theme="dark"] [data-page="sales-create"] .erp-modal-footer {
+    background-color: var(--bg-surface-alt);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] [data-page="sales-create"] .shift-calc-box {
+    background-color: var(--bg-surface-alt);
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+
+/* Payment Method & Credit System */
+.payment-method-toggle-group {
+    display: inline-flex;
+    background-color: var(--bg-surface-alt);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md, 8px);
+    padding: 4px;
+    gap: 6px;
+}
+
+.payment-toggle-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    border-radius: var(--border-radius-sm, 6px);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.payment-toggle-btn input[type="radio"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    pointer-events: none;
+}
+
+.payment-toggle-btn:hover {
+    color: var(--text-main);
+    background-color: var(--bg-hover);
+}
+
+.payment-toggle-btn.active[data-type="cash"] {
+    background-color: var(--success);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+}
+
+.payment-toggle-btn.active[data-type="credit"] {
+    background-color: var(--danger);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+}
+
+.payment-toggle-btn.active[data-type="partial"] {
+    background-color: var(--warning);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+}
+
+.pos-payment-card {
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    border-radius: var(--border-radius-md, 8px);
+    margin-top: 16px;
+    box-shadow: var(--shadow-xs);
+    overflow: hidden;
+}
+
+.pos-payment-card .erp-card-header {
+    background: var(--bg-surface-alt);
+    border-bottom: 1px solid var(--border-color);
+}
+
+#creditLimitAlertBox.warning {
+    background-color: var(--warning-soft);
+    border-color: var(--warning-border);
+    color: var(--warning-text);
+}
+
+#creditLimitAlertBox.danger {
+    background-color: var(--danger-soft);
+    border-color: var(--danger-border);
+    color: var(--danger-text);
+}
+
+#creditLimitAlertBox.info {
+    background-color: var(--primary-soft);
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+
+/* POS Quick Unit Switcher (Piece / Dozen) */
+.pos-unit-switcher {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-surface-alt, #f8fafc);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--border-radius-sm, 6px);
+    padding: 2px;
+    gap: 3px;
+}
+
+.pos-unit-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted, #64748b);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    line-height: 1.35;
+}
+
+.pos-unit-pill:hover {
+    color: var(--text-main, #0f172a);
+    background: var(--bg-hover, rgba(0, 0, 0, 0.05));
+}
+
+.pos-unit-pill.active {
+    background: var(--primary, #0284c7) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.pos-unit-pill.active.dozen {
+    background: var(--warning, #d97706) !important;
+    color: #ffffff !important;
+}
+
+.pos-dozen-helper-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--warning-soft, rgba(245, 158, 11, 0.15));
+    color: var(--warning-text, #92400e);
+    border: 1px solid var(--warning-border, rgba(245, 158, 11, 0.3));
+}

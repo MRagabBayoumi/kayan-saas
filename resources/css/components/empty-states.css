@@ -1,0 +1,40 @@
+/* ==========================================================================
+   Kayan ERP — Empty States & Placeholder Components
+   Icon Circle, Title, Description & Action Prompts
+   ========================================================================== */
+
+.erp-empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.erp-empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--bg-hover);
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+
+.erp-empty-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.erp-empty-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    max-width: 360px;
+    margin-bottom: 14px;
+}

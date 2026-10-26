@@ -1,0 +1,385 @@
+/* ==========================================================================
+   Kayan ERP — Finance & Accounting Module Styles
+   Treasuries, Cashier Drawer, Supplier Payments & Expenses
+   ========================================================================== */
+
+.finance-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.finance-kpi-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.finance-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.finance-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.finance-kpi-icon.primary {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.finance-kpi-icon.info {
+    background: var(--info-soft);
+    color: var(--info);
+}
+
+.finance-kpi-icon.warning {
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+
+.finance-kpi-icon.success {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.finance-kpi-icon.danger {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.finance-kpi-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.finance-kpi-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.finance-kpi-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.finance-kpi-sub {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+
+/* Treasury Cards Grid */
+.treasury-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.treasury-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    position: relative;
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.treasury-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-border);
+}
+
+.treasury-card-badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: var(--primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-bottom-right-radius: 8px;
+}
+
+.treasury-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.treasury-card-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.treasury-card-balance {
+    text-align: left;
+}
+
+.treasury-balance-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.treasury-balance-val {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.treasury-balance-val.positive {
+    color: var(--success);
+}
+
+.treasury-balance-val.negative {
+    color: var(--danger);
+}
+
+.treasury-card-meta {
+    background: var(--bg-surface-alt);
+    border-radius: var(--border-radius-sm);
+    padding: 8px 12px;
+    margin: 10px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.treasury-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border-light);
+    padding-top: 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Filter Bar for Finance Pages */
+.finance-filter-bar {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+}
+
+.finance-filter-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.finance-filter-input {
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: var(--bg-surface-alt);
+    color: var(--text-main);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.finance-filter-input:focus {
+    border-color: var(--primary);
+    background: var(--bg-surface);
+}
+
+/* Category Chips for Expenses */
+.category-chips-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.category-chip {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 6px 12px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.category-chip-name {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.category-chip-amount {
+    font-weight: 700;
+    color: var(--danger);
+}
+
+/* ==========================================================================
+   Chart of Accounts (دليل الحسابات الشجري الهرمي)
+   ========================================================================== */
+
+.coa-tree-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.coa-header-row {
+    background: var(--bg-surface-alt);
+    border-bottom: 2px solid var(--border-color);
+    padding: 12px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Tree Rows */
+.coa-node-row {
+    position: relative;
+    border-bottom: 1px solid rgba(var(--border-rgb, 226, 232, 240), 0.5);
+    transition: background-color 0.15s ease;
+}
+
+.coa-node-row:hover {
+    background-color: var(--bg-surface-alt);
+}
+
+.coa-node-row.level-1 {
+    background-color: rgba(var(--primary-rgb, 113, 75, 103), 0.03);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.coa-node-row.level-1:hover {
+    background-color: rgba(var(--primary-rgb, 113, 75, 103), 0.06);
+}
+
+.coa-node-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 16px;
+    font-size: 13px;
+    gap: 12px;
+}
+
+/* Children indentation container with tree guide line */
+.coa-children {
+    position: relative;
+    margin-right: 22px;
+    border-right: 2px dashed rgba(var(--primary-rgb, 113, 75, 103), 0.2);
+    transition: all 0.2s ease-in-out;
+}
+
+.coa-children .coa-node-row::before {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    width: 14px;
+    height: 1px;
+    border-top: 1px dashed rgba(var(--primary-rgb, 113, 75, 103), 0.35);
+}
+
+/* Node Toggle Buttons */
+.coa-toggle-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.coa-toggle-btn:hover {
+    background: var(--primary);
+    color: #FFFFFF;
+    border-color: var(--primary);
+}
+
+.coa-toggle-btn.is-collapsed .erp-icon {
+    transform: rotate(90deg);
+}
+
+/* Account Code Pill */
+.coa-code-pill {
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.coa-code-pill:hover {
+    border-color: var(--primary);
+    background: var(--bg-surface);
+}
+
+/* Type Accent Strips */
+.coa-type-asset { border-right: 4px solid #0284c7 !important; }
+.coa-type-liability { border-right: 4px solid #f59e0b !important; }
+.coa-type-equity { border-right: 4px solid #6366f1 !important; }
+.coa-type-revenue { border-right: 4px solid #10b981 !important; }
+.coa-type-expense { border-right: 4px solid #f43f5e !important; }
+

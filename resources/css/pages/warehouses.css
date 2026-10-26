@@ -1,0 +1,108 @@
+/* Kayan ERP — Warehouses Page Styles */
+.warehouses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.warehouse-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.warehouse-card.is-default {
+    border-top: 3px solid var(--primary);
+}
+
+.warehouse-card:not(.is-default) {
+    border-top: 3px solid var(--border-color);
+}
+
+.warehouse-card-body {
+    padding: 16px;
+}
+
+.warehouse-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.warehouse-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.warehouse-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.warehouse-code {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.warehouse-location {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.warehouse-notes {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0 0 12px 0;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border-light);
+    padding: 8px 10px;
+    border-radius: 6px;
+}
+
+.warehouse-stats {
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border-light);
+    padding: 10px 14px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.warehouse-card-footer {
+    border-top: 1px solid var(--border-light);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    background: var(--bg-surface-alt);
+}
+
+.warehouse-empty-state {
+    grid-column: 1 / -1;
+    padding: 40px;
+    text-align: center;
+}
+
+.warehouse-modal-body {
+    padding: 20px;
+}
+
+.warehouse-modal-footer {
+    padding: 14px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: var(--bg-surface-alt);
+    border-top: 1px solid var(--border-light);
+}

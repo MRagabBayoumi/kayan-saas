@@ -1,0 +1,72 @@
+/* ==========================================================================
+   Kayan ERP — Shipping Offices & Freight Logistics Styles
+   ========================================================================== */
+
+.shipping-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.shipping-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.shipping-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.shipping-card-body {
+    padding: 18px;
+}
+
+.shipping-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.shipping-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 4px 0;
+}
+
+.shipping-contact {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.shipping-rate-box {
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-sm);
+    padding: 10px 14px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.shipping-card-footer {
+    border-top: 1px solid var(--border-light);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    background: var(--bg-surface-alt);
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+}

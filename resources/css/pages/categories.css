@@ -1,0 +1,12 @@
+/* Kayan ERP — Categories Management Page Styles */
+.categories-layout-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .categories-layout-grid {
+        grid-template-columns: 1fr;
+    }
+}

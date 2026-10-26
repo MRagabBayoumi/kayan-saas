@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل ومخطط استكشاف الأعطال ونموذج التعديلات — Kayan ERP</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Fira+Code:wght@500;600&display=swap');
+
+        @page {
+            size: A4 portrait;
+            margin: 10mm 12mm 12mm 12mm;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+            background-color: #ffffff;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            font-size: 11pt;
+            line-height: 1.5;
+            direction: rtl;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header Bar */
+        .doc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px solid #0284c7;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .brand-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            padding: 4px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .brand-text h1 {
+            margin: 0;
+            font-size: 16pt;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .brand-text p {
+            margin: 2px 0 0 0;
+            font-size: 9pt;
+            color: #64748b;
+        }
+
+        .doc-meta {
+            text-align: left;
+            font-size: 8.5pt;
+            color: #475569;
+            line-height: 1.4;
+        }
+
+        .badge-live {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        /* Section Headings */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border-right: 4px solid #0284c7;
+            padding: 6px 12px;
+            margin: 16px 0 10px 0;
+            font-size: 12pt;
+            font-weight: 800;
+            color: #0f172a;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .section-title .num {
+            background: #0284c7;
+            color: #ffffff;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+
+        /* Template Callout Box */
+        .template-box {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .template-box-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 800;
+            color: #166534;
+            font-size: 11pt;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #86efac;
+            padding-bottom: 6px;
+        }
+
+        .template-item {
+            margin-bottom: 6px;
+            font-size: 9.5pt;
+            color: #14532d;
+        }
+
+        .template-item strong {
+            color: #0f172a;
+            display: inline-block;
+            min-width: 140px;
+        }
+
+        /* Examples Grid */
+        .examples-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .example-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-top: 3px solid #0284c7;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 8.5pt;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .example-card.purple { border-top-color: #8b5cf6; }
+        .example-card.amber { border-top-color: #f59e0b; }
+
+        .example-title {
+            font-weight: 800;
+            font-size: 9.5pt;
+            margin-bottom: 6px;
+            color: #0f172a;
+        }
+
+        .example-row {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .example-row strong {
+            color: #475569;
+        }
+
+        /* Tips Box */
+        .tips-box {
+            background: #fffbeb;
+            border-right: 4px solid #f59e0b;
+            padding: 8px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 9pt;
+            color: #92400e;
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .tips-box ul {
+            margin: 4px 0 0 0;
+            padding-right: 20px;
+        }
+
+        .tips-box li {
+            margin-bottom: 2px;
+        }
+
+        /* Page Break */
+        .page-break {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        /* Troubleshooting Flowchart (Pure CSS Grid) */
+        .flowchart-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .flow-start {
+            background: #0f172a;
+            color: #ffffff;
+            text-align: center;
+            padding: 8px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 10.5pt;
+            width: 260px;
+            margin: 0 auto;
+            border: 2px solid #38bdf8;
+        }
+
+        .branches-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .branch-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 8px 6px;
+            display: flex;
+            flex-direction: column;
+            font-size: 8pt;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        .branch-header {
+            font-weight: 800;
+            font-size: 8.5pt;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #cbd5e1;
+            margin-bottom: 6px;
+            text-align: center;
+            border-radius: 3px;
+            padding: 3px;
+        }
+
+        .b-ui { border-top: 4px solid #3b82f6; }
+        .b-ui .branch-header { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+
+        .b-auth { border-top: 4px solid #8b5cf6; }
+        .b-auth .branch-header { background: #ede9fe; color: #5b21b6; border-color: #ddd6fe; }
+
+        .b-back { border-top: 4px solid #ef4444; }
+        .b-back .branch-header { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+
+        .b-stock { border-top: 4px solid #10b981; }
+        .b-stock .branch-header { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+
+        .b-print { border-top: 4px solid #f59e0b; }
+        .b-print .branch-header { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+
+        .flow-step {
+            background: #ffffff;
+            border: 1px dashed #cbd5e1;
+            padding: 4px 6px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .flow-step strong {
+            display: block;
+            color: #0f172a;
+            font-size: 8pt;
+        }
+
+        .flow-step span {
+            color: #64748b;
+            font-size: 7.5pt;
+        }
+
+        /* Architecture Table */
+        table.arch-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+            font-size: 8.5pt;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        table.arch-table th {
+            background: #0f172a;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 6px 10px;
+            text-align: right;
+            border: 1px solid #1e293b;
+        }
+
+        table.arch-table td {
+            padding: 6px 10px;
+            border: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        table.arch-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .code-tag {
+            font-family: 'Fira Code', monospace;
+            background: #f1f5f9;
+            color: #0f172a;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 8pt;
+            direction: ltr;
+            display: inline-block;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Diagnostic Tree Cards */
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .scenario-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 8.5pt;
+        }
+
+        .scenario-card h4 {
+            margin: 0 0 6px 0;
+            color: #0f172a;
+            font-size: 9pt;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .scenario-tree {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .scenario-tree li {
+            position: relative;
+            padding-right: 14px;
+            margin-bottom: 4px;
+            line-height: 1.35;
+        }
+
+        .scenario-tree li::before {
+            content: "•";
+            position: absolute;
+            right: 2px;
+            color: #0284c7;
+            font-weight: bold;
+        }
+
+        /* CLI Cheat Sheet */
+        .cli-box {
+            background: #0f172a;
+            color: #f8fafc;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-family: 'Fira Code', monospace;
+            font-size: 8pt;
+            direction: ltr;
+            text-align: left;
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            line-height: 1.5;
+        }
+
+        .cli-comment {
+            color: #94a3b8;
+            font-family: 'Cairo', sans-serif;
+            direction: rtl;
+            text-align: right;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .cli-cmd {
+            color: #38bdf8;
+            font-weight: 600;
+            display: block;
+        }
+
+        /* Footer */
+        .doc-footer {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 8px;
+            text-align: center;
+            font-size: 8pt;
+            color: #94a3b8;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- PAGE 1: SMART REQUEST TEMPLATE & EXAMPLES -->
+    <header class="doc-header">
+        <div class="brand-info">
+            <svg class="brand-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+                <image href="data:image/png;base64,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" width="200" height="200" />
+            </svg>
+            <div class="brand-text">
+                <h1>نظام كَيان لإدارة المؤسسات (Kayan ERP)</h1>
+                <p>الدليل الشامل: قالب طلب التعديلات الذكي + مخطط استكشاف الأعطال وهندسة النظام</p>
+            </div>
+        </div>
+        <div class="doc-meta">
+            <span class="badge-live">نسخة مرجعية للمطور والمستخدم</span><br>
+            <strong>بيئة التشغيل:</strong> PHP 8.5 (Herd) | Laravel 12<br>
+            <strong>محرك الطباعة:</strong> Blade Engine + Python ESC/POS
+        </div>
+    </header>
+
+    <!-- SECTION 1: THE SMART REQUEST TEMPLATE -->
+    <div class="section-title">
+        <span class="num">1</span>
+        <span>«قالب الطلب الذكي» لإرسال وتحديد التعديلات البرمجية بدقة</span>
+    </div>
+
+    <div class="template-box">
+        <div class="template-box-header">
+            <span>📋 قالب إرسال الطلب (انسخه أو املأه عند طلب أي تعديل):</span>
+            <span style="font-size:8.5pt; font-weight:normal;">يضمن التعديل الدقيق في ثوانٍ دون تداخل مع شاشات أخرى</span>
+        </div>
+        <div class="template-item">
+            <strong>1. الصفحة أو الرابط:</strong>
+            <span>(مثال: صفحة المنتجات <span class="code-tag">/products</span> أو نقطة البيع <span class="code-tag">/sales/create</span> أو الإعدادات <span class="code-tag">/settings</span>)</span>
+        </div>
+        <div class="template-item">
+            <strong>2. العنصر المطلوب:</strong>
+            <span>(مثال: زر الحذف في جدول الأصناف / إجمالي الفاتورة / شعار الترويسة / خيار الخصم)</span>
+        </div>
+        <div class="template-item">
+            <strong>3. الوضع الحالي:</strong>
+            <span>(ماذا يحدث الآن بالتحديد؟ مثال: الزر لا يستجيب، أو ينقلني لصفحة أخرى، أو الحساب غير دقيق، أو يظهر خطأ 500)</span>
+        </div>
+        <div class="template-item">
+            <strong>4. التعديل المطلوب:</strong>
+            <span>(ما هو الشكل أو السلوك الذي تريده بالضبط؟ مثال: إضافة زر طباعة، أو احتساب الخصم كنسبة مئوية، أو إضافة أيقونة)</span>
+        </div>
+    </div>
+
+    <!-- EXAMPLES OF THE TEMPLATE IN ACTION -->
+    <div style="font-weight: 800; font-size: 10pt; color: #1e293b; margin-bottom: 6px;">
+        💡 أمثلة عملية توضح كيفية استخدام القالب في مختلف أجزاء النظام:
+    </div>
+
+    <div class="examples-grid">
+        <!-- Example 1 -->
+        <div class="example-card">
+            <div class="example-title">🎨 مثال 1: تعديل واجهة وأزرار (UI)</div>
+            <div class="example-row"><strong>الصفحة:</strong> نواقص المخزون (<span class="code-tag">/inventory/low-stock</span>)</div>
+            <div class="example-row"><strong>العنصر:</strong> عمود "الإجراءات" في جدول النواقص.</div>
+            <div class="example-row"><strong>الوضع الحالي:</strong> يوجد فقط زر "إيداع مخزني".</div>
+            <div class="example-row"><strong>المطلوب:</strong> إضافة أيقونة عين (<span class="code-tag">eye</span>) تنقل مباشرة لصفحة تفاصيل الصنف (<span class="code-tag">products.show</span>).</div>
+        </div>
+
+        <!-- Example 2 -->
+        <div class="example-card purple">
+            <div class="example-title">⚙️ مثال 2: تعديل حسابات ومنطق (Logic)</div>
+            <div class="example-row"><strong>الصفحة:</strong> إنشاء فاتورة شراء (<span class="code-tag">/purchases/create</span>)</div>
+            <div class="example-row"><strong>العنصر:</strong> حقل الخصم وإجمالي الفاتورة الصافي.</div>
+            <div class="example-row"><strong>الوضع الحالي:</strong> الخصم يُحسب كقيمة نقدية ثابتة فقط.</div>
+            <div class="example-row"><strong>المطلوب:</strong> خيار لتطبيق الخصم كنسبة مئوية (%) أو قيمة (ج.م) مع تحديث الإجمالي تلقائياً.</div>
+        </div>
+
+        <!-- Example 3 -->
+        <div class="example-card amber">
+            <div class="example-title">🖨️ مثال 3: تعديل في مخرجات الطباعة</div>
+            <div class="example-row"><strong>الصفحة:</strong> طباعة فاتورة المبيعات الحرارية 80 مم.</div>
+            <div class="example-row"><strong>العنصر:</strong> ترويسة الفاتورة وتذييل الباركود.</div>
+            <div class="example-row"><strong>الوضع الحالي:</strong> يظهر اسم الشركة دون رقم الهاتف.</div>
+            <div class="example-row"><strong>المطلوب:</strong> إضافة رقم الهاتف من إعدادات الشركة تحت الاسم، وإخفاء الباركود إذا كانت ملغاة.</div>
+        </div>
+    </div>
+
+    <!-- QUICK TIPS BOX -->
+    <div class="tips-box">
+        <strong>⚡ إرشادات سريعة لسرعة الإنجاز والوصول الفوري للمشكلة:</strong>
+        <ul>
+            <li><strong>رابط المتصفح (URL):</strong> مجرد ذكرك للرابط (مثل <span class="code-tag">/settings</span> أو <span class="code-tag">/shifts</span>) يحدد ملف الـ View والـ Controller فوراً.</li>
+            <li><strong>رسائل الخطأ:</strong> إذا ظهرت أي رسالة خطأ بالإنجليزية على الشاشة، انسخ أول سطرين منها فهما يحددان رقم السطر والسبب بدقة 100%.</li>
+            <li><strong>تحديد النطاق (Scope):</strong> وضّح إن كان التعديل خاصاً بشاشة معينة فقط (مثال: "في جدول المنتجات فقط وليس العملاء").</li>
+        </ul>
+    </div>
+
+    <!-- SECTION 2: ARCHITECTURE MAPPING TABLE -->
+    <div class="section-title">
+        <span class="num">2</span>
+        <span>خريطة طبقات النظام والملفات المسؤولة عنها (Architecture Mapping)</span>
+    </div>
+
+    <table class="arch-table">
+        <thead>
+            <tr>
+                <th style="width: 18%;">الطبقة (Layer)</th>
+                <th style="width: 32%;">المسار في مجلد المشروع</th>
+                <th style="width: 50%;">الوظيفة والمكونات التابعة</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>الروابط (Routes)</strong></td>
+                <td><span class="code-tag">routes/web.php</span></td>
+                <td>توجيه روابط المتصفح والـ HTTP Verbs (GET, POST, PUT, DELETE) والميدلوير.</td>
+            </tr>
+            <tr>
+                <td><strong>المتحكمات (Controllers)</strong></td>
+                <td><span class="code-tag">app/Http/Controllers/</span></td>
+                <td>استقبال الطلبات، التحقق من الحقول (<span class="code-tag">validate</span>)، والربط بين الـ Views والخدمات.</td>
+            </tr>
+            <tr>
+                <td><strong>منطق الأعمال (Services)</strong></td>
+                <td><span class="code-tag">app/Services/</span></td>
+                <td>العمليات الدقيقة: <span class="code-tag">InventoryService</span> (حسابات FIFO)، <span class="code-tag">PrintTemplateService</span>.</td>
+            </tr>
+            <tr>
+                <td><strong>قاعدة البيانات (Models)</strong></td>
+                <td><span class="code-tag">app/Models/</span> &amp; <span class="code-tag">database/migrations/</span></td>
+                <td>جداول البيانات، القيود والعلاقات (<span class="code-tag">foreignKey</span>, <span class="code-tag">hasMany</span>, <span class="code-tag">belongsTo</span>).</td>
+            </tr>
+            <tr>
+                <td><strong>واجهات العرض (Blade)</strong></td>
+                <td><span class="code-tag">resources/views/</span></td>
+                <td>قوالب HTML، الجداول، النماذج، أزرار الإجراءات، وتصميمات الطباعة الورقية.</td>
+            </tr>
+            <tr>
+                <td><strong>التفاعلات (JS / Vite)</strong></td>
+                <td><span class="code-tag">resources/js/pages/</span> &amp; <span class="code-tag">app.js</span></td>
+                <td>مستمعات الأحداث (Click Events)، النوافذ المنبثقة، وقارئ الباركود، وبناء Vite.</td>
+            </tr>
+            <tr>
+                <td><strong>محرك بايثون للطباعة</strong></td>
+                <td><span class="code-tag">scripts/printing/print_engine.py</span></td>
+                <td>الطباعة المباشرة على طابعات الإيصالات الحرارية وطابعات الباركود عبر USB/Network.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="doc-footer">
+        صفحة 1 من 2 — نظام Kayan ERP • دليل استكشاف الأعطال ونموذج التعديلات المعتمد
+    </div>
+
+    <!-- PAGE 2: FLOWCHART & DIAGNOSTICS & CLI -->
+    <div class="page-break"></div>
+
+    <header class="doc-header" style="margin-bottom: 12px; padding-bottom: 8px;">
+        <div class="brand-info">
+            <div class="brand-text">
+                <h1 style="font-size: 13pt;">مخطط تتبع الأعطال وشجرة التشخيص السريع — Kayan ERP</h1>
+                <p>مسارات فحص الأخطاء من الواجهة وحتى قاعدة البيانات والخدمات السحابية</p>
+            </div>
+        </div>
+        <div class="doc-meta">
+            <strong>المرجع الفني:</strong> صفحة 2 من 2<br>
+            <strong>سجل الأخطاء:</strong> <span class="code-tag">storage/logs/laravel.log</span>
+        </div>
+    </header>
+
+    <!-- SECTION 3: VISUAL FLOWCHART -->
+    <div class="section-title" style="margin-top: 0;">
+        <span class="num">3</span>
+        <span>المخطط الانسيابي العام لتشخيص الأعطال (Troubleshooting Flowchart)</span>
+    </div>
+
+    <div class="flowchart-container">
+        <div class="flow-start">
+            ⚠️ حدوث مشكلة أو خطأ في النظام
+        </div>
+
+        <div class="branches-grid">
+            <!-- Branch 1: UI -->
+            <div class="branch-card b-ui">
+                <div class="branch-header">1. واجهة المستخدم (UI)</div>
+                <div class="flow-step">
+                    <strong>شكل أو زر لا يستجيب</strong>
+                    <span>افحص Console في المتصفح بالضغط على F12.</span>
+                </div>
+                <div class="flow-step">
+                    <strong>خطأ جافاسكريبت؟</strong>
+                    <span>تتبع ملف الصفحة في <span class="code-tag">resources/js/</span> أو تداخل مستمع الأحداث.</span>
+                </div>
+                <div class="flow-step">
+                    <strong>ملف Vite مفقود؟</strong>
+                    <span>شغّل أمر تجميع الأصول <span class="code-tag">npm run build</span>.</span>
+                </div>
+            </div>
+
+            <!-- Branch 2: Routing -->
+            <div class="branch-card b-auth">
+                <div class="branch-header">2. الروابط والصلاحيات</div>
+                <div class="flow-step">
+                    <strong>خطأ 404 Not Found</strong>
+                    <span>تأكد من اسم الرابط ونوعه (GET/POST) في <span class="code-tag">routes/web.php</span>.</span>
+                </div>
+                <div class="flow-step">
+                    <strong>خطأ 403 Forbidden</strong>
+                    <span>مراجعة الصلاحيات والـ Gates في <span class="code-tag">AppServiceProvider</span>.</span>
+                </div>
+                <div class="flow-step">
+                    <strong>خطأ 419 Token Expired</strong>
+                    <span>تأكد من وجود <span class="code-tag">@csrf</span> داخل النموذج أو تجديد الجلسة.</span>
+                </div>
+            </div>
+
+            <!-- Branch 3: Backend -->
+            <div class="branch-card b-back">
+                <div class="branch-header">3. العمليات (Backend)</div>
+                <div class="flow-step">
+                    <strong>خطأ 500 أو فشل الحفظ</strong>
+                    <span>افتح فوراً أحدث سطر في <span class="code-tag">storage/logs/laravel.log</span>.</span>
+                </div>
+                <div class="flow-step">
+                    <strong>خطأ تحقق 422 Unprocessable</strong>
+                    <span>فحص قواعد <span class="code-tag">$request->validate</span> في الـ Controller.</span>
+                </div>
+                <div class="flow-step">
+                    <strong>خطأ قيود الحذف (FK 1451)</strong>
+                    <span>فحص العلاقات المرتبطة في قاعدة البيانات واستخدام حذف آمن.</span>
+                </div>
+            </div>
+
+            <!-- Branch 4: Stock -->
+            <div class="branch-card b-stock">
+                <div class="branch-header">4. المخزون و FIFO</div>
+                <div class="flow-step">
+                    <strong>اختلاف في رصيد الصنف</strong>
+                    <span>افتح كشف حركة الصنف <span class="code-tag">/products/{id}/ledger</span>.</span>
+                </div>
+                <div class="flow-step">
+                    <strong>تتبع منطق التكلفة والوارد</strong>
+                    <span>مراجعة دوال <span class="code-tag">InventoryService</span> (إضافة، صرف، تحويل).</span>
+                </div>
+                <div class="flow-step">
+                    <strong>فحص الجداول مباشرة</strong>
+                    <span>جداول: <span class="code-tag">stock_movements</span> و <span class="code-tag">inventory_batches</span>.</span>
+                </div>
+            </div>
+
+            <!-- Branch 5: Printing -->
+            <div class="branch-card b-print">
+                <div class="branch-header">5. محرك الطباعة</div>
+                <div class="flow-step">
+                    <strong>طباعة عبر المتصفح</strong>
+                    <span>فحص ملفات Blade المخصصة للطباعة وتنسيقات CSS بحجم الصفحة.</span>
+                </div>
+                <div class="flow-step">
+                    <strong>طباعة إيصالات بايثون</strong>
+                    <span>التأكد من تشغيل بايثون واختبار الطابعة عبر <span class="code-tag">--list-printers</span>.</span>
+                </div>
+                <div class="flow-step">
+                    <strong>قوالب الفواتير</strong>
+                    <span>مراجعة <span class="code-tag">PrintTemplateService</span> وإعدادات الترويسة واللوجو.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4: SCENARIOS -->
+    <div class="section-title">
+        <span class="num">4</span>
+        <span>شجرة التشخيص وحلول السيناريوهات الشائعة (Actionable Solutions)</span>
+    </div>
+
+    <div class="scenarios-grid">
+        <!-- Scenario A -->
+        <div class="scenario-card">
+            <h4>🔴 السيناريو (أ): زر الحذف ينقل لصفحة أخرى أو لا يعمل</h4>
+            <ul class="scenario-tree">
+                <li><strong>السبب 1 (تداخل نقر الصف Row-Click):</strong> وجود كود جافاسكريبت يجعل كامل صف الجدول قابلاً للنقر، فيبتلع نقرة زر الحذف.
+                    <br><strong>الحل:</strong> إضافة <span class="code-tag">data-action="view"</span> على الخلايا فقط، واستثناء عمود الإجراءات أو استدعاء <span class="code-tag">e.stopPropagation()</span>.
+                </li>
+                <li><strong>السبب 2 (قيد المفتاح الأجنبي FK Constraint):</strong> الصنف مرتبط بفواتير بيع أو شراء سابقة وقاعدة البيانات تمنع حذفه (<span class="code-tag">restrictOnDelete</span>).
+                    <br><strong>الحل:</strong> إظهار رسالة تنبيه واضحة للمستخدم بعدم إمكانية الحذف لوجود حركات، أو أرشفة الصنف (Soft Delete).
+                </li>
+            </ul>
+        </div>
+
+        <!-- Scenario B -->
+        <div class="scenario-card">
+            <h4>🟡 السيناريو (ب): عدم استجابة الطباعة المباشرة عبر بايثون</h4>
+            <ul class="scenario-tree">
+                <li><strong>السبب 1 (اسم الطابعة غير مطابق):</strong> اسم الطابعة المسجل في إعدادات النظام لا يطابق الاسم الفعلي المعرف على ويندوز.
+                    <br><strong>الحل:</strong> مطابقة الاسم بدقة عبر الأمر <span class="code-tag">python print_engine.py --list-printers</span>.
+                </li>
+                <li><strong>السبب 2 (عدم استجابة خدمة بايثون):</strong> فحص كود الخطأ الراجع من السيرفر في تبويب Network؛ إذا كان مسار بايثون غير معرف يتم ضبطه في ملف <span class="code-tag">.env</span> (<span class="code-tag">PYTHON_BINARY_PATH</span>).
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SECTION 5: CLI CHEAT SHEET -->
+    <div class="section-title">
+        <span class="num">5</span>
+        <span>لوحة أوامر الفحص والإصلاح السريع (Cheat-Sheet CLI Commands)</span>
+    </div>
+
+    <div class="cli-box">
+        <span class="cli-comment"># 1. قراءة أحدث 40 سطر من سجل الأخطاء لمعرفة سبب أي عطل مفاجئ:</span>
+        <span class="cli-cmd">Get-Content -Tail 40 storage/logs/laravel.log</span>
+
+        <span class="cli-comment"># 2. فحص مطابقة وتوفر مسار معين داخل النظام والتأكد من اسمه:</span>
+        <span class="cli-cmd">& "C:\Users\PC\.config\herd-lite\bin\php.exe" artisan route:list --name=products</span>
+
+        <span class="cli-comment"># 3. تشغيل الاختبارات الآلية للتحقق من سلامة العمليات:</span>
+        <span class="cli-cmd">& "C:\Users\PC\.config\herd-lite\bin\php.exe" artisan test --compact</span>
+
+        <span class="cli-comment"># 4. إعادة تجميع ملفات الواجهة والـ CSS والجافاسكريبت بعد أي تعديل:</span>
+        <span class="cli-cmd">npm run build</span>
+
+        <span class="cli-comment"># 5. تنظيف وضبط التنسيق البرمجي تلقائياً وفقاً لمعايير Laravel الرسمية:</span>
+        <span class="cli-cmd">& "C:\Users\PC\.config\herd-lite\bin\php.exe" vendor/bin/pint --format agent</span>
+    </div>
+
+    <div class="doc-footer">
+        صفحة 2 من 2 — نظام Kayan ERP • تم إنشاء هذا الدليل ليكون مرجعاً تشغيلياً عملياً بجوار شاشة العمل
+    </div>
+
+</div>
+
+</body>
+</html>

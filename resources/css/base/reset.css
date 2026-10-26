@@ -1,0 +1,96 @@
+/* ==========================================================================
+   Kayan ERP — Base & Reset
+   Arabic RTL First · Cairo Font · Normalized Elements
+   ========================================================================== */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    direction: rtl;
+    text-align: right;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+    overflow: hidden;
+    max-width: 100vw;
+}
+
+body {
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    font-family: var(--font-family);
+    font-size: var(--density-font-size);
+    line-height: 1.5;
+    height: 100%;
+    overflow: hidden;
+    max-width: 100vw;
+    width: 100%;
+    position: relative;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+/* Slim Modern ERP Scrollbars */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-surface-alt);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) var(--bg-surface-alt);
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+}
+
+button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* Tabular figures for numbers, currency, codes */
+.font-numeric {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+}
+
+/* Centralized SVG Icons */
+.erp-icon {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+    stroke: currentColor;
+    fill: none;
+    transition: color 0.15s ease, stroke 0.15s ease;
+}

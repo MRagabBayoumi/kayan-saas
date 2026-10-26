@@ -1,0 +1,455 @@
+/* ==========================================================================
+   Kayan ERP — Purchases Module Styles
+   Summary KPI Card, Filter Controls & Responsive Data Layouts
+   ========================================================================== */
+
+.purchases-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .purchases-kpi-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+.purchases-kpi-stat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background-color: var(--bg-surface-alt);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-sm);
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.purchases-kpi-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-soft);
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.purchases-kpi-icon-wrap.success {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.purchases-kpi-icon-wrap.warning {
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+
+.purchases-kpi-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.purchases-kpi-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.purchases-kpi-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.purchases-kpi-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ==========================================================================
+   Purchases Create: Quick Entry Panel, Barcode Flow & Summary Footer
+   ========================================================================== */
+
+.purchases-quick-entry {
+    background: var(--surface-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--border-radius-md, 8px);
+    overflow: visible !important;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.purchases-quick-entry-header {
+    background: var(--surface-muted, #f8fafc);
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.purchases-quick-entry-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary, #4f46e5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.purchases-quick-entry-shortcuts {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.purchases-shortcut-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface-card, #ffffff);
+    border: 1px solid var(--border-color, #cbd5e1);
+    color: var(--text-muted, #64748b);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.purchases-shortcut-pill kbd {
+    font-family: var(--font-numeric, inherit);
+    font-weight: 800;
+    color: var(--primary, #4f46e5);
+}
+
+.purchases-quick-entry-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: visible !important;
+}
+
+.purchases-quick-row-1 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--border-color, #e2e8f0);
+}
+
+.purchases-quick-row-2 {
+    display: grid;
+    grid-template-columns: minmax(360px, 4fr) minmax(130px, 1.2fr) minmax(110px, 1fr) minmax(130px, 1.2fr) auto;
+    gap: 12px;
+    align-items: flex-end;
+    overflow: visible !important;
+}
+
+.erp-hero-search-input {
+    height: 42px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    background: var(--bg-surface) !important;
+    border: 1.5px solid var(--border-color) !important;
+    border-radius: var(--border-radius-md, 8px) !important;
+    color: var(--text-main) !important;
+    padding: 0 14px !important;
+    transition: all 0.15s ease !important;
+}
+
+.erp-hero-search-input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px var(--primary-soft, rgba(16, 185, 129, 0.2)) !important;
+    outline: none !important;
+}
+
+@media (max-width: 992px) {
+    .purchases-quick-row-1 {
+        grid-template-columns: 1fr 1fr;
+    }
+    .purchases-quick-row-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .purchases-quick-row-1,
+    .purchases-quick-row-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Currency/Percent Input Wrapper */
+.purchases-input-affix {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.purchases-input-affix .erp-input {
+    width: 100%;
+    padding-left: 38px;
+    padding-right: 12px;
+    text-align: left;
+    direction: ltr;
+}
+
+.purchases-input-affix-label {
+    position: absolute;
+    left: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted, #64748b);
+    pointer-events: none;
+}
+
+/* Quick Search Suggestions — Matching Cashier (POS) Style */
+.purchases-quick-entry,
+.purchases-quick-entry-body,
+.purchases-quick-row-2,
+.erp-form-group.relative {
+    overflow: visible !important;
+}
+
+.purchases-autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    min-width: 500px;
+    max-height: 350px;
+    overflow-y: auto;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--border-radius-md, 8px);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+    z-index: 9999 !important;
+}
+
+.purchases-suggestion-item,
+.pos-suggestion-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    background: var(--bg-surface);
+    transition: background-color 0.12s ease, border-right 0.12s ease;
+}
+
+.purchases-suggestion-item:last-child,
+.pos-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.purchases-suggestion-item:hover,
+.purchases-suggestion-item.active,
+.purchases-suggestion-item.bg-selected,
+.pos-suggestion-item:hover,
+.pos-suggestion-item.active,
+.pos-suggestion-item.bg-selected {
+    background-color: var(--primary-soft) !important;
+    border-right: 4px solid var(--primary);
+}
+
+.purchases-suggestion-item .item-title,
+.pos-suggestion-item .item-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.purchases-suggestion-item .item-meta,
+.pos-suggestion-item .item-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+}
+
+/* Commit Button */
+.purchases-commit-btn {
+    height: 38px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+/* Summary Grid in Footer */
+.purchases-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 1200px) {
+    .purchases-summary-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .purchases-summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.purchases-summary-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm, 6px);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.purchases-summary-card:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.purchases-summary-card.grand-total {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+}
+
+.purchases-summary-card.discount {
+    background: var(--warning-soft);
+    border-color: var(--warning-border);
+}
+
+.purchases-summary-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.purchases-summary-card.grand-total .purchases-summary-label {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.purchases-summary-card.discount .purchases-summary-label {
+    color: var(--warning-text);
+}
+
+.purchases-summary-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-main);
+    font-family: var(--font-numeric);
+    line-height: 1.2;
+}
+
+.purchases-summary-card.grand-total .purchases-summary-value {
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.purchases-summary-card.discount .purchases-summary-value {
+    color: var(--warning);
+}
+
+.purchases-summary-unit {
+    font-size: 11px;
+    font-weight: normal;
+    color: var(--text-muted);
+    margin-right: 2px;
+}
+
+/* Payment Method & Deferred System */
+.payment-method-toggle-group {
+    display: inline-flex;
+    background-color: var(--bg-surface-alt);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md, 8px);
+    padding: 4px;
+    gap: 6px;
+}
+
+.payment-toggle-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    border-radius: var(--border-radius-sm, 6px);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.payment-toggle-btn input[type="radio"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    pointer-events: none;
+}
+
+.payment-toggle-btn:hover {
+    color: var(--text-main);
+    background-color: var(--bg-hover);
+}
+
+.payment-toggle-btn.active[data-type="cash"] {
+    background-color: var(--success);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+}
+
+.payment-toggle-btn.active[data-type="credit"] {
+    background-color: var(--danger);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+}
+
+.payment-toggle-btn.active[data-type="partial"] {
+    background-color: var(--warning);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+}
+
+.purchases-payment-card {
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    border-radius: var(--border-radius-md, 8px);
+    margin-top: 16px;
+    box-shadow: var(--shadow-xs);
+    overflow: hidden;
+}
+
+.purchases-payment-card .erp-card-header {
+    background: var(--bg-surface-alt);
+    border-bottom: 1px solid var(--border-color);
+}
+

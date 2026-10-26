@@ -1,0 +1,109 @@
+/* Kayan ERP — Barcode Camera Scanner Component Styles */
+.erp-scanner-modal-overlay {
+    z-index: 1200;
+}
+
+.erp-scanner-modal-container {
+    max-width: 480px;
+    width: 95%;
+}
+
+.erp-scanner-modal-header {
+    background: var(--bg-surface-alt);
+}
+
+.erp-scanner-body {
+    padding: 16px;
+    text-align: center;
+}
+
+.erp-scanner-viewport {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    background: #0f172a;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+}
+
+.erp-scanner-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.erp-scanner-reticle {
+    position: absolute;
+    width: 75%;
+    height: 60%;
+    border: 2px dashed rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    pointer-events: none;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.erp-scanner-laser {
+    width: 90%;
+    height: 2px;
+    background: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+    position: absolute;
+    animation: scanLaser 1.8s infinite ease-in-out;
+}
+
+.erp-scanner-badge {
+    position: absolute;
+    bottom: 10px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+}
+
+.erp-scanner-error {
+    display: none;
+    padding: 10px 14px;
+    background: var(--danger-soft);
+    color: var(--danger-text);
+    border-radius: var(--border-radius-sm);
+    font-size: 12px;
+    margin-bottom: 12px;
+    text-align: right;
+}
+
+.erp-scanner-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.erp-scanner-footer {
+    justify-content: space-between;
+}
+
+.erp-scanner-footer-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.erp-scanner-active-border {
+    border-color: #22c55e !important;
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.8) !important;
+}
+
+@keyframes scanLaser {
+    0% { top: 15%; opacity: 0.8; }
+    50% { top: 85%; opacity: 1; }
+    100% { top: 15%; opacity: 0.8; }
+}

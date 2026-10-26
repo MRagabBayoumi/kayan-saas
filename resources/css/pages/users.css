@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Kayan ERP — Users Management Page Styles
+   Enterprise Luxury · Cairo Typography · RTL First
+   ========================================================================== */
+
+/* Summary KPI Cards */
+.users-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+    .users-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .users-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.users-kpi-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-xs);
+    transition: all 0.15s ease;
+}
+
+.users-kpi-card:hover {
+    border-color: var(--primary-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.users-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.users-kpi-icon.primary {
+    background-color: var(--primary-soft);
+    color: var(--primary);
+}
+
+.users-kpi-icon.success {
+    background-color: var(--success-soft);
+    color: var(--success);
+}
+
+.users-kpi-icon.info {
+    background-color: var(--info-soft);
+    color: var(--info);
+}
+
+.users-kpi-icon.warning {
+    background-color: var(--warning-soft);
+    color: var(--warning);
+}
+
+.users-kpi-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.users-kpi-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.users-kpi-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.user-profile-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+/* User Form Styles */
+.user-form-container {
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+.user-form-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.user-form-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.user-form-body {
+    padding: 24px 24px 16px 24px;
+}
+
+.user-form-footer {
+    padding: 14px 24px;
+    background-color: var(--bg-surface-alt);
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.user-status-card {
+    background-color: var(--bg-surface-alt);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+

@@ -1,0 +1,104 @@
+/* ==========================================================================
+   Kayan ERP — Design Tokens & Variables
+   Arabic RTL First · Normal & Enterprise Density Tokens
+   ========================================================================== */
+
+:root,
+[data-theme="light"] {
+    --font-family: 'Cairo', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+    
+    /* Brand & Primary Palette (Odoo-inspired Plum / Purple) */
+    --primary: #714B67;
+    --primary-hover: #5d3b54;
+    --primary-active: #4a2e43;
+    --primary-soft: #f4ebf2;
+    --primary-border: #d9c4d5;
+    --primary-text: #ffffff;
+
+    /* Secondary / Accent */
+    --accent-navy: #1F2937;
+    --accent-teal: #0D9488;
+    --accent-blue: #2563EB;
+    
+    /* Backgrounds & Surfaces */
+    --bg-app: #F0F2F5;
+    --bg-main: #F0F2F5;
+    --bg-surface: #FFFFFF;
+    --bg-surface-alt: #F8F9FA;
+    --bg-elevated: #FFFFFF;
+    --bg-hover: #F3F4F6;
+    --bg-active: #E5E7EB;
+    --bg-card: #FFFFFF;
+    --surface-card: #FFFFFF;
+    --surface-muted: #F8F9FA;
+
+    /* Borders & Dividers */
+    --border-color: #E2E8F0;
+    --border-light: #EDF2F7;
+    --border-focus: #714B67;
+
+    /* Typography */
+    --text-main: #1F2937;
+    --text-secondary: #4B5563;
+    --text-muted: #6B7280;
+    --text-light: #9CA3AF;
+    --text-inverse: #FFFFFF;
+
+    /* Statuses */
+    --success: #10B981;
+    --success-soft: #ECFDF5;
+    --success-border: #A7F3D0;
+    --success-text: #065F46;
+
+    --warning: #F59E0B;
+    --warning-soft: #FFFBEB;
+    --warning-border: #FDE68A;
+    --warning-text: #92400E;
+
+    --danger: #EF4444;
+    --danger-soft: #FEF2F2;
+    --danger-border: #FECACA;
+    --danger-text: #991B1B;
+
+    --info: #3B82F6;
+    --info-soft: #EFF6FF;
+    --info-border: #BFDBFE;
+    --info-text: #1E40AF;
+
+    /* Shadows */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    --shadow-dropdown: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+
+    /* Dimensions */
+    --topbar-height: 48px;
+    --sidebar-width: 250px;
+    --sidebar-collapsed-width: 64px;
+    --border-radius: 6px;
+    --border-radius-sm: 4px;
+    --border-radius-lg: 8px;
+
+    /* Density — Comfortable / Normal by default */
+    --density-padding-y: 9px;
+    --density-padding-x: 14px;
+    --density-table-py: 10px;
+    --density-table-px: 14px;
+    --density-font-size: 14px;
+    --density-font-size-sm: 13px;
+    --density-icon-size: 16px;
+}
+
+/* ==========================================================================
+   Density — Enterprise Table & Screen Density
+   ========================================================================== */
+[data-density="enterprise"] {
+    --density-padding-y: 5px;
+    --density-padding-x: 10px;
+    --density-table-py: 6px;
+    --density-table-px: 10px;
+    --density-font-size: 13px;
+    --density-font-size-sm: 12px;
+    --density-icon-size: 14px;
+}

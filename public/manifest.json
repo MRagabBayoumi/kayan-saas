@@ -1,0 +1,36 @@
+{
+  "name": "كيان ERP - Kayan ERP",
+  "short_name": "كيان ERP",
+  "description": "نظام إدارة الموارد وتتبع المخزون والمبيعات ونقاط البيع",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#714B67",
+  "dir": "rtl",
+  "lang": "ar",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

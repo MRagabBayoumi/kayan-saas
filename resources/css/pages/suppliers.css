@@ -1,0 +1,183 @@
+/* ==========================================================================
+   Kayan ERP — Suppliers & China Factories Directory Styles
+   ========================================================================== */
+
+.supplier-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.supplier-kpi-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.supplier-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.supplier-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.supplier-kpi-icon.primary {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.supplier-kpi-icon.info {
+    background: var(--info-soft);
+    color: var(--info);
+}
+
+.supplier-kpi-icon.warning {
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+
+.supplier-kpi-icon.danger {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.supplier-kpi-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.supplier-kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.supplier-kpi-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.supplier-filter-bar {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.supplier-filter-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+.supplier-filter-input {
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: var(--bg-surface-alt);
+    color: var(--text-main);
+    font-size: var(--density-font-size);
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.supplier-filter-input:focus {
+    border-color: var(--primary);
+    background: var(--bg-surface);
+}
+
+.supplier-wechat-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #07c1601a;
+    color: #07c160;
+    border: 1px solid #07c16033;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.supplier-profile-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.supplier-profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 18px;
+}
+
+.supplier-profile-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.supplier-profile-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.supplier-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.supplier-detail-item {
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-sm);
+    padding: 12px 14px;
+}
+
+.supplier-detail-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.supplier-detail-val {
+    font-size: 14px;
+    color: var(--text-main);
+    font-weight: 700;
+}

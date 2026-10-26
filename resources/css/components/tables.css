@@ -1,0 +1,214 @@
+/* ==========================================================================
+   Kayan ERP — Enterprise Data Tables
+   Responsive Wrappers, Density-Adaptive Rows & Clickable Row States
+   ========================================================================== */
+
+.erp-table-responsive,
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: inherit;
+}
+
+.erp-table-responsive::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+
+.erp-table-responsive::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+/* Sticky Header Table Support */
+.erp-table-sticky-header {
+    max-height: calc(100vh - 260px);
+    overflow-y: auto;
+    position: relative;
+}
+
+.erp-table-sticky-header thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bg-surface-alt);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.erp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--density-font-size);
+    text-align: right;
+}
+
+.erp-table th {
+    background-color: var(--bg-surface-alt);
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: var(--density-font-size-sm);
+    padding: var(--density-table-py) var(--density-table-px);
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.erp-table td {
+    padding: var(--density-table-py) var(--density-table-px);
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+.erp-table tbody tr {
+    transition: background-color 0.1s ease;
+}
+
+.erp-table tbody tr:hover {
+    background-color: var(--bg-hover);
+}
+
+.erp-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Clickable Table Rows (Row Drilldown / Details View) */
+.erp-row-clickable,
+.product-row-clickable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.12s ease;
+}
+
+.erp-row-clickable:hover,
+.product-row-clickable:hover {
+    background-color: var(--bg-hover);
+}
+
+@media (max-width: 768px) {
+    .erp-table th,
+    .erp-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .erp-table th {
+        font-size: 11px;
+    }
+}
+
+/* ==========================================================================
+   Table Footer & Pagination System
+   ========================================================================== */
+
+.erp-table-footer {
+    padding: 10px 16px;
+    background-color: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.erp-table-footer-info {
+    font-size: var(--density-font-size-sm);
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.erp-table-footer-controls {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.erp-pagination {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    user-select: none;
+}
+
+.erp-pagination-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.erp-pagination-item:hover:not(.disabled):not(.active) {
+    background-color: var(--bg-hover);
+    border-color: var(--border-color-hover);
+    color: var(--primary);
+}
+
+.erp-pagination-item.active {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: var(--shadow-xs);
+    font-weight: 700;
+}
+
+.erp-pagination-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-color: var(--bg-surface-alt);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+}
+
+.erp-pagination-dots {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 32px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.erp-pagination-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.erp-per-page-select {
+    height: 30px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.erp-per-page-select:focus {
+    border-color: var(--primary);
+}

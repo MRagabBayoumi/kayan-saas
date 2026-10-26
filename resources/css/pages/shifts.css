@@ -1,0 +1,129 @@
+/* ==========================================================================
+   BayoSoft ERP — Cashier Shifts & Cash Drawer Styling
+   ========================================================================== */
+
+.shift-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.shift-status-badge.open {
+    background-color: var(--success-soft);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+}
+
+.shift-status-badge.closed {
+    background-color: var(--surface-muted);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+}
+
+.shift-diff-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.shift-diff-badge.matched {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.shift-diff-badge.deficit {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+.shift-diff-badge.surplus {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+}
+
+/* Shift Summary Panel */
+.shift-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 992px) {
+    .shift-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .shift-summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.shift-kpi-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md, 8px);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-xs);
+}
+
+.shift-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.shift-kpi-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.shift-kpi-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.shift-calc-box {
+    background: var(--surface-muted);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--border-radius-md, 8px);
+    padding: 16px;
+    margin: 16px 0;
+}
+
+.shift-calc-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.shift-calc-row:last-child {
+    border-bottom: none;
+    font-size: 15px;
+    font-weight: 800;
+    padding-top: 10px;
+}

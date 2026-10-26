@@ -16,158 +16,159 @@
         </x-slot:actions>
 
         <x-slot:extra>
-            <span class="erp-badge erp-badge-neutral font-numeric px-2.5 py-1 text-xs">
-                <span>إجمالي الطلبات:</span>
-                <strong>{{ $counts['all'] }}</strong>
+            <span class="erp-badge erp-badge-neutral font-numeric">
+                <x-icon name="shopping-bag" size="14" />
+                <span>إجمالي الطلبات: {{ $counts['all'] }}</span>
             </span>
         </x-slot:extra>
     </x-control-panel>
 @endsection
 
 @section('content')
-<div class="space-y-6">
+<div data-page="ecommerce-orders">
 
     @if(session('success'))
-        <div class="erp-alert erp-alert-success" role="alert">
-            <x-icon name="check" size="16" />
+        <div class="erp-alert erp-alert-success mb-4" role="alert">
+            <x-icon name="check-circle" size="18" />
             <div>{{ session('success') }}</div>
         </div>
     @endif
 
-    <!-- Status Tabs -->
-    <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
-        @php
-            $tabList = [
-                'all' => ['label' => 'كافة الطلبات', 'count' => $counts['all']],
-                'pending' => ['label' => 'قيد الانتظار', 'count' => $counts['pending']],
-                'confirmed' => ['label' => 'تم التأكيد', 'count' => $counts['confirmed']],
-                'processing' => ['label' => 'جاري التجهيز', 'count' => $counts['processing']],
-                'shipped' => ['label' => 'تم الشحن', 'count' => $counts['shipped']],
-                'delivered' => ['label' => 'تم التوصيل', 'count' => $counts['delivered']],
-                'cancelled' => ['label' => 'ملغي', 'count' => $counts['cancelled']],
-            ];
-        @endphp
+    <!-- Status Tabs Bar -->
+    <div class="erp-card erp-tab-nav-card mb-4">
+        <nav class="erp-tab-bar" aria-label="أقسام وحالات طلبات المتجر">
+            @php
+                $tabList = [
+                    'all' => ['label' => 'كافة الطلبات', 'count' => $counts['all']],
+                    'pending' => ['label' => 'قيد الانتظار', 'count' => $counts['pending']],
+                    'confirmed' => ['label' => 'تم التأكيد', 'count' => $counts['confirmed']],
+                    'processing' => ['label' => 'جاري التجهيز', 'count' => $counts['processing']],
+                    'shipped' => ['label' => 'تم الشحن', 'count' => $counts['shipped']],
+                    'delivered' => ['label' => 'تم التوصيل', 'count' => $counts['delivered']],
+                    'cancelled' => ['label' => 'ملغي', 'count' => $counts['cancelled']],
+                ];
+            @endphp
 
-        @foreach($tabList as $key => $tab)
-            <a href="{{ route('ecommerce.orders.index', ['status' => $key, 'search' => $search]) }}" 
-               class="px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-2 {{ $status === $key ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200' }}">
-                <span>{{ $tab['label'] }}</span>
-                <span class="px-1.5 py-0.5 rounded-full text-[11px] {{ $status === $key ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">
-                    {{ $tab['count'] }}
-                </span>
-            </a>
-        @endforeach
+            @foreach($tabList as $key => $tab)
+                <a href="{{ route('ecommerce.orders.index', ['status' => $key, 'search' => $search]) }}" 
+                   class="erp-tab-link {{ $status === $key ? 'active' : '' }}">
+                    <span>{{ $tab['label'] }}</span>
+                    <span class="erp-badge erp-badge-neutral mr-1 px-1.5 py-0.5 text-xs font-numeric">
+                        {{ $tab['count'] }}
+                    </span>
+                </a>
+            @endforeach
+        </nav>
     </div>
 
-    <!-- Search Form -->
-    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-        <form action="{{ route('ecommerce.orders.index') }}" method="GET" class="flex flex-col sm:flex-row gap-3">
+    <!-- Search & Filter Card -->
+    <div class="erp-card p-4 mb-4">
+        <form action="{{ route('ecommerce.orders.index') }}" method="GET" style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
             <input type="hidden" name="status" value="{{ $status }}">
-            <div class="relative flex-1">
+            
+            <div style="flex: 1; min-width: 260px; position: relative;">
                 <input type="text" 
                        name="search" 
                        value="{{ $search }}" 
                        placeholder="ابحث برقم الطلب، اسم العميل، الهاتف، أو المدينة..." 
-                       class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-indigo-500 outline-none">
-                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                    <x-icon name="search" size="16" />
+                       class="erp-input"
+                       style="padding-right: 36px;">
+                <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;">
+                    <x-icon name="search" size="15" />
                 </div>
             </div>
-            <button type="submit" class="erp-btn erp-btn-primary shrink-0">
-                <x-icon name="search" size="16" />
+
+            <button type="submit" class="erp-btn erp-btn-primary">
+                <x-icon name="search" size="14" />
                 <span>بحث</span>
             </button>
+
             @if($search)
-                <a href="{{ route('ecommerce.orders.index', ['status' => $status]) }}" class="erp-btn erp-btn-secondary shrink-0">
+                <a href="{{ route('ecommerce.orders.index', ['status' => $status]) }}" class="erp-btn erp-btn-secondary" title="إلغاء البحث">
+                    <x-icon name="x" size="14" />
                     <span>إلغاء البحث</span>
                 </a>
             @endif
         </form>
     </div>
 
-    <!-- Orders Table -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+    <!-- Orders Table View -->
+    <div class="erp-card">
         @if($orders->isEmpty())
-            <div class="p-12 text-center text-slate-400">
-                <x-icon name="shopping-cart" size="48" class="mx-auto mb-3 text-slate-300" />
-                <h4 class="font-bold text-slate-700 text-base mb-1">لا توجد طلبات متجر إلكتروني</h4>
-                <p class="text-xs text-slate-500">لم يتم العثور على أي طلبات في هذه الحالة حالياً.</p>
+            <div style="padding: 48px 16px; text-align: center; color: var(--text-muted);">
+                <x-icon name="shopping-bag" size="44" style="margin: 0 auto 12px auto; opacity: 0.4;" />
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">لا توجد طلبات في هذا القسم</h4>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 0;">لم يتم العثور على أي طلبات مطابقة للمعايير المحددة.</p>
             </div>
         @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-right text-xs">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+            <div class="erp-table-responsive">
+                <table class="erp-table">
+                    <thead>
                         <tr>
-                            <th class="p-3.5">رقم الطلب</th>
-                            <th class="p-3.5">تاريخ الطلب</th>
-                            <th class="p-3.5">العميل</th>
-                            <th class="p-3.5">الهاتف والمدينة</th>
-                            <th class="p-3.5">الأصناف</th>
-                            <th class="p-3.5">الإجمالي</th>
-                            <th class="p-3.5">حالة الدفع</th>
-                            <th class="p-3.5">حالة الطلب</th>
-                            <th class="p-3.5">فاتورة المبيعات</th>
-                            <th class="p-3.5 text-center">إجراءات</th>
+                            <th>رقم الطلب</th>
+                            <th>تاريخ وتوقيت الطلب</th>
+                            <th>اسم العميل</th>
+                            <th>الهاتف والمدينة</th>
+                            <th>عدد الأصناف</th>
+                            <th>المبلغ الإجمالي</th>
+                            <th>طريقة وحالة الدفع</th>
+                            <th>حالة الطلب</th>
+                            <th>فاتورة الـ ERP</th>
+                            <th style="text-align: center;">الإجراءات</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody>
                         @foreach($orders as $order)
-                            @php
-                                $badge = $order->status_badge;
-                            @endphp
-                            <tr class="hover:bg-slate-50/80 transition-colors">
-                                <td class="p-3.5 font-bold font-mono text-indigo-700">
-                                    <a href="{{ route('ecommerce.orders.show', $order) }}" class="hover:underline">
+                            @php $badge = $order->status_badge; @endphp
+                            <tr>
+                                <td>
+                                    <a href="{{ route('ecommerce.orders.show', $order) }}" class="font-numeric font-bold" style="color: var(--primary); text-decoration: none;">
                                         {{ $order->order_number }}
                                     </a>
                                 </td>
-                                <td class="p-3.5 text-slate-500 whitespace-nowrap">
+                                <td class="font-numeric text-xs" style="color: var(--text-muted);">
                                     {{ $order->created_at->format('Y-m-d H:i') }}
                                 </td>
-                                <td class="p-3.5 font-bold text-slate-800">
-                                    {{ $order->customer_name }}
+                                <td>
+                                    <strong style="color: var(--text-main);">{{ $order->customer_name }}</strong>
                                 </td>
-                                <td class="p-3.5 text-slate-600">
-                                    <div dir="ltr" class="text-right font-mono">{{ $order->customer_phone }}</div>
-                                    <div class="text-[11px] text-slate-400">{{ $order->customer_city ?? 'بدون تحديد' }}</div>
+                                <td>
+                                    <div dir="ltr" class="font-numeric text-xs font-bold">{{ $order->customer_phone }}</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">{{ $order->customer_city ?? 'غير محدد' }}</div>
                                 </td>
-                                <td class="p-3.5">
-                                    <span class="inline-flex items-center gap-1 font-bold text-slate-700">
+                                <td>
+                                    <span class="erp-badge erp-badge-neutral text-xs font-numeric">
                                         {{ $order->items->count() }} صنف
                                     </span>
                                 </td>
-                                <td class="p-3.5 font-bold text-slate-900 font-numeric whitespace-nowrap">
+                                <td class="font-numeric font-bold" style="color: var(--text-main);">
                                     {{ number_format($order->total, 2) }} ج.م
                                 </td>
-                                <td class="p-3.5 whitespace-nowrap">
+                                <td>
                                     @if($order->payment_status === 'paid')
-                                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                            مدفوع
-                                        </span>
+                                        <span class="erp-badge erp-badge-success text-xs">مدفوع</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                                            عند الاستلام
-                                        </span>
+                                        <span class="erp-badge erp-badge-warning text-xs">عند الاستلام</span>
                                     @endif
                                 </td>
-                                <td class="p-3.5 whitespace-nowrap">
-                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border inline-flex items-center gap-1.5 {{ $badge['bg'] }}">
+                                <td>
+                                    <span class="erp-badge text-xs" style="background-color: var(--bg-surface-alt); border: 1px solid var(--border-color);">
                                         <x-icon :name="$badge['icon']" size="12" />
                                         <span>{{ $badge['label'] }}</span>
                                     </span>
                                 </td>
-                                <td class="p-3.5 whitespace-nowrap">
+                                <td>
                                     @if($order->salesInvoice)
-                                        <span class="text-indigo-600 font-bold font-mono">
+                                        <span class="font-numeric font-bold" style="color: var(--primary);">
                                             {{ $order->salesInvoice->invoice_number }}
                                         </span>
                                     @else
-                                        <span class="text-slate-400">لم تُصدر بعد</span>
+                                        <span style="color: var(--text-muted); font-size: 11px;">لم تُصدر بعد</span>
                                     @endif
                                 </td>
-                                <td class="p-3.5 text-center">
-                                    <a href="{{ route('ecommerce.orders.show', $order) }}" class="erp-btn erp-btn-secondary py-1 px-2.5 text-xs">
-                                        <x-icon name="eye" size="14" />
+                                <td style="text-align: center;">
+                                    <a href="{{ route('ecommerce.orders.show', $order) }}" class="erp-btn erp-btn-secondary" style="padding: 4px 10px; font-size: 12px;">
+                                        <x-icon name="eye" size="13" />
                                         <span>عرض</span>
                                     </a>
                                 </td>
@@ -177,7 +178,7 @@
                 </table>
             </div>
 
-            <div class="p-4 border-t border-slate-100">
+            <div style="padding: 12px 16px; border-top: 1px solid var(--border-light);">
                 {{ $orders->links() }}
             </div>
         @endif

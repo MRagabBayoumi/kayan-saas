@@ -5,6 +5,10 @@
 @section('control_panel')
     <x-control-panel title="إعدادات المتجر الإلكتروني (Storefront Settings)" :breadcrumbs="['المتجر الإلكتروني' => route('ecommerce.orders.index'), 'الإعدادات' => route('ecommerce.settings')]">
         <x-slot:actions>
+            <button type="submit" form="ecommerceSettingsForm" class="erp-btn erp-btn-primary">
+                <x-icon name="check" size="16" />
+                <span>حفظ التعديلات</span>
+            </button>
             <a href="{{ route('shop.catalog') }}" target="_blank" class="erp-btn erp-btn-secondary">
                 <x-icon name="external-link" size="16" />
                 <span>معاينة المتجر المباشر</span>
@@ -18,154 +22,203 @@
 @endsection
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-6">
+<div style="max-width: 960px; margin: 0 auto;">
 
     @if(session('success'))
-        <div class="erp-alert erp-alert-success" role="alert">
+        <div class="erp-alert erp-alert-success mb-4" role="alert">
             <x-icon name="check" size="16" />
             <div>{{ session('success') }}</div>
         </div>
     @endif
 
-    <form action="{{ route('ecommerce.settings.update') }}" method="POST">
+    @if($errors->any())
+        <div class="erp-alert erp-alert-danger mb-4" role="alert">
+            <x-icon name="alert-triangle" size="16" />
+            <div>
+                <strong>يرجى تصحيح الأخطاء التالية:</strong>
+                <ul class="my-1.5 mx-5 text-xs">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+
+    <form id="ecommerceSettingsForm" action="{{ route('ecommerce.settings.update') }}" method="POST">
         @csrf
 
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs divide-y divide-slate-100 overflow-hidden">
-            
-            <!-- Section 1: General Store Info -->
-            <div class="p-6 space-y-4">
-                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <x-icon name="store" size="18" class="text-indigo-600" />
+        <!-- Card 1: Store Identity & Branding -->
+        <div class="erp-card mb-4">
+            <div class="erp-card-header">
+                <h3 class="erp-card-title">
+                    <x-icon name="store" size="18" style="color: var(--primary);" />
                     <span>الهوية والبيانات الأساسية للمتجر</span>
                 </h3>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="store_name" class="block text-xs font-bold text-slate-700 mb-1">اسم المتجر الإلكتروني:</label>
+            </div>
+            <div class="erp-card-body">
+                <div class="erp-form-grid">
+                    <div class="erp-form-group">
+                        <label for="store_name" class="erp-form-label">
+                            <span>اسم المتجر الإلكتروني</span>
+                            <span class="required">*</span>
+                        </label>
                         <input type="text" 
                                id="store_name" 
                                name="store_name" 
                                value="{{ old('store_name', $settings->store_name) }}" 
+                               required
                                placeholder="مثال: متجر كيان التجاري" 
-                               class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 outline-none">
+                               class="erp-input">
+                        <span class="erp-form-hint">الاسم الذي يظهر للمشترين أعلى الموقع وفي الفواتير.</span>
                     </div>
 
-                    <div>
-                        <label for="store_tagline" class="block text-xs font-bold text-slate-700 mb-1">الشعار اللفظي (Slogan / الوصف المختصر):</label>
+                    <div class="erp-form-group">
+                        <label for="store_tagline" class="erp-form-label">
+                            <span>الشعار اللفظي (Slogan)</span>
+                        </label>
                         <input type="text" 
                                id="store_tagline" 
                                name="store_tagline" 
                                value="{{ old('store_tagline', $settings->store_tagline) }}" 
                                placeholder="مثال: أفضل المنتجات بأسعار الجملة والتجزئة والتوصيل السريع" 
-                               class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 outline-none">
+                               class="erp-input">
+                        <span class="erp-form-hint">وصف تسويقي مختصر يظهر أسفل اسم المتجر.</span>
+                    </div>
+
+                    <div class="erp-form-group erp-form-full">
+                        <label for="announcement_text" class="erp-form-label">
+                            <span>شريط الإعلانات أعلى المتجر (Banner Text)</span>
+                        </label>
+                        <input type="text" 
+                               id="announcement_text" 
+                               name="announcement_text" 
+                               value="{{ old('announcement_text', $settings->announcement_text) }}" 
+                               placeholder="مثال: عرض حصري: شحن مجاني للطلبات فوق 300 جنيه والدفع عند الاستلام!" 
+                               class="erp-input">
+                        <span class="erp-form-hint">شريط علوي بارز ومتحرك لإعلانات الخصومات والشحن. اترك الحقل فارغاً لإخفائه.</span>
                     </div>
                 </div>
-
-                <div>
-                    <label for="announcement_text" class="block text-xs font-bold text-slate-700 mb-1">شريط الإعلانات أعلى المتجر (Banner Text):</label>
-                    <input type="text" 
-                           id="announcement_text" 
-                           name="announcement_text" 
-                           value="{{ old('announcement_text', $settings->announcement_text) }}" 
-                           placeholder="مثال: خصم 10% بمناسبة الافتتاح وشحن مجاني للطلبات فوق 500 جنيه!" 
-                           class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 outline-none">
-                </div>
             </div>
+        </div>
 
-            <!-- Section 2: Contact Details -->
-            <div class="p-6 space-y-4">
-                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <x-icon name="phone" size="18" class="text-indigo-600" />
-                    <span>بيانات خدمة العملاء والتواصل</span>
+        <!-- Card 2: Contact & Support -->
+        <div class="erp-card mb-4">
+            <div class="erp-card-header">
+                <h3 class="erp-card-title">
+                    <x-icon name="phone" size="18" style="color: var(--primary);" />
+                    <span>بيانات خدمة العملاء والتواصل المباشر</span>
                 </h3>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="contact_phone" class="block text-xs font-bold text-slate-700 mb-1">هاتف خدمة العملاء:</label>
+            </div>
+            <div class="erp-card-body">
+                <div class="erp-form-grid">
+                    <div class="erp-form-group">
+                        <label for="contact_phone" class="erp-form-label">
+                            <span>هاتف خدمة العملاء</span>
+                        </label>
                         <input type="text" 
                                id="contact_phone" 
                                name="contact_phone" 
                                value="{{ old('contact_phone', $settings->contact_phone) }}" 
-                               placeholder="01000000000" 
+                               placeholder="01012345678" 
                                dir="ltr"
-                               class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 outline-none text-right">
+                               class="erp-input font-numeric" 
+                               style="text-align: right;">
+                        <span class="erp-form-hint">رقم الهاتف الظاهر في تذييل المتجر وصفحة النجاح.</span>
                     </div>
 
-                    <div>
-                        <label for="contact_whatsapp" class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب الرسمي:</label>
+                    <div class="erp-form-group">
+                        <label for="contact_whatsapp" class="erp-form-label">
+                            <span>رقم الواتساب الرسمي (مع كود الدولة)</span>
+                        </label>
                         <input type="text" 
                                id="contact_whatsapp" 
                                name="contact_whatsapp" 
                                value="{{ old('contact_whatsapp', $settings->contact_whatsapp) }}" 
-                               placeholder="+201000000000" 
+                               placeholder="+201012345678" 
                                dir="ltr"
-                               class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 outline-none text-right">
+                               class="erp-input font-numeric" 
+                               style="text-align: right;">
+                        <span class="erp-form-hint">يُستخدم لتوجيه العميل إلى دردشة الواتساب لتتبع الطلب.</span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Section 3: Shipping & Payment Rules -->
-            <div class="p-6 space-y-4">
-                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <x-icon name="truck" size="18" class="text-indigo-600" />
-                    <span>سياسة الشحن والدفع</span>
+        <!-- Card 3: Shipping & Payment Policy -->
+        <div class="erp-card mb-4">
+            <div class="erp-card-header">
+                <h3 class="erp-card-title">
+                    <x-icon name="truck" size="18" style="color: var(--primary);" />
+                    <span>سياسة الشحن ومصاريف التوصيل والدفع</span>
                 </h3>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="shipping_flat_rate" class="block text-xs font-bold text-slate-700 mb-1">تكلفة الشحن الثابتة (ج.م):</label>
+            </div>
+            <div class="erp-card-body">
+                <div class="erp-form-grid">
+                    <div class="erp-form-group">
+                        <label for="shipping_flat_rate" class="erp-form-label">
+                            <span>تكلفة الشحن الثابتة (ج.م)</span>
+                            <span class="required">*</span>
+                        </label>
                         <input type="number" 
                                step="0.01" 
                                id="shipping_flat_rate" 
                                name="shipping_flat_rate" 
                                value="{{ old('shipping_flat_rate', $settings->shipping_flat_rate) }}" 
                                required 
-                               class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 outline-none font-bold">
+                               class="erp-input font-numeric">
+                        <span class="erp-form-hint">المبلغ المضاف على إجمالي السلة لتوصيل الطلب.</span>
                     </div>
 
-                    <div>
-                        <label for="free_shipping_threshold" class="block text-xs font-bold text-slate-700 mb-1">حد الشحن المجاني (ج.م):</label>
+                    <div class="erp-form-group">
+                        <label for="free_shipping_threshold" class="erp-form-label">
+                            <span>حد الشحن المجاني (ج.م)</span>
+                            <span class="required">*</span>
+                        </label>
                         <input type="number" 
                                step="0.01" 
                                id="free_shipping_threshold" 
                                name="free_shipping_threshold" 
                                value="{{ old('free_shipping_threshold', $settings->free_shipping_threshold) }}" 
                                required 
-                               class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 outline-none font-bold">
+                               class="erp-input font-numeric">
+                        <span class="erp-form-hint">إذا تخطت مشتريات العميل هذا المبلغ يُمنح شحناً مجانياً تلقائياً.</span>
                     </div>
-                </div>
 
-                <div class="pt-2 space-y-3">
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="allow_cod" value="1" {{ $settings->allow_cod ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 rounded">
-                        <div>
-                            <strong class="text-xs text-slate-800 block">تفعيل الدفع نقداً عند الاستلام (COD)</strong>
-                            <span class="text-[11px] text-slate-500">تمكين العملاء من دفع قيمة الطلب نقداً للمندوب عند وصول الشحنة</span>
-                        </div>
-                    </label>
+                    <div class="erp-form-group erp-form-full">
+                        <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 8px;">
+                            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" name="allow_cod" value="1" {{ $settings->allow_cod ? 'checked' : '' }} style="margin-top: 3px; width: 16px; height: 16px; accent-color: var(--primary);">
+                                <div>
+                                    <strong style="font-size: 13px; color: var(--text-main); display: block;">تفعيل الدفع نقداً عند الاستلام (Cash On Delivery)</strong>
+                                    <span style="font-size: 12px; color: var(--text-muted);">السماح للعملاء بالطلب ودفع الحساب للمندوب عند استلام الشحنة وفحصها.</span>
+                                </div>
+                            </label>
 
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="is_store_open" value="1" {{ $settings->is_store_open ? 'checked' : '' }} class="w-4 h-4 text-indigo-600 rounded">
-                        <div>
-                            <strong class="text-xs text-slate-800 block">المتجر مفتوح ومتاح لاستقبال طلبات الشراء</strong>
-                            <span class="text-[11px] text-slate-500">إذا تم إلغاء التحديد، لن يتمكن العملاء من إتمام checkout وسيظهر تنبيه بالإغلاق المؤقت</span>
+                            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" name="is_store_open" value="1" {{ $settings->is_store_open ? 'checked' : '' }} style="margin-top: 3px; width: 16px; height: 16px; accent-color: var(--primary);">
+                                <div>
+                                    <strong style="font-size: 13px; color: var(--text-main); display: block;">المتجر مفتوح ومتاح لاستقبال طلبات الشراء أونلاين</strong>
+                                    <span style="font-size: 12px; color: var(--text-muted);">في حالة إلغاء التحديد، يتم إغلاق استقبال الطلبات ويظهر تنبيه للعملاء بالإغلاق المؤقت للصيانة.</span>
+                                </div>
+                            </label>
                         </div>
-                    </label>
+                    </div>
                 </div>
             </div>
 
-            <!-- Submit Buttons -->
-            <div class="p-6 bg-slate-50 flex items-center justify-end gap-3">
+            <!-- Footer Save Bar -->
+            <div style="padding: 14px 20px; background-color: var(--bg-surface-alt); border-top: 1px solid var(--border-light); display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
                 <a href="{{ route('ecommerce.orders.index') }}" class="erp-btn erp-btn-secondary">
                     <span>إلغاء</span>
                 </a>
-                <button type="submit" class="erp-btn erp-btn-primary px-6">
+                <button type="submit" class="erp-btn erp-btn-primary" style="padding: 8px 24px;">
                     <x-icon name="check" size="16" />
-                    <span>حفظ الإعدادات</span>
+                    <span>حفظ كافة الإعدادات</span>
                 </button>
             </div>
-
         </div>
+
     </form>
 
 </div>

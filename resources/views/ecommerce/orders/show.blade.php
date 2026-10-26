@@ -14,90 +14,78 @@
                 <span>طباعة إذن التوصيل</span>
             </button>
         </x-slot:actions>
+
+        <x-slot:extra>
+            @php $badge = $order->status_badge; @endphp
+            <span class="erp-badge" style="background-color: var(--bg-surface-alt); border: 1px solid var(--border-color);">
+                <x-icon :name="$badge['icon']" size="14" />
+                <span>{{ $badge['label'] }}</span>
+            </span>
+        </x-slot:extra>
     </x-control-panel>
 @endsection
 
 @section('content')
-<div class="space-y-6">
+<div data-page="ecommerce-order-show">
 
     @if(session('success'))
-        <div class="erp-alert erp-alert-success" role="alert">
-            <x-icon name="check" size="16" />
+        <div class="erp-alert erp-alert-success mb-4" role="alert">
+            <x-icon name="check-circle" size="18" />
             <div>{{ session('success') }}</div>
         </div>
     @endif
+
     @if(session('error'))
-        <div class="erp-alert erp-alert-danger" role="alert">
-            <x-icon name="alert-triangle" size="16" />
+        <div class="erp-alert erp-alert-danger mb-4" role="alert">
+            <x-icon name="alert-triangle" size="18" />
             <div>{{ session('error') }}</div>
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- 2-Column Responsive Layout -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start;">
         
-        <!-- Main Order Details & Items (2 Cols) -->
-        <div class="lg:col-span-2 space-y-6">
-
-            <!-- Order Header Card -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-                <div class="space-y-1">
-                    <span class="text-xs text-slate-400 font-medium">رقم الطلب الرسمي</span>
-                    <h2 class="text-xl font-bold font-mono text-slate-900">{{ $order->order_number }}</h2>
-                    <span class="text-xs text-slate-500">تم الطلب بتاريخ: {{ $order->created_at->format('Y-m-d h:i A') }}</span>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    @php $badge = $order->status_badge; @endphp
-                    <span class="px-3 py-1.5 rounded-xl text-xs font-bold border inline-flex items-center gap-1.5 {{ $badge['bg'] }}">
-                        <x-icon :name="$badge['icon']" size="14" />
-                        <span>{{ $badge['label'] }}</span>
+        <!-- Main Column: Order Items & Financial Totals -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            
+            <!-- Items Card -->
+            <div class="erp-card">
+                <div class="erp-card-header">
+                    <h3 class="erp-card-title">
+                        <x-icon name="package" size="18" style="color: var(--primary);" />
+                        <span>أصناف الشحنة المطلوبة ({{ $order->items->count() }} صنف)</span>
+                    </h3>
+                    <span class="font-numeric text-xs font-bold" style="color: var(--text-muted);">
+                        تاريخ الطلب: {{ $order->created_at->format('Y-m-d h:i A') }}
                     </span>
-
-                    @if($order->payment_status === 'paid')
-                        <span class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            مدفوع
-                        </span>
-                    @else
-                        <span class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                            الدفع عند الاستلام
-                        </span>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Items Table Card -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-                <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="font-bold text-slate-800 text-sm">أصناف الشحنة المطلوبة</h3>
-                    <span class="text-xs text-slate-500 font-bold">{{ $order->items->count() }} صنف</span>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-right text-xs">
-                        <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                <div class="erp-table-responsive">
+                    <table class="erp-table">
+                        <thead>
                             <tr>
-                                <th class="p-3">#</th>
-                                <th class="p-3">اسم المنتج</th>
-                                <th class="p-3">الوحدة</th>
-                                <th class="p-3">الكمية</th>
-                                <th class="p-3">سعر الوحدة</th>
-                                <th class="p-3">الإجمالي</th>
+                                <th>#</th>
+                                <th>اسم المنتج</th>
+                                <th>الوحدة</th>
+                                <th>الكمية</th>
+                                <th>سعر الوحدة</th>
+                                <th>الإجمالي</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody>
                             @foreach($order->items as $idx => $item)
                                 <tr>
-                                    <td class="p-3 text-slate-400">{{ $idx + 1 }}</td>
-                                    <td class="p-3 font-bold text-slate-900">
-                                        {{ $item->product_name }}
+                                    <td class="font-numeric text-xs" style="color: var(--text-muted);">{{ $idx + 1 }}</td>
+                                    <td>
+                                        <strong style="color: var(--text-main);">{{ $item->product_name }}</strong>
                                         @if($item->product)
-                                            <span class="block text-[11px] font-mono text-slate-400">SKU: {{ $item->product->sku }}</span>
+                                            <span style="display: block; font-size: 11px; font-family: monospace; color: var(--text-muted);">كود: {{ $item->product->sku }}</span>
                                         @endif
                                     </td>
-                                    <td class="p-3 text-slate-600">{{ $item->unit }}</td>
-                                    <td class="p-3 font-bold text-slate-900">{{ (float) $item->quantity }}</td>
-                                    <td class="p-3 text-slate-700 font-numeric">{{ number_format($item->unit_price, 2) }} ج.م</td>
-                                    <td class="p-3 font-bold text-indigo-700 font-numeric">{{ number_format($item->subtotal, 2) }} ج.م</td>
+                                    <td>{{ $item->unit }}</td>
+                                    <td class="font-numeric font-bold">{{ (float) $item->quantity }}</td>
+                                    <td class="font-numeric">{{ number_format($item->unit_price, 2) }} ج.م</td>
+                                    <td class="font-numeric font-bold" style="color: var(--primary);">{{ number_format($item->subtotal, 2) }} ج.م</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -105,172 +93,177 @@
                 </div>
 
                 <!-- Financial Totals -->
-                <div class="bg-slate-50 p-4 border-t border-slate-200 space-y-2 text-xs">
-                    <div class="flex justify-between text-slate-600">
-                        <span>المجموع الفرعي:</span>
-                        <span class="font-bold text-slate-900 font-numeric">{{ number_format($order->subtotal, 2) }} ج.م</span>
+                <div style="padding: 16px; background-color: var(--bg-surface-alt); border-top: 1px solid var(--border-light); display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                    <div style="display: flex; justify-content: space-between; color: var(--text-muted);">
+                        <span>المجموع الفرعي للمنتجات:</span>
+                        <strong class="font-numeric" style="color: var(--text-main);">{{ number_format($order->subtotal, 2) }} ج.م</strong>
                     </div>
-                    <div class="flex justify-between text-slate-600">
+                    <div style="display: flex; justify-content: space-between; color: var(--text-muted);">
                         <span>مصاريف الشحن والتوصيل:</span>
-                        <span class="font-bold text-slate-900 font-numeric">{{ number_format($order->shipping_cost, 2) }} ج.م</span>
+                        <strong class="font-numeric" style="color: var(--text-main);">{{ number_format($order->shipping_cost, 2) }} ج.م</strong>
                     </div>
                     @if($order->discount_amount > 0)
-                        <div class="flex justify-between text-rose-600">
+                        <div style="display: flex; justify-content: space-between; color: var(--danger);">
                             <span>الخصم:</span>
-                            <span class="font-bold font-numeric">-{{ number_format($order->discount_amount, 2) }} ج.م</span>
+                            <strong class="font-numeric">-{{ number_format($order->discount_amount, 2) }} ج.م</strong>
                         </div>
                     @endif
-                    <div class="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-200">
-                        <span>المبلغ الإجمالي المستحق:</span>
-                        <span class="text-base font-black text-indigo-700 font-numeric">{{ number_format($order->total, 2) }} ج.م</span>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; border-top: 1px solid var(--border-color);">
+                        <strong style="font-size: 14px; color: var(--text-main);">المبلغ الإجمالي المستحق:</strong>
+                        <strong class="font-numeric" style="font-size: 18px; color: var(--primary);">{{ number_format($order->total, 2) }} ج.م</strong>
                     </div>
                 </div>
             </div>
 
             <!-- Customer Notes -->
             @if($order->customer_notes)
-                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-2">
-                    <h4 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                        <x-icon name="message-square" size="14" class="text-indigo-600" />
-                        <span>ملاحظات العميل مع الطلب:</span>
-                    </h4>
-                    <p class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <div class="erp-card">
+                    <div class="erp-card-header">
+                        <h4 class="erp-card-title">
+                            <x-icon name="message-square" size="16" style="color: var(--primary);" />
+                            <span>ملاحظات العميل مع الطلب</span>
+                        </h4>
+                    </div>
+                    <div class="erp-card-body" style="font-size: 13px; color: var(--text-main); line-height: 1.6;">
                         {{ $order->customer_notes }}
-                    </p>
+                    </div>
                 </div>
             @endif
 
         </div>
 
-        <!-- Sidebar Actions & Customer Info (1 Col) -->
-        <div class="space-y-6">
-
-            <!-- Customer Information Card -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
-                <h3 class="font-bold text-slate-800 text-sm pb-2 border-b border-slate-100 flex items-center gap-2">
-                    <x-icon name="user" size="16" class="text-indigo-600" />
-                    <span>بيانات العميل المستلم</span>
-                </h3>
-
-                <div class="space-y-3 text-xs">
+        <!-- Sidebar Column: Customer, Status, Invoice -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            
+            <!-- Customer Details Card -->
+            <div class="erp-card">
+                <div class="erp-card-header">
+                    <h3 class="erp-card-title">
+                        <x-icon name="user" size="18" style="color: var(--primary);" />
+                        <span>بيانات العميل المستلم</span>
+                    </h3>
+                </div>
+                <div class="erp-card-body" style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
                     <div>
-                        <span class="text-slate-400 block mb-0.5">الاسم:</span>
-                        <strong class="text-slate-800 text-sm">{{ $order->customer_name }}</strong>
+                        <span style="font-size: 11px; color: var(--text-muted); display: block;">اسم العميل:</span>
+                        <strong style="font-size: 14px; color: var(--text-main);">{{ $order->customer_name }}</strong>
                     </div>
 
                     <div>
-                        <span class="text-slate-400 block mb-0.5">رقم الهاتف:</span>
-                        <div class="flex items-center gap-2">
-                            <strong class="text-slate-900 font-mono" dir="ltr">{{ $order->customer_phone }}</strong>
-                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $order->customer_phone) }}" target="_blank" class="text-emerald-600 hover:text-emerald-700" title="مراسلة واتساب">
-                                <x-icon name="message-circle" size="14" />
+                        <span style="font-size: 11px; color: var(--text-muted); display: block;">رقم الهاتف:</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <strong class="font-numeric" dir="ltr" style="font-size: 14px; color: var(--text-main);">{{ $order->customer_phone }}</strong>
+                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $order->customer_phone) }}" target="_blank" class="erp-btn erp-btn-secondary" style="padding: 2px 8px; font-size: 11px;" title="مراسلة واتساب">
+                                <x-icon name="message-circle" size="13" style="color: #059669;" />
+                                <span>واتساب</span>
                             </a>
                         </div>
                     </div>
 
                     @if($order->customer_email)
                         <div>
-                            <span class="text-slate-400 block mb-0.5">البريد الإلكتروني:</span>
-                            <span class="text-slate-700 font-mono">{{ $order->customer_email }}</span>
+                            <span style="font-size: 11px; color: var(--text-muted); display: block;">البريد الإلكتروني:</span>
+                            <span class="font-numeric" style="color: var(--text-main);">{{ $order->customer_email }}</span>
                         </div>
                     @endif
 
                     <div>
-                        <span class="text-slate-400 block mb-0.5">المحافظة / المدينة:</span>
-                        <span class="text-slate-700 font-medium">{{ $order->customer_city ?? 'غير محدد' }}</span>
+                        <span style="font-size: 11px; color: var(--text-muted); display: block;">المحافظة / المدينة:</span>
+                        <span style="color: var(--text-main); font-weight: 600;">{{ $order->customer_city ?? 'غير محدد' }}</span>
                     </div>
 
                     <div>
-                        <span class="text-slate-400 block mb-0.5">عنوان التوصيل بالتفصيل:</span>
-                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-slate-700 leading-relaxed">
+                        <span style="font-size: 11px; color: var(--text-muted); display: block;">عنوان التوصيل بالتفصيل:</span>
+                        <div style="padding: 8px 12px; background: var(--bg-surface-alt); border: 1px solid var(--border-light); border-radius: var(--border-radius-sm); font-size: 12px; line-height: 1.5; color: var(--text-main);">
                             {{ $order->customer_address }}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Status Manager Card -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
-                <h3 class="font-bold text-slate-800 text-sm pb-2 border-b border-slate-100 flex items-center gap-2">
-                    <x-icon name="activity" size="16" class="text-indigo-600" />
-                    <span>تحديث حالة الطلب</span>
-                </h3>
-
-                <form action="{{ route('ecommerce.orders.update-status', $order) }}" method="POST" class="space-y-3">
-                    @csrf
-                    <div>
-                        <label for="status" class="block text-xs font-bold text-slate-700 mb-1">حالة الطلب:</label>
-                        <select name="status" id="status" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold">
-                            <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>قيد الانتظار (Pending)</option>
-                            <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>تم التأكيد (Confirmed)</option>
-                            <option value="processing" {{ $order->status === 'processing' ? 'selected' : '' }}>جاري التجهيز (Processing)</option>
-                            <option value="shipped" {{ $order->status === 'shipped' ? 'selected' : '' }}>تم الشحن (Shipped)</option>
-                            <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>تم التوصيل (Delivered)</option>
-                            <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>ملغي (Cancelled)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="payment_status" class="block text-xs font-bold text-slate-700 mb-1">حالة الدفع:</label>
-                        <select name="payment_status" id="payment_status" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold">
-                            <option value="unpaid" {{ $order->payment_status === 'unpaid' ? 'selected' : '' }}>غير مدفوع (عند الاستلام)</option>
-                            <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>تم سداد المبلغ بالكامل</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="w-full erp-btn erp-btn-primary py-2 text-xs justify-center">
-                        <x-icon name="check" size="14" />
-                        <span>حفظ التعديلات</span>
-                    </button>
-                </form>
-            </div>
-
-            <!-- Convert to Sales Invoice Card -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
-                <h3 class="font-bold text-slate-800 text-sm pb-2 border-b border-slate-100 flex items-center gap-2">
-                    <x-icon name="file-text" size="16" class="text-indigo-600" />
-                    <span>فاتورة المبيعات الرسمية (ERP)</span>
-                </h3>
-
-                @if($order->salesInvoice)
-                    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-xs space-y-2">
-                        <div class="flex items-center gap-1.5 text-indigo-800 font-bold">
-                            <x-icon name="check-circle" size="16" class="text-indigo-600" />
-                            <span>تم تحويل الطلب إلى فاتورة</span>
-                        </div>
-                        <div class="text-slate-600">
-                            رقم الفاتورة: <strong class="font-mono text-slate-900">{{ $order->salesInvoice->invoice_number }}</strong>
-                        </div>
-                        <div class="text-slate-500">
-                            تاريخ الإصدار: {{ $order->salesInvoice->invoice_date }}
-                        </div>
-                    </div>
-                @else
-                    <form action="{{ route('ecommerce.orders.convert-invoice', $order) }}" method="POST" class="space-y-3">
+            <!-- Status Update Card -->
+            <div class="erp-card">
+                <div class="erp-card-header">
+                    <h3 class="erp-card-title">
+                        <x-icon name="activity" size="18" style="color: var(--primary);" />
+                        <span>تحديث حالة الطلب والدفع</span>
+                    </h3>
+                </div>
+                <div class="erp-card-body">
+                    <form action="{{ route('ecommerce.orders.update-status', $order) }}" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
                         @csrf
-                        <p class="text-xs text-slate-500 leading-relaxed">
-                            تحويل هذا الطلب الإلكتروني تلقائياً إلى فاتورة مبيعات ERP مع خصم الأصناف من المستودع المختار.
-                        </p>
-
-                        <div>
-                            <label for="warehouse_id" class="block text-xs font-bold text-slate-700 mb-1">
-                                مستودع الصرف:
-                            </label>
-                            <select name="warehouse_id" id="warehouse_id" required class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold">
-                                @foreach($warehouses as $wh)
-                                    <option value="{{ $wh->id }}">{{ $wh->name }}</option>
-                                @endforeach
+                        <div class="erp-form-group" style="margin-bottom: 0;">
+                            <label for="status" class="erp-form-label">حالة الطلب:</label>
+                            <select name="status" id="status" class="erp-select">
+                                <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>قيد الانتظار (Pending)</option>
+                                <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>تم التأكيد (Confirmed)</option>
+                                <option value="processing" {{ $order->status === 'processing' ? 'selected' : '' }}>جاري التجهيز (Processing)</option>
+                                <option value="shipped" {{ $order->status === 'shipped' ? 'selected' : '' }}>تم الشحن (Shipped)</option>
+                                <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>تم التوصيل (Delivered)</option>
+                                <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>ملغي (Cancelled)</option>
                             </select>
                         </div>
 
-                        <button type="submit" 
-                                onclick="return confirm('هل أنت متأكد من تحويل هذا الطلب إلى فاتورة مبيعات وخصم المخزون؟')"
-                                class="w-full erp-btn bg-emerald-600 hover:bg-emerald-700 text-white py-2 text-xs justify-center font-bold">
-                            <x-icon name="file-plus" size="14" />
-                            <span>إصدار فاتورة مبيعات ERP</span>
+                        <div class="erp-form-group" style="margin-bottom: 0;">
+                            <label for="payment_status" class="erp-form-label">حالة الدفع:</label>
+                            <select name="payment_status" id="payment_status" class="erp-select">
+                                <option value="unpaid" {{ $order->payment_status === 'unpaid' ? 'selected' : '' }}>غير مدفوع (الدفع عند الاستلام)</option>
+                                <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>تم سداد المبلغ بالكامل</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="erp-btn erp-btn-primary" style="justify-content: center; margin-top: 4px;">
+                            <x-icon name="check" size="14" />
+                            <span>تحديث الحالة</span>
                         </button>
                     </form>
-                @endif
+                </div>
+            </div>
+
+            <!-- Convert to Sales Invoice Card -->
+            <div class="erp-card">
+                <div class="erp-card-header">
+                    <h3 class="erp-card-title">
+                        <x-icon name="file-text" size="18" style="color: var(--primary);" />
+                        <span>فاتورة المبيعات الرسمية (ERP)</span>
+                    </h3>
+                </div>
+                <div class="erp-card-body">
+                    @if($order->salesInvoice)
+                        <div class="erp-alert erp-alert-success" style="margin-bottom: 0;">
+                            <x-icon name="check-circle" size="16" />
+                            <div>
+                                <strong style="display: block; font-size: 13px;">تم إصدار فاتورة مبيعات لهذا الطلب</strong>
+                                <span class="font-numeric" style="font-size: 12px;">رقم الفاتورة: <strong>{{ $order->salesInvoice->invoice_number }}</strong></span>
+                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">تاريخ الإصدار: {{ $order->salesInvoice->invoice_date }}</div>
+                            </div>
+                        </div>
+                    @else
+                        <form action="{{ route('ecommerce.orders.convert-invoice', $order) }}" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+                            @csrf
+                            <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                                تحويل هذا الطلب تلقائياً إلى فاتورة مبيعات رسمية وخصم الكميات من المستودع بنظام FIFO.
+                            </p>
+
+                            <div class="erp-form-group" style="margin-bottom: 0;">
+                                <label for="warehouse_id" class="erp-form-label">مستودع الصرف:</label>
+                                <select name="warehouse_id" id="warehouse_id" required class="erp-select">
+                                    @foreach($warehouses as $wh)
+                                        <option value="{{ $wh->id }}">{{ $wh->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <button type="submit" 
+                                    onclick="return confirm('هل أنت متأكد من تحويل هذا الطلب إلى فاتورة مبيعات وخصم المخزون؟')"
+                                    class="erp-btn erp-btn-success" 
+                                    style="justify-content: center; background-color: var(--success); color: white;">
+                                <x-icon name="file-plus" size="15" />
+                                <span>إصدار فاتورة مبيعات ERP</span>
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
 
         </div>

@@ -13,10 +13,11 @@
             --odoo-primary-dark: #56394e;
             --odoo-primary-light: #8e6283;
             --odoo-secondary: #00A09D;
-            --odoo-bg: #f8f9fa;
+            --odoo-secondary-dark: #008784;
+            --odoo-bg: #f8fafc;
             --odoo-card-bg: #ffffff;
             --odoo-border: #e2e8f0;
-            --odoo-text-main: #1e293b;
+            --odoo-text-main: #0f172a;
             --odoo-text-muted: #64748b;
             --odoo-success: #10b981;
             --odoo-warning: #f59e0b;
@@ -26,24 +27,26 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--odoo-bg);
             color: var(--odoo-text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* Odoo Top Main Navbar */
         .odoo-navbar {
             background-color: var(--odoo-primary);
             color: #ffffff;
-            height: 52px;
+            height: 54px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 16px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            padding: 0 24px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
             position: sticky;
             top: 0;
             z-index: 50;
@@ -51,55 +54,60 @@
         .odoo-nav-start {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 20px;
         }
         .odoo-app-switcher {
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
+            border-radius: 8px;
             background: rgba(255,255,255,0.12);
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
         }
         .odoo-app-switcher:hover {
             background: rgba(255,255,255,0.22);
         }
         .odoo-brand {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 800;
             letter-spacing: -0.3px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
         .odoo-brand .badge-saas {
             background: var(--odoo-secondary);
+            color: #ffffff;
             font-size: 11px;
             padding: 2px 8px;
             border-radius: 4px;
             font-weight: 700;
+            letter-spacing: 0.2px;
         }
         .odoo-nav-links {
             display: flex;
             align-items: center;
-            gap: 4px;
-            margin-right: 20px;
+            gap: 6px;
+            margin-right: 24px;
         }
         .odoo-nav-item {
             color: rgba(255,255,255,0.85);
             text-decoration: none;
-            padding: 6px 12px;
+            padding: 7px 14px;
             border-radius: 6px;
             font-size: 13px;
             font-weight: 600;
-            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.15s ease;
         }
         .odoo-nav-item:hover, .odoo-nav-item.active {
             color: #ffffff;
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.16);
         }
         .odoo-nav-end {
             display: flex;
@@ -110,32 +118,35 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            background: rgba(255,255,255,0.1);
-            padding: 4px 10px;
+            background: rgba(255,255,255,0.12);
+            padding: 5px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
+            color: #ffffff;
         }
 
         /* Odoo Sub-Control Panel */
         .odoo-control-panel {
             background: #ffffff;
             border-bottom: 1px solid var(--odoo-border);
-            padding: 14px 24px;
+            padding: 16px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 16px;
         }
         .odoo-cp-title h1 {
-            font-size: 20px;
+            font-size: 21px;
             font-weight: 800;
             color: var(--odoo-text-main);
+            letter-spacing: -0.3px;
         }
         .odoo-cp-title p {
             font-size: 12px;
             color: var(--odoo-text-muted);
+            margin-top: 2px;
         }
         .odoo-cp-actions {
             display: flex;
@@ -146,63 +157,101 @@
             background-color: var(--odoo-primary);
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 9px 18px;
             border-radius: 6px;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
             text-decoration: none;
-            transition: background 0.15s;
+            box-shadow: 0 1px 3px rgba(113, 75, 103, 0.25);
+            transition: all 0.15s ease;
         }
         .btn-odoo-primary:hover {
             background-color: var(--odoo-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(113, 75, 103, 0.35);
         }
         .btn-odoo-secondary {
-            background-color: white;
+            background-color: #ffffff;
             color: var(--odoo-text-main);
             border: 1px solid var(--odoo-border);
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: 6px;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
             text-decoration: none;
-            transition: all 0.15s;
+            transition: all 0.15s ease;
         }
         .btn-odoo-secondary:hover {
             background-color: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #0f172a;
         }
 
         /* Main Container */
         .odoo-content {
-            padding: 24px;
-            max-width: 1400px;
+            padding: 24px 28px;
+            max-width: 1650px;
             width: 100%;
             margin: 0 auto;
             flex: 1;
         }
 
-        /* KPI Cards Grid (Odoo Metric Box) */
+        /* Alert Banners */
+        .alert {
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .alert-success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecdd3;
+        }
+
+        /* Modern KPI Cards Grid */
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
             margin-bottom: 24px;
         }
         .kpi-card {
             background: #ffffff;
             border: 1px solid var(--odoo-border);
-            border-radius: 8px;
-            padding: 16px 20px;
+            border-radius: 10px;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            transition: all 0.2s ease;
+        }
+        .kpi-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
         }
         .kpi-card::before {
             content: '';
@@ -214,37 +263,77 @@
             background: var(--odoo-primary);
         }
         .kpi-card.success::before { background: var(--odoo-success); }
-        .kpi-card.warning::before { background: var(--odoo-warning); }
         .kpi-card.info::before { background: var(--odoo-info); }
+        .kpi-card.warning::before { background: var(--odoo-warning); }
+
+        .kpi-info {
+            flex: 1;
+            min-width: 0;
+        }
         .kpi-label {
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--odoo-text-muted);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .kpi-val {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 800;
             color: var(--odoo-text-main);
-            font-family: inherit;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+        .kpi-val-unit {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--odoo-text-muted);
         }
         .kpi-sub {
             font-size: 11px;
-            color: var(--odoo-text-muted);
+            color: #94a3b8;
             margin-top: 4px;
         }
 
-        /* Odoo Data Table */
+        .kpi-icon-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .kpi-icon-purple {
+            background: rgba(113, 75, 103, 0.1);
+            color: var(--odoo-primary);
+        }
+        .kpi-icon-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--odoo-success);
+        }
+        .kpi-icon-info {
+            background: rgba(2, 132, 199, 0.1);
+            color: var(--odoo-info);
+        }
+        .kpi-icon-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--odoo-warning);
+        }
+
+        /* Odoo Card & Table Container */
         .odoo-card {
             background: #ffffff;
             border: 1px solid var(--odoo-border);
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0,0,0,0.03);
             margin-bottom: 24px;
         }
         .odoo-card-header {
-            padding: 14px 20px;
+            padding: 16px 22px;
             border-bottom: 1px solid var(--odoo-border);
             background: #fafafa;
             display: flex;
@@ -255,13 +344,35 @@
             font-size: 15px;
             font-weight: 800;
             color: var(--odoo-text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+
         .table-responsive {
+            width: 100%;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
         table.odoo-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 1250px;
             text-align: right;
             font-size: 13px;
         }
@@ -269,57 +380,218 @@
             background-color: #f8fafc;
             color: #475569;
             font-weight: 700;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--odoo-border);
+            font-size: 12px;
+            padding: 12px 14px;
+            border-bottom: 2px solid var(--odoo-border);
             white-space: nowrap;
+            letter-spacing: -0.2px;
         }
         table.odoo-table td {
-            padding: 12px 16px;
+            padding: 14px 14px;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
+            font-size: 13px;
         }
-        table.odoo-table tr:hover {
+        table.odoo-table tbody tr:hover td {
             background-color: #fbfcfe;
         }
 
-        /* Status & Badges */
-        .badge {
-            display: inline-flex;
+        /* Pill and Status Styling */
+        .company-meta {
+            min-width: 220px;
+        }
+        .company-name {
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--odoo-text-main);
+            line-height: 1.3;
+        }
+        .company-date {
+            font-size: 11px;
+            color: var(--odoo-text-muted);
+            margin-top: 3px;
+            display: flex;
             align-items: center;
             gap: 4px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 700;
+            white-space: nowrap;
         }
-        .badge-success { background: #dcfce7; color: #15803d; }
-        .badge-danger { background: #fee2e2; color: #b91c1c; }
-        .badge-warning { background: #fef3c7; color: #b45309; }
-        .badge-plan { background: #f3e8ff; color: #7e22ce; }
 
-        /* Toggle Buttons */
-        .btn-toggle-mod {
-            padding: 3px 8px;
-            border-radius: 4px;
+        .subdomain-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafc;
+            color: var(--odoo-primary);
+            border: 1px solid var(--odoo-border);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            direction: ltr;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .subdomain-link:hover {
+            background: #f1f5f9;
+            border-color: var(--odoo-primary-light);
+            color: var(--odoo-primary-dark);
+        }
+
+        .db-code {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid var(--odoo-border);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             font-size: 11px;
+            font-weight: 600;
+            direction: ltr;
+            white-space: nowrap;
+        }
+
+        .badge-plan {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #f3e8ff;
+            color: #7e22ce;
+            border: 1px solid #e9d5ff;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .users-limit {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            color: #334155;
+            font-size: 12px;
+        }
+        .users-limit strong {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        /* Modern Module Toggle Buttons */
+        .btn-toggle-mod {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 5px 11px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 700;
             border: 1px solid transparent;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            background: none;
         }
         .btn-toggle-mod.active {
-            background: #dcfce7;
-            color: #166534;
-            border-color: #bbf7d0;
+            background: #ecfdf5;
+            color: #047857;
+            border-color: #a7f3d0;
+            box-shadow: 0 1px 2px rgba(4, 120, 87, 0.06);
+        }
+        .btn-toggle-mod.active:hover {
+            background: #d1fae5;
+            border-color: #6ee7b7;
         }
         .btn-toggle-mod.inactive {
-            background: #f1f5f9;
+            background: #f8fafc;
             color: #94a3b8;
             border-color: #e2e8f0;
-            text-decoration: line-through;
+        }
+        .btn-toggle-mod.inactive:hover {
+            background: #f1f5f9;
+            color: #64748b;
+            border-color: #cbd5e1;
         }
 
-        /* Modal styling (Odoo Dialog) */
+        /* Subscription Status Badges */
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .badge-status.active {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+        .badge-status.frozen {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecdd3;
+        }
+        .badge-status.expired {
+            background: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        /* Action Buttons */
+        .actions-cell {
+            white-space: nowrap;
+            text-align: center;
+        }
+        .btn-action-primary {
+            background-color: var(--odoo-primary);
+            color: white;
+            border: none;
+            padding: 6px 13px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            box-shadow: 0 1px 2px rgba(113, 75, 103, 0.15);
+            transition: all 0.15s ease;
+        }
+        .btn-action-primary:hover {
+            background-color: var(--odoo-primary-dark);
+            transform: translateY(-1px);
+        }
+        .btn-action-secondary {
+            background-color: #ffffff;
+            color: #475569;
+            border: 1px solid var(--odoo-border);
+            padding: 6px 11px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+        }
+        .btn-action-secondary:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+
+        /* Modal styling */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -331,14 +603,14 @@
             align-items: center;
             justify-content: center;
             z-index: 100;
-            backdrop-filter: blur(2px);
+            backdrop-filter: blur(3px);
         }
         .modal-overlay.active {
             display: flex;
         }
         .modal-box {
             background: #ffffff;
-            border-radius: 10px;
+            border-radius: 12px;
             width: 100%;
             max-width: 620px;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
@@ -348,7 +620,7 @@
             flex-direction: column;
         }
         .modal-header {
-            padding: 16px 20px;
+            padding: 16px 22px;
             border-bottom: 1px solid var(--odoo-border);
             display: flex;
             justify-content: space-between;
@@ -359,53 +631,48 @@
         .modal-close {
             background: none;
             border: none;
-            font-size: 20px;
+            font-size: 22px;
             cursor: pointer;
             color: var(--odoo-text-muted);
+            line-height: 1;
         }
         .modal-body {
-            padding: 20px;
+            padding: 22px;
             overflow-y: auto;
             flex: 1;
         }
         .modal-footer {
-            padding: 14px 20px;
+            padding: 14px 22px;
             border-top: 1px solid var(--odoo-border);
             display: flex;
             justify-content: flex-end;
             gap: 10px;
             background: #f8fafc;
         }
-        .form-group { margin-bottom: 14px; }
+        .form-group { margin-bottom: 15px; }
         .form-group label {
             display: block;
             font-size: 12px;
             font-weight: 700;
             color: #334155;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
         .form-control {
             width: 100%;
-            padding: 8px 12px;
+            padding: 9px 12px;
             border: 1px solid var(--odoo-border);
             border-radius: 6px;
             font-family: inherit;
             font-size: 13px;
+            color: var(--odoo-text-main);
+            background: #ffffff;
+            transition: all 0.15s ease;
         }
         .form-control:focus {
             outline: none;
             border-color: var(--odoo-primary);
             box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.15);
         }
-        .alert {
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-        .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecdd3; }
     </style>
 </head>
 <body>
@@ -415,10 +682,10 @@
         <div class="odoo-nav-start">
             <div class="odoo-app-switcher" title="قائمة التطبيقات">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1.5"/>
                 </svg>
             </div>
             <div class="odoo-brand">
@@ -475,13 +742,13 @@
 
         @if(session('message'))
             <div class="alert alert-success">
-                <x-icon name="check-circle" size="16" />
+                <x-icon name="check-circle" size="18" />
                 <span>{{ session('message') }}</span>
             </div>
         @endif
         @if(session('error'))
             <div class="alert alert-error">
-                <x-icon name="alert-triangle" size="16" />
+                <x-icon name="alert-triangle" size="18" />
                 <span>{{ session('error') }}</span>
             </div>
         @endif
@@ -489,60 +756,80 @@
         <!-- Odoo KPI Metrics -->
         <div class="kpi-grid">
             <div class="kpi-card">
-                <div style="float: left; width: 44px; height: 44px; border-radius: 8px; background: rgba(113, 75, 103, 0.1); color: var(--odoo-primary); display: flex; align-items: center; justify-content: center;">
+                <div class="kpi-info">
+                    <div class="kpi-label">إجمالي المشتركين</div>
+                    <div class="kpi-val">{{ $totalTenants }}</div>
+                    <div class="kpi-sub">شركات ومتاجر مسجلة</div>
+                </div>
+                <div class="kpi-icon-box kpi-icon-purple">
                     <x-icon name="building" size="24" />
                 </div>
-                <div class="kpi-label">إجمالي المشتركين</div>
-                <div class="kpi-val">{{ $totalTenants }}</div>
-                <div class="kpi-sub">شركات ومتاجر مسجلة</div>
             </div>
+
             <div class="kpi-card success">
-                <div style="float: left; width: 44px; height: 44px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); color: var(--odoo-success); display: flex; align-items: center; justify-content: center;">
+                <div class="kpi-info">
+                    <div class="kpi-label">الاشتراكات النشطة</div>
+                    <div class="kpi-val" style="color: var(--odoo-success);">{{ $activeTenants }}</div>
+                    <div class="kpi-sub">تراخيص سارية المفعول</div>
+                </div>
+                <div class="kpi-icon-box kpi-icon-success">
                     <x-icon name="check-circle" size="24" />
                 </div>
-                <div class="kpi-label">الاشتراكات النشطة</div>
-                <div class="kpi-val" style="color: var(--odoo-success);">{{ $activeTenants }}</div>
-                <div class="kpi-sub">تراخيص سارية المفعول</div>
             </div>
+
             <div class="kpi-card info">
-                <div style="float: left; width: 44px; height: 44px; border-radius: 8px; background: rgba(2, 132, 199, 0.1); color: var(--odoo-info); display: flex; align-items: center; justify-content: center;">
+                <div class="kpi-info">
+                    <div class="kpi-label">العائد الشهري التقديري (MRR)</div>
+                    <div class="kpi-val" style="color: var(--odoo-info);">
+                        {{ number_format($mrr, 0) }}
+                        <span class="kpi-val-unit">ج.م</span>
+                    </div>
+                    <div class="kpi-sub">إيراد الاشتراكات الشهرية</div>
+                </div>
+                <div class="kpi-icon-box kpi-icon-info">
                     <x-icon name="trending-up" size="24" />
                 </div>
-                <div class="kpi-label">العائد الشهري التقديري (MRR)</div>
-                <div class="kpi-val" style="color: var(--odoo-info);">{{ number_format($mrr, 0) }} <span style="font-size: 14px;">ج.م</span></div>
-                <div class="kpi-sub">إيراد الاشتراكات الشهرية</div>
             </div>
+
             <div class="kpi-card warning">
-                <div style="float: left; width: 44px; height: 44px; border-radius: 8px; background: rgba(113, 75, 103, 0.1); color: var(--odoo-primary); display: flex; align-items: center; justify-content: center;">
+                <div class="kpi-info">
+                    <div class="kpi-label">عزل البيانات والأمان</div>
+                    <div class="kpi-val" style="color: var(--odoo-primary);">
+                        100%
+                        <span class="kpi-val-unit">DB Isolated</span>
+                    </div>
+                    <div class="kpi-sub">قاعدة بيانات فيزيائية لكل مشترك</div>
+                </div>
+                <div class="kpi-icon-box kpi-icon-purple">
                     <x-icon name="database" size="24" />
                 </div>
-                <div class="kpi-label">عزل البيانات والأمان</div>
-                <div class="kpi-val" style="font-size: 16px; color: var(--odoo-primary); padding-top: 6px;">100% DB-per-Tenant</div>
-                <div class="kpi-sub">قاعدة بيانات فيزيائية لكل عميل</div>
             </div>
         </div>
 
         <!-- Tenants Table -->
         <div class="odoo-card">
             <div class="odoo-card-header">
-                <h2>قائمة المشتركين الحالية والتحكم بالموديولات</h2>
-                <span class="badge badge-plan">{{ $totalTenants }} مشترك مسجل</span>
+                <h2>
+                    <x-icon name="users" size="18" />
+                    <span>قائمة المشتركين الحالية والتحكم بالموديولات</span>
+                </h2>
+                <span class="badge-plan">{{ $totalTenants }} مشترك مسجل</span>
             </div>
             <div class="table-responsive">
                 <table class="odoo-table">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th style="width: 44px; text-align: center;">#</th>
                             <th>الشركة / المشترك</th>
                             <th>الرابط المخصص (Subdomain)</th>
                             <th>قاعدة البيانات المستقلة</th>
                             <th>الباقة الحالية</th>
                             <th>حد المستخدمين</th>
-                            <th>المحاسبة</th>
-                            <th>المناديب</th>
-                            <th>الأقساط</th>
-                            <th>المتجر الإلكتروني</th>
-                            <th>حالة الاشتراك</th>
+                            <th style="text-align: center;">المحاسبة</th>
+                            <th style="text-align: center;">المناديب</th>
+                            <th style="text-align: center;">الأقساط</th>
+                            <th style="text-align: center;">المتجر الإلكتروني</th>
+                            <th style="text-align: center;">حالة الاشتراك</th>
                             <th style="text-align: center;">إجراءات</th>
                         </tr>
                     </thead>
@@ -560,110 +847,121 @@
                                 $tenantUrl = request()->getScheme() . '://' . $t->subdomain . '.' . $baseHost . $portSuffix;
                             @endphp
                             <tr>
-                                <td>{{ $index + 1 }}</td>
+                                <td style="text-align: center; color: #94a3b8; font-weight: 700;">{{ $index + 1 }}</td>
                                 <td>
-                                    <strong>{{ $t->name }}</strong>
-                                    <div style="font-size: 11px; color: var(--odoo-text-muted);">
-                                        تاريخ البدء: {{ $t->created_at->format('Y-m-d') }}
+                                    <div class="company-meta">
+                                        <div class="company-name">{{ $t->name }}</div>
+                                        <div class="company-date">
+                                            <x-icon name="calendar" size="12" />
+                                            <span>تاريخ البدء: {{ $t->created_at->format('Y-m-d') }}</span>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <a href="{{ $tenantUrl }}" target="_blank" style="color: var(--odoo-primary); font-family: monospace; font-weight: 700; text-decoration: none;">
-                                        {{ $t->subdomain }}.{{ $baseHost }} ↗
+                                    <a href="{{ $tenantUrl }}" target="_blank" class="subdomain-link" title="فتح الرابط في تبويب جديد">
+                                        <span>{{ $t->subdomain }}.{{ $baseHost }}{{ $portSuffix }}</span>
+                                        <x-icon name="external-link" size="12" />
                                     </a>
                                 </td>
                                 <td>
-                                    <code style="font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0f172a;">{{ $t->database_name }}</code>
+                                    <div class="db-code">
+                                        <x-icon name="database" size="12" />
+                                        <span>{{ $t->database_name }}</span>
+                                    </div>
                                 </td>
                                 <td>
-                                    <span class="badge badge-plan">{{ $t->plan_name }}</span>
+                                    <span class="badge-plan">{{ $t->plan_name }}</span>
                                 </td>
                                 <td>
-                                    <span style="font-weight: 700; font-family: monospace;">{{ $t->max_users ?? 3 }}</span> مستخدم
+                                    <div class="users-limit">
+                                        <x-icon name="users" size="14" />
+                                        <strong>{{ $t->max_users ?? 3 }}</strong>
+                                        <span>مستخدمين</span>
+                                    </div>
                                 </td>
 
                                 <!-- Accounting Toggle -->
-                                <td>
+                                <td style="text-align: center;">
                                     <form action="{{ route('saas.tenants.toggle-module', $t->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         <input type="hidden" name="module" value="accounting">
                                         <button type="submit" class="btn-toggle-mod {{ ($mods['accounting'] ?? false) ? 'active' : 'inactive' }}" title="اضغط لتغيير الحالة">
                                             @if($mods['accounting'] ?? false)
-                                                <x-icon name="check" size="11" />
+                                                <x-icon name="check" size="12" />
                                                 <span>مفعل</span>
                                             @else
-                                                <x-icon name="x" size="11" />
-                                                <span>مغلق</span>
+                                                <x-icon name="minus" size="12" />
+                                                <span>معطل</span>
                                             @endif
                                         </button>
                                     </form>
                                 </td>
 
                                 <!-- Sales Reps Toggle -->
-                                <td>
+                                <td style="text-align: center;">
                                     <form action="{{ route('saas.tenants.toggle-module', $t->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         <input type="hidden" name="module" value="sales_reps">
                                         <button type="submit" class="btn-toggle-mod {{ ($mods['sales_reps'] ?? false) ? 'active' : 'inactive' }}" title="اضغط لتغيير الحالة">
                                             @if($mods['sales_reps'] ?? false)
-                                                <x-icon name="check" size="11" />
+                                                <x-icon name="check" size="12" />
                                                 <span>مفعل</span>
                                             @else
-                                                <x-icon name="x" size="11" />
-                                                <span>مغلق</span>
+                                                <x-icon name="minus" size="12" />
+                                                <span>معطل</span>
                                             @endif
                                         </button>
                                     </form>
                                 </td>
 
                                 <!-- Installments Toggle -->
-                                <td>
+                                <td style="text-align: center;">
                                     <form action="{{ route('saas.tenants.toggle-module', $t->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         <input type="hidden" name="module" value="installments">
                                         <button type="submit" class="btn-toggle-mod {{ ($mods['installments'] ?? false) ? 'active' : 'inactive' }}" title="اضغط لتغيير الحالة">
                                             @if($mods['installments'] ?? false)
-                                                <x-icon name="check" size="11" />
+                                                <x-icon name="check" size="12" />
                                                 <span>مفعل</span>
                                             @else
-                                                <x-icon name="x" size="11" />
-                                                <span>مغلق</span>
+                                                <x-icon name="minus" size="12" />
+                                                <span>معطل</span>
                                             @endif
                                         </button>
                                     </form>
                                 </td>
 
                                 <!-- E-Commerce Toggle -->
-                                <td>
+                                <td style="text-align: center;">
                                     <form action="{{ route('saas.tenants.toggle-module', $t->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         <input type="hidden" name="module" value="ecommerce">
                                         <button type="submit" class="btn-toggle-mod {{ ($mods['ecommerce'] ?? false) ? 'active' : 'inactive' }}" title="اضغط لتغيير الحالة">
                                             @if($mods['ecommerce'] ?? false)
-                                                <x-icon name="check" size="11" />
+                                                <x-icon name="check" size="12" />
                                                 <span>مفعل</span>
                                             @else
-                                                <x-icon name="x" size="11" />
-                                                <span>مغلق</span>
+                                                <x-icon name="minus" size="12" />
+                                                <span>معطل</span>
                                             @endif
                                         </button>
                                     </form>
                                 </td>
 
                                 <!-- Status / Expiry -->
-                                <td>
+                                <td style="text-align: center;">
                                     @if(! $t->is_active)
-                                        <span class="badge badge-danger">
+                                        <span class="badge-status frozen">
                                             <x-icon name="shield" size="12" />
                                             <span>مجمد</span>
                                         </span>
                                     @elseif($t->isExpired())
-                                        <span class="badge badge-danger">
+                                        <span class="badge-status expired">
                                             <x-icon name="alert-triangle" size="12" />
                                             <span>منتهي الصلاحية</span>
                                         </span>
                                     @else
-                                        <span class="badge badge-success">
+                                        <span class="badge-status active">
                                             <x-icon name="check-circle" size="12" />
                                             <span>نشط</span>
                                         </span>
@@ -671,29 +969,32 @@
                                 </td>
 
                                 <!-- Actions -->
-                                <td style="text-align: center; white-space: nowrap;">
-                                    <a href="{{ $tenantUrl }}" target="_blank" class="btn-odoo-primary" style="padding: 5px 12px; font-size: 11px;">
-                                        <x-icon name="external-link" size="13" />
-                                        <span>فتح النظام</span>
-                                    </a>
-                                    <form action="{{ route('saas.tenants.toggle-status', $t->id) }}" method="POST" style="display:inline; margin-right: 4px;">
-                                        @csrf
-                                        <button type="submit" class="btn-odoo-secondary" style="padding: 5px 10px; font-size: 11px;" title="{{ $t->is_active ? 'إيقاف مؤقت' : 'إعادة تنشيط' }}">
-                                            @if($t->is_active)
-                                                <x-icon name="shield" size="12" />
-                                                <span>تجميد</span>
-                                            @else
-                                                <x-icon name="zap" size="12" />
-                                                <span>تنشيط</span>
-                                            @endif
-                                        </button>
-                                    </form>
+                                <td class="actions-cell">
+                                    <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                        <a href="{{ $tenantUrl }}" target="_blank" class="btn-action-primary">
+                                            <x-icon name="external-link" size="13" />
+                                            <span>فتح النظام</span>
+                                        </a>
+                                        <form action="{{ route('saas.tenants.toggle-status', $t->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn-action-secondary" title="{{ $t->is_active ? 'إيقاف مؤقت' : 'إعادة تنشيط' }}">
+                                                @if($t->is_active)
+                                                    <x-icon name="shield" size="13" />
+                                                    <span>تجميد</span>
+                                                @else
+                                                    <x-icon name="zap" size="13" />
+                                                    <span>تنشيط</span>
+                                                @endif
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="12" style="text-align: center; padding: 40px; color: var(--odoo-text-muted);">
-                                    لا يوجد مشتركون حالياً. استخدم زر "إضافة مشترك جديد" لإنشاء أول شركة.
+                                <td colspan="12" style="text-align: center; padding: 48px; color: var(--odoo-text-muted);">
+                                    <x-icon name="inbox" size="32" style="opacity: 0.5; margin-bottom: 8px;" />
+                                    <div>لا يوجد مشتركون حالياً. استخدم زر "إضافة مشترك جديد" لإنشاء أول شركة.</div>
                                 </td>
                             </tr>
                         @endforelse
@@ -728,7 +1029,7 @@
                             <input type="text" name="subdomain" class="form-control" required placeholder="albaraka" pattern="[a-z0-9\-]+" style="text-align: left; font-family: monospace;">
                             <span style="font-size: 13px; color: var(--odoo-text-muted); font-weight: 700;">.lvh.me:8080</span>
                         </div>
-                        <span style="font-size: 11px; color: var(--odoo-text-muted);">أحرف وأرقام إنجليزية وشرطات فقط</span>
+                        <span style="font-size: 11px; color: var(--odoo-text-muted); margin-top: 3px; display: block;">أحرف وأرقام إنجليزية وشرطات فقط</span>
                     </div>
 
                     <div class="form-group">

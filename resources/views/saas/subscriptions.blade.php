@@ -109,8 +109,8 @@
         .btn-odoo-secondary:hover { background-color: #f1f5f9; }
 
         .odoo-content {
-            padding: 24px;
-            max-width: 1400px;
+            padding: 24px 28px;
+            max-width: 1650px;
             width: 100%;
             margin: 0 auto;
             flex: 1;
@@ -163,15 +163,16 @@
         .odoo-card-header h2 { font-size: 15px; font-weight: 800; }
         .table-responsive { overflow-x: auto; }
         table.odoo-table {
-            width: 100%; border-collapse: collapse; text-align: right; font-size: 13px;
+            width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1050px; text-align: right; font-size: 13px;
         }
         table.odoo-table th {
             background-color: #f8fafc; color: #475569; font-weight: 700;
-            padding: 12px 16px; border-bottom: 1px solid var(--odoo-border);
+            padding: 12px 16px; border-bottom: 2px solid var(--odoo-border);
             white-space: nowrap;
         }
         table.odoo-table td {
-            padding: 12px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle;
+            padding: 14px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle;
+            white-space: nowrap;
         }
         table.odoo-table tr:hover { background-color: #fbfcfe; }
 

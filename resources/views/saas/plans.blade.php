@@ -154,8 +154,8 @@
         .btn-odoo-secondary:hover { background-color: #f1f5f9; }
 
         .odoo-content {
-            padding: 24px;
-            max-width: 1400px;
+            padding: 24px 28px;
+            max-width: 1650px;
             width: 100%;
             margin: 0 auto;
             flex: 1;

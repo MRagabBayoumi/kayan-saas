@@ -154,6 +154,10 @@ class ProductController extends Controller
             'opening_balance_date' => ['nullable', 'date'],
             'product_image' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
             'is_active' => ['sometimes', 'boolean'],
+            'is_available_online' => ['nullable', 'boolean'],
+            'online_price' => ['nullable', 'numeric', 'min:0'],
+            'is_featured_online' => ['nullable', 'boolean'],
+            'online_description' => ['nullable', 'string', 'max:2000'],
         ], [
             'sku.required' => 'كود الصنف (SKU) مطلوب.',
             'sku.unique' => 'كود الصنف مستخدم بالفعل في صنف آخر.',
@@ -182,6 +186,10 @@ class ProductController extends Controller
         ]);
 
         $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['is_available_online'] = $request->boolean('is_available_online');
+        $validated['is_featured_online'] = $request->boolean('is_featured_online');
+        $validated['online_price'] = $request->filled('online_price') ? (float) $request->input('online_price') : null;
+        $validated['online_description'] = $request->input('online_description');
 
         // Auto-fill pieces_per_package from unit conversion factor if omitted
         if (empty($validated['pieces_per_package']) && ! empty($validated['unit'])) {
@@ -352,6 +360,10 @@ class ProductController extends Controller
             'min_stock_alert' => ['required', 'integer', 'min:0'],
             'product_image' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
             'is_active' => ['sometimes', 'boolean'],
+            'is_available_online' => ['nullable', 'boolean'],
+            'online_price' => ['nullable', 'numeric', 'min:0'],
+            'is_featured_online' => ['nullable', 'boolean'],
+            'online_description' => ['nullable', 'string', 'max:2000'],
         ], [
             'sku.required' => 'كود الصنف (SKU) مطلوب.',
             'sku.unique' => 'كود الصنف مستخدم بالفعل في صنف آخر.',
@@ -377,6 +389,10 @@ class ProductController extends Controller
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
+        $validated['is_available_online'] = $request->boolean('is_available_online');
+        $validated['is_featured_online'] = $request->boolean('is_featured_online');
+        $validated['online_price'] = $request->filled('online_price') ? (float) $request->input('online_price') : null;
+        $validated['online_description'] = $request->input('online_description');
 
         // Auto-fill pieces_per_package from unit conversion factor if omitted
         if (empty($validated['pieces_per_package']) && ! empty($validated['unit'])) {
@@ -693,6 +709,22 @@ class ProductController extends Controller
         return back()
             ->with('status', 'success')
             ->with('message', "تم {$statusText} الصنف ({$product->name}) بنجاح.");
+    }
+
+    /**
+     * Toggle display of product in E-Commerce storefront.
+     */
+    public function toggleOnline(Product $product): RedirectResponse
+    {
+        $product->update([
+            'is_available_online' => ! $product->is_available_online,
+        ]);
+
+        $statusText = $product->is_available_online ? 'تفعيل عرض' : 'إلغاء عرض';
+
+        return back()
+            ->with('status', 'success')
+            ->with('message', "تم {$statusText} الصنف ({$product->name}) في المتجر الإلكتروني بنجاح.");
     }
 
     /**

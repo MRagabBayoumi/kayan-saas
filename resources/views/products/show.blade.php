@@ -26,6 +26,15 @@
                 <x-icon name="pencil" size="16" />
                 <span>تعديل الصنف</span>
             </a>
+            @hasModule('ecommerce')
+            <form action="{{ route('products.toggle-online', $product) }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="erp-btn {{ $product->is_available_online ? 'erp-btn-secondary' : 'erp-btn-primary' }}" title="تغيير حالة عرض المنتج في المتجر الإلكتروني">
+                    <x-icon name="{{ $product->is_available_online ? 'eye-off' : 'shopping-bag' }}" size="16" />
+                    <span>{{ $product->is_available_online ? 'إخفاء من المتجر' : 'عرض في المتجر' }}</span>
+                </button>
+            </form>
+            @endhasModule
             <form action="{{ route('products.toggle-status', $product) }}" method="POST" class="inline" data-confirm="هل تريد {{ $product->is_active ? 'تعطيل' : 'تنشيط' }} هذا الصنف؟">
                 @csrf
                 <button type="submit" class="erp-btn {{ $product->is_active ? 'erp-btn-warning' : 'erp-btn-success' }}">
@@ -56,6 +65,19 @@
                     <span>الحالة: معطل</span>
                 </span>
             @endif
+            @hasModule('ecommerce')
+                @if($product->is_available_online)
+                    <span class="erp-badge erp-badge-success py-1 px-2.5 text-xs">
+                        <x-icon name="shopping-bag" size="12" />
+                        <span>معروض بالمتجر أونلاين</span>
+                    </span>
+                @else
+                    <span class="erp-badge erp-badge-neutral py-1 px-2.5 text-xs">
+                        <x-icon name="eye-off" size="12" />
+                        <span>مخفي من المتجر</span>
+                    </span>
+                @endif
+            @endhasModule
         </x-slot:extra>
     </x-control-panel>
 @endsection
@@ -92,6 +114,68 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 1.5. Dedicated E-Commerce Showcase & Toggle Card -->
+                @hasModule('ecommerce')
+                <div class="erp-card">
+                    <div class="erp-card-header flex items-center justify-between">
+                        <div class="erp-card-title">
+                            <x-icon name="shopping-bag" size="18" style="color: var(--primary);" />
+                            <span>المتجر الإلكتروني (E-Commerce)</span>
+                        </div>
+                        @if($product->is_available_online)
+                            <span class="erp-badge erp-badge-success text-xs">معروض أونلاين</span>
+                        @else
+                            <span class="erp-badge erp-badge-neutral text-xs">مخفي حالياً</span>
+                        @endif
+                    </div>
+                    <div class="erp-card-body p-4 flex flex-col gap-3">
+                        <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                            <span style="color: var(--text-muted);">حالة الظهور:</span>
+                            <strong style="color: {{ $product->is_available_online ? 'var(--success)' : 'var(--text-muted)' }};">
+                                {{ $product->is_available_online ? 'مفعل ومتاح للشراء' : 'مخفي من المتجر' }}
+                            </strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                            <span style="color: var(--text-muted);">سعر البيع أونلاين:</span>
+                            <strong class="font-numeric" style="color: var(--primary); font-size: 14px;">
+                                {{ number_format($product->effective_online_price, 2) }} ج.م
+                                @if($product->online_price)
+                                    <span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(مخصص)</span>
+                                @else
+                                    <span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(سعر التجزئة)</span>
+                                @endif
+                            </strong>
+                        </div>
+                        @if($product->is_featured_online)
+                            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                                <span style="color: var(--text-muted);">منتج مميز:</span>
+                                <span class="erp-badge erp-badge-warning text-xs">مميز بالواجهة</span>
+                            </div>
+                        @endif
+
+                        <form action="{{ route('products.toggle-online', $product) }}" method="POST" style="margin-top: 6px;">
+                            @csrf
+                            <button type="submit" class="erp-btn {{ $product->is_available_online ? 'erp-btn-secondary' : 'erp-btn-primary' }} w-full justify-center text-xs">
+                                @if($product->is_available_online)
+                                    <x-icon name="eye-off" size="14" />
+                                    <span>إخفاء المنتج من المتجر</span>
+                                @else
+                                    <x-icon name="eye" size="14" />
+                                    <span>عرض هذا المنتج بالمتجر الآن</span>
+                                @endif
+                            </button>
+                        </form>
+
+                        @if($product->is_available_online)
+                            <a href="{{ route('shop.product', $product) }}" target="_blank" class="erp-btn erp-btn-ghost text-[var(--primary)] justify-center text-xs" style="text-decoration: none;">
+                                <x-icon name="external-link" size="13" />
+                                <span>معاينة صفحة المنتج بالمتجر</span>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+                @endhasModule
 
                 <!-- 2. Thermal Barcode Label Card -->
                 <div class="erp-card">

@@ -245,6 +245,14 @@
                                                     @if(! $product->is_active)
                                                         <span class="erp-badge erp-badge-danger text-[10px] py-0 px-1 font-normal shrink-0">معطل</span>
                                                     @endif
+                                                    @hasModule('ecommerce')
+                                                        @if($product->is_available_online)
+                                                            <span class="erp-badge erp-badge-success text-[10px] py-0 px-1 font-normal shrink-0 inline-flex items-center gap-0.5" title="معروض في المتجر أونلاين">
+                                                                <x-icon name="globe" size="10" />
+                                                                <span>أونلاين</span>
+                                                            </span>
+                                                        @endif
+                                                    @endhasModule
                                                 </div>
                                             </div>
                                         </div>

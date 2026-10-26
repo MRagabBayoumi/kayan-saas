@@ -304,6 +304,87 @@
                 </div>
             </div>
 
+            <!-- Panel 2.5: E-Commerce Storefront Settings -->
+            @hasModule('ecommerce')
+            <div class="erp-card col-span-full">
+                <div class="erp-card-header flex items-center justify-between">
+                    <div class="erp-card-title">
+                        <x-icon name="shopping-bag" size="18" style="color: var(--primary);" />
+                        <span>إعدادات العرض في المتجر الإلكتروني (E-Commerce)</span>
+                    </div>
+                    <span class="erp-badge erp-badge-neutral text-[11px]">مزامنة مباشرة مع المتجر أونلاين</span>
+                </div>
+                <div class="erp-card-body flex flex-col gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Checkbox 1: Show in online store -->
+                        <label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-color)] bg-[var(--bg-surface-alt)] cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                name="is_available_online" 
+                                value="1" 
+                                {{ old('is_available_online', $product->is_available_online) ? 'checked' : '' }} 
+                                class="w-5 h-5 accent-[var(--primary)]"
+                            >
+                            <div>
+                                <strong class="text-sm font-bold text-[var(--text-main)] block">عرض هذا المنتج في المتجر الإلكتروني أونلاين</strong>
+                                <span class="text-xs text-[var(--text-muted)]">إتاحة المنتج في الكتالوج ليتمكن العملاء من طلبه أونلاين.</span>
+                            </div>
+                        </label>
+
+                        <!-- Checkbox 2: Featured in online store -->
+                        <label class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-color)] bg-[var(--bg-surface-alt)] cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                name="is_featured_online" 
+                                value="1" 
+                                {{ old('is_featured_online', $product->is_featured_online) ? 'checked' : '' }} 
+                                class="w-5 h-5 accent-[var(--primary)]"
+                            >
+                            <div>
+                                <strong class="text-sm font-bold text-[var(--text-main)] block">تمييز المنتج في الواجهة (Featured Product)</strong>
+                                <span class="text-xs text-[var(--text-muted)]">إبراز المنتج كأحد المنتجات المميزة في واجهة المتجر.</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Online Price -->
+                        <div class="erp-form-group">
+                            <label for="onlinePrice" class="erp-form-label">
+                                <span>سعر البيع في المتجر الإلكتروني (ج.م)</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                step="0.01" 
+                                min="0" 
+                                id="onlinePrice" 
+                                name="online_price" 
+                                value="{{ old('online_price', $product->online_price) }}" 
+                                class="erp-input font-numeric" 
+                                placeholder="فارغ = اعتماد سعر التجزئة آلياً"
+                            >
+                            <small class="text-[11px] text-[var(--text-muted)]">في حالة تركه فارغاً، سيتم اعتماد سعر التجزئة المحدد بالأعلى تلقائياً.</small>
+                        </div>
+
+                        <!-- Online Description -->
+                        <div class="erp-form-group">
+                            <label for="onlineDescription" class="erp-form-label">
+                                <span>وصف المنتج ومواصفاته للمشترين أونلاين</span>
+                            </label>
+                            <textarea 
+                                id="onlineDescription" 
+                                name="online_description" 
+                                rows="2" 
+                                class="erp-input" 
+                                style="height: auto; min-height: 38px;"
+                                placeholder="مواصفات تظهر في المتجر عن الخامات، المميزات، طريقة الاستخدام..."
+                            >{{ old('online_description', $product->online_description) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endhasModule
+
             <!-- Panel 3: Opening Stock Balance Summary / Edit -->
             <div class="erp-card col-span-full">
                 <div class="erp-card-header flex items-center justify-between">

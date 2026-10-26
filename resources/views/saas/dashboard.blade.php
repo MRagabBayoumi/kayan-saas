@@ -850,7 +850,10 @@
                                 <td style="text-align: center; color: #94a3b8; font-weight: 700;">{{ $index + 1 }}</td>
                                 <td>
                                     <div class="company-meta">
-                                        <div class="company-name">{{ $t->name }}</div>
+                                        <a href="{{ route('saas.tenants.show', $t) }}" class="company-name" style="text-decoration: none; color: var(--odoo-primary); display: inline-flex; align-items: center; gap: 5px;" title="عرض الملف الكامل وسجل السدادات">
+                                            <span>{{ $t->name }}</span>
+                                            <x-icon name="arrow-left" size="12" />
+                                        </a>
                                         <div class="company-date">
                                             <x-icon name="calendar" size="12" />
                                             <span>تاريخ البدء: {{ $t->created_at->format('Y-m-d') }}</span>
@@ -970,7 +973,11 @@
 
                                 <!-- Actions -->
                                 <td class="actions-cell">
-                                    <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                    <div style="display: inline-flex; align-items: center; gap: 5px;">
+                                        <a href="{{ route('saas.tenants.show', $t) }}" class="btn-action-secondary" style="color: var(--odoo-primary); font-weight: 700; background: #faf5ff; border-color: #e9d5ff;" title="عرض الملف الكامل وسجل السدادات والتفاصيل">
+                                            <x-icon name="user" size="13" />
+                                            <span>ملف المشترك</span>
+                                        </a>
                                         <a href="{{ $tenantUrl }}" target="_blank" class="btn-action-primary" title="فتح لوحة تحكم ERP الخاصة بالمشترك">
                                             <x-icon name="external-link" size="13" />
                                             <span>فتح النظام</span>

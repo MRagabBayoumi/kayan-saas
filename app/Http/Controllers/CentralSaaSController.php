@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Plan;
 use App\Models\Tenant;
+use App\Models\TenantPayment;
 use App\Services\TenantManagerService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class CentralSaaSController extends Controller
@@ -47,6 +49,95 @@ class CentralSaaSController extends Controller
             'suspendedTenants' => $suspendedTenants,
             'mrr' => $mrr,
         ]);
+    }
+
+    /**
+     * Show comprehensive profile page for a specific tenant (like customer dossier).
+     */
+    public function show(Tenant $tenant): View
+    {
+        $tenant->load(['plan', 'payments']);
+        $plans = Plan::where('is_active', true)->get();
+
+        $totalPaid = $tenant->payments->sum('amount');
+
+        // Safely inspect tenant's current active users count
+        $userCount = 0;
+        try {
+            $userCount = DB::table("{$tenant->database_name}.users")->count();
+        } catch (\Throwable $e) {
+            $userCount = 1;
+        }
+
+        // Host calculation for link
+        $host = request()->getHost();
+        $baseHost = str_replace(['www.', 'saas.'], '', $host);
+        if ($baseHost === 'localhost' || $baseHost === '127.0.0.1') {
+            $baseHost = 'lvh.me';
+        }
+        $port = request()->getPort();
+        $portSuffix = ($port && ! in_array($port, [80, 443])) ? ':'.$port : '';
+        $tenantUrl = request()->getScheme().'://'.$tenant->subdomain.'.'.$baseHost.$portSuffix;
+
+        return view('saas.tenants.show', [
+            'tenant' => $tenant,
+            'plans' => $plans,
+            'totalPaid' => $totalPaid,
+            'userCount' => $userCount,
+            'tenantUrl' => $tenantUrl,
+            'baseHost' => $baseHost,
+            'portSuffix' => $portSuffix,
+        ]);
+    }
+
+    /**
+     * Record a new subscription payment/receipt for a tenant.
+     */
+    public function recordPayment(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'payment_date' => ['required', 'date'],
+            'payment_method' => ['required', 'string', 'in:cash,bank_transfer,vodafone_cash,instapay,visa,other'],
+            'billing_cycle' => ['nullable', 'string'],
+            'months_covered' => ['nullable', 'integer', 'min:1', 'max:60'],
+            'transaction_reference' => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string', 'max:500'],
+            'auto_extend' => ['nullable', 'boolean'],
+        ]);
+
+        $paymentNumber = 'PAY-'.date('Ym').'-'.str_pad((string) (TenantPayment::count() + 1), 4, '0', STR_PAD_LEFT);
+
+        $months = (int) ($validated['months_covered'] ?? 1);
+        $periodStarts = ($tenant->expires_at && $tenant->expires_at->isFuture())
+            ? $tenant->expires_at->copy()
+            : Carbon::parse($validated['payment_date']);
+        $periodEnds = $periodStarts->copy()->addMonths($months);
+
+        $payment = TenantPayment::create([
+            'tenant_id' => $tenant->id,
+            'payment_number' => $paymentNumber,
+            'amount' => $validated['amount'],
+            'payment_date' => $validated['payment_date'],
+            'payment_method' => $validated['payment_method'],
+            'billing_cycle' => $validated['billing_cycle'] ?? $tenant->billing_cycle,
+            'months_covered' => $months,
+            'period_starts_at' => $periodStarts,
+            'period_ends_at' => $periodEnds,
+            'transaction_reference' => $validated['transaction_reference'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'recorded_by' => 'مدير المنصة',
+        ]);
+
+        if ($request->boolean('auto_extend')) {
+            $tenant->update([
+                'expires_at' => $periodEnds,
+                'is_active' => true,
+            ]);
+        }
+
+        return back()->with('status', 'success')
+            ->with('message', "تم تسجيل دفعة سداد بقيمة ({$payment->amount} ج.م) برقم إيصال ({$payment->payment_number}) بنجاح.");
     }
 
     /**

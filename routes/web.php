@@ -48,6 +48,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(EnsureCentralDomain::class)->prefix('saas')->name('saas.')->group(function () {
     Route::get('/', [CentralSaaSController::class, 'index'])->name('index');
     Route::post('/tenants', [CentralSaaSController::class, 'store'])->name('tenants.store');
+    Route::get('/tenants/{tenant}', [CentralSaaSController::class, 'show'])->name('tenants.show');
+    Route::post('/tenants/{tenant}/payments', [CentralSaaSController::class, 'recordPayment'])->name('tenants.record-payment');
     Route::post('/tenants/{tenant}/toggle-module', [CentralSaaSController::class, 'toggleModule'])->name('tenants.toggle-module');
     Route::post('/tenants/{tenant}/toggle-status', [CentralSaaSController::class, 'toggleStatus'])->name('tenants.toggle-status');
     Route::post('/tenants/{tenant}/update-subscription', [CentralSaaSController::class, 'updateSubscription'])->name('tenants.update-subscription');

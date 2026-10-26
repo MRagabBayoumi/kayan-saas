@@ -50,6 +50,7 @@ Route::middleware(EnsureCentralDomain::class)->prefix('saas')->name('saas.')->gr
     Route::post('/tenants', [CentralSaaSController::class, 'store'])->name('tenants.store');
     Route::post('/tenants/{tenant}/toggle-module', [CentralSaaSController::class, 'toggleModule'])->name('tenants.toggle-module');
     Route::post('/tenants/{tenant}/toggle-status', [CentralSaaSController::class, 'toggleStatus'])->name('tenants.toggle-status');
+    Route::post('/tenants/{tenant}/update-subscription', [CentralSaaSController::class, 'updateSubscription'])->name('tenants.update-subscription');
 
     // Plans & Pricing Management
     Route::get('/plans', [CentralSaaSController::class, 'plans'])->name('plans.index');

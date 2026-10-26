@@ -971,10 +971,27 @@
                                 <!-- Actions -->
                                 <td class="actions-cell">
                                     <div style="display: inline-flex; align-items: center; gap: 6px;">
-                                        <a href="{{ $tenantUrl }}" target="_blank" class="btn-action-primary">
+                                        <a href="{{ $tenantUrl }}" target="_blank" class="btn-action-primary" title="فتح لوحة تحكم ERP الخاصة بالمشترك">
                                             <x-icon name="external-link" size="13" />
                                             <span>فتح النظام</span>
                                         </a>
+                                        <button type="button" class="btn-action-secondary" 
+                                                onclick="openEditSubscriptionModal({{ json_encode([
+                                                    'id' => $t->id,
+                                                    'name' => $t->name,
+                                                    'subdomain' => $t->subdomain,
+                                                    'plan_id' => $t->plan_id,
+                                                    'billing_cycle' => $t->billing_cycle,
+                                                    'max_users' => $t->max_users,
+                                                    'subscription_price' => $t->subscription_price,
+                                                    'expires_at' => $t->expires_at ? $t->expires_at->format('Y-m-d') : '',
+                                                    'is_active' => (bool)$t->is_active,
+                                                    'notes' => $t->notes,
+                                                ]) }})" 
+                                                title="تعديل دورة الفاتورة وتاريخ الصلاحية والباقة">
+                                            <x-icon name="credit-card" size="13" />
+                                            <span>تعديل الاشتراك</span>
+                                        </button>
                                         <form action="{{ route('saas.tenants.toggle-status', $t->id) }}" method="POST" style="display:inline;">
                                             @csrf
                                             <button type="submit" class="btn-action-secondary" title="{{ $t->is_active ? 'إيقاف مؤقت' : 'إعادة تنشيط' }}">
@@ -1043,22 +1060,53 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label>دورة الفاتورة *</label>
-                        <select name="billing_cycle" class="form-control" required>
-                            <option value="monthly">اشتراك شهري</option>
-                            <option value="yearly">اشتراك سنوي (خصم شهرين مجاناً)</option>
-                        </select>
-                    </div>
-
+                    <!-- Flexible Billing Cycle & Expiry Date -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div class="form-group">
-                            <label>البريد الإلكتروني للمدير *</label>
-                            <input type="email" name="admin_email" class="form-control" required placeholder="admin@client.com">
+                            <label>دورة الفاتورة *</label>
+                            <select name="billing_cycle" id="newTenantBillingCycle" class="form-control" required onchange="onNewBillingCycleChange(this.value)">
+                                <option value="monthly">اشتراك شهري (30 يوم)</option>
+                                <option value="quarterly">اشتراك ربع سنوي (3 شهور)</option>
+                                <option value="semi_annual">اشتراك نصف سنوي (6 شهور)</option>
+                                <option value="yearly">اشتراك سنوي (12 شهر - خصم شهرين)</option>
+                                <option value="trial">فترة تجريبية (14 يوم)</option>
+                                <option value="custom">تاريخ مخصص...</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>كلمة المرور لحساب المدير *</label>
-                            <input type="text" name="admin_password" class="form-control" required value="admin123">
+                            <label>تاريخ انتهاء الاشتراك (قابل للتعديل)</label>
+                            <input type="date" name="custom_expires_at" id="newTenantExpiresAt" class="form-control" value="{{ now()->addDays(30)->format('Y-m-d') }}">
+                        </div>
+                    </div>
+
+                    <!-- Admin User Credentials Section -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 15px;">
+                        <div style="font-size: 13px; font-weight: 800; color: var(--odoo-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                            <x-icon name="user-check" size="16" />
+                            <span>بيانات دخول المدير إلى النظام (ERP Login Credentials)</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>اسم المسؤول / المدير</label>
+                                <input type="text" name="admin_name" class="form-control" placeholder="مثال: مدير النظام" value="مدير النظام">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="color: var(--odoo-primary); font-weight: 800;">اسم المستخدم لتسجيل الدخول (Username) *</label>
+                                <input type="text" name="admin_username" class="form-control" required value="admin" style="direction: ltr; font-family: monospace; font-weight: 700;">
+                                <span style="font-size: 10px; color: var(--odoo-text-muted); margin-top: 2px; display: block;">يُستخدم للدخول إلى لوحة ERP</span>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>البريد الإلكتروني للمدير *</label>
+                                <input type="email" name="admin_email" class="form-control" required placeholder="admin@client.com">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>كلمة المرور لحساب المدير *</label>
+                                <input type="text" name="admin_password" class="form-control" required value="admin123" style="direction: ltr; font-family: monospace;">
+                            </div>
                         </div>
                     </div>
 
@@ -1078,16 +1126,153 @@
         </div>
     </div>
 
+    <!-- Modal: Edit Subscription / Billing Cycle -->
+    <div id="editSubscriptionModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 style="display: flex; align-items: center; gap: 8px;">
+                    <x-icon name="credit-card" size="18" />
+                    <span>تعديل دورة الفاتورة واشتراك المشترك</span>
+                </h3>
+                <button class="modal-close" onclick="closeEditSubscriptionModal()">&times;</button>
+            </div>
+            <form id="editSubscriptionForm" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div style="background: #f1f5f9; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <span style="font-size: 12px; color: var(--odoo-text-muted);">الشركة / المشترك:</span>
+                            <strong id="editSubTenantName" style="font-size: 14px; color: var(--odoo-text-main); margin-right: 6px;"></strong>
+                        </div>
+                        <span id="editSubTenantSubdomain" class="subdomain-link" style="font-size: 11px;"></span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label>باقة الاشتراك</label>
+                            <select name="plan_id" id="editSubPlanId" class="form-control">
+                                @foreach($plans as $plan)
+                                    <option value="{{ $plan->id }}">{{ $plan->name }} ({{ number_format($plan->price_monthly, 0) }} ج.م/ش)</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>دورة الفاتورة *</label>
+                            <select name="billing_cycle" id="editSubBillingCycle" class="form-control" required onchange="onEditBillingCycleChange(this.value)">
+                                <option value="monthly">اشتراك شهري (30 يوم)</option>
+                                <option value="quarterly">اشتراك ربع سنوي (3 شهور)</option>
+                                <option value="semi_annual">اشتراك نصف سنوي (6 شهور)</option>
+                                <option value="yearly">اشتراك سنوي (12 شهر)</option>
+                                <option value="trial">فترة تجريبية (14 يوم)</option>
+                                <option value="custom">مخصص</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label>تاريخ انتهاء الصلاحية * (قابل للتعديل)</label>
+                            <input type="date" name="expires_at" id="editSubExpiresAt" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>الحد الأقصى للمستخدمين *</label>
+                            <input type="number" name="max_users" id="editSubMaxUsers" class="form-control" required min="1" max="1000">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label>سعر الاشتراك (ج.م)</label>
+                            <input type="number" step="0.01" name="subscription_price" id="editSubPrice" class="form-control" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label>حالة الاشتراك</label>
+                            <select name="is_active" id="editSubIsActive" class="form-control">
+                                <option value="1">نشط (ساري المفعول)</option>
+                                <option value="0">معطل / مجمد</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ملاحظات إضافية</label>
+                        <textarea name="notes" id="editSubNotes" class="form-control" rows="2" placeholder="ملاحظات حول تجديد العميل أو الاتفاق"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-odoo-secondary" onclick="closeEditSubscriptionModal()">إلغاء</button>
+                    <button type="submit" class="btn-odoo-primary">
+                        <x-icon name="check-circle" size="16" />
+                        <span>حفظ تعديلات الاشتراك</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        function calculateTargetDate(cycle) {
+            const now = new Date();
+            if (cycle === 'monthly') {
+                now.setDate(now.getDate() + 30);
+            } else if (cycle === 'quarterly') {
+                now.setMonth(now.getMonth() + 3);
+            } else if (cycle === 'semi_annual') {
+                now.setMonth(now.getMonth() + 6);
+            } else if (cycle === 'yearly') {
+                now.setFullYear(now.getFullYear() + 1);
+            } else if (cycle === 'trial') {
+                now.setDate(now.getDate() + 14);
+            }
+            return now.toISOString().split('T')[0];
+        }
+
+        function onNewBillingCycleChange(cycle) {
+            if (cycle !== 'custom') {
+                document.getElementById('newTenantExpiresAt').value = calculateTargetDate(cycle);
+            }
+        }
+
+        function onEditBillingCycleChange(cycle) {
+            if (cycle !== 'custom') {
+                document.getElementById('editSubExpiresAt').value = calculateTargetDate(cycle);
+            }
+        }
+
         function openNewTenantModal() {
             document.getElementById('newTenantModal').classList.add('active');
         }
         function closeNewTenantModal() {
             document.getElementById('newTenantModal').classList.remove('active');
         }
+
+        function openEditSubscriptionModal(data) {
+            document.getElementById('editSubscriptionForm').action = '/saas/tenants/' + data.id + '/update-subscription';
+            document.getElementById('editSubTenantName').textContent = data.name;
+            document.getElementById('editSubTenantSubdomain').textContent = data.subdomain + '.lvh.me:8080';
+            
+            if (data.plan_id) {
+                document.getElementById('editSubPlanId').value = data.plan_id;
+            }
+            document.getElementById('editSubBillingCycle').value = data.billing_cycle || 'monthly';
+            document.getElementById('editSubExpiresAt').value = data.expires_at || '';
+            document.getElementById('editSubMaxUsers').value = data.max_users || 3;
+            document.getElementById('editSubPrice').value = data.subscription_price || 0;
+            document.getElementById('editSubIsActive').value = data.is_active ? '1' : '0';
+            document.getElementById('editSubNotes').value = data.notes || '';
+
+            document.getElementById('editSubscriptionModal').classList.add('active');
+        }
+
+        function closeEditSubscriptionModal() {
+            document.getElementById('editSubscriptionModal').classList.remove('active');
+        }
+
         window.onclick = function(e) {
-            const m = document.getElementById('newTenantModal');
-            if (e.target === m) { closeNewTenantModal(); }
+            const newM = document.getElementById('newTenantModal');
+            const editM = document.getElementById('editSubscriptionModal');
+            if (e.target === newM) { closeNewTenantModal(); }
+            if (e.target === editM) { closeEditSubscriptionModal(); }
         }
     </script>
 </body>

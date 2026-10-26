@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use App\Services\TenantManagerService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class CentralSaaSController extends Controller
@@ -237,7 +238,10 @@ class CentralSaaSController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'subdomain' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:central.tenants,subdomain'],
             'plan_id' => ['nullable', 'exists:central.plans,id'],
-            'billing_cycle' => ['required', 'in:monthly,yearly'],
+            'billing_cycle' => ['required', 'in:monthly,quarterly,semi_annual,yearly,trial,custom'],
+            'custom_expires_at' => ['nullable', 'date'],
+            'admin_name' => ['nullable', 'string', 'max:100'],
+            'admin_username' => ['required', 'string', 'max:50', 'alpha_dash'],
             'admin_email' => ['required', 'email', 'max:100'],
             'admin_password' => ['required', 'string', 'min:6'],
             'notes' => ['nullable', 'string', 'max:500'],
@@ -254,6 +258,7 @@ class CentralSaaSController extends Controller
             'plan_id' => $plan?->id,
             'plan_name' => $plan?->name ?? 'باقة مخصصة',
             'billing_cycle' => $validated['billing_cycle'],
+            'expires_at' => $validated['custom_expires_at'] ?? null,
             'max_users' => $plan?->max_users ?? 3,
             'modules' => $plan?->modules ?? [
                 'accounting' => true,
@@ -261,6 +266,8 @@ class CentralSaaSController extends Controller
                 'installments' => true,
                 'ecommerce' => true,
             ],
+            'admin_name' => $validated['admin_name'] ?? 'مدير النظام',
+            'admin_username' => strtolower($validated['admin_username']),
             'admin_email' => $validated['admin_email'],
             'admin_password' => $validated['admin_password'],
             'notes' => $validated['notes'] ?? null,
@@ -268,7 +275,42 @@ class CentralSaaSController extends Controller
 
         return redirect()->route('saas.index')
             ->with('status', 'success')
-            ->with('message', "تم إنشاء المشترك ({$tenant->name}) بنجاح وتم تخصيص قاعدة بيانات معزولة ({$tenant->database_name}) وباقة ({$tenant->plan_name}).");
+            ->with('message', "تم إنشاء المشترك ({$tenant->name}) بنجاح مع اسم المستخدم ({$validated['admin_username']}) وقاعدة بيانات مستقلة ({$tenant->database_name}).");
+    }
+
+    /**
+     * Update tenant subscription details (billing cycle, plan, max users, expiry date, price).
+     */
+    public function updateSubscription(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $validated = $request->validate([
+            'plan_id' => ['nullable', 'exists:central.plans,id'],
+            'billing_cycle' => ['required', 'in:monthly,quarterly,semi_annual,yearly,trial,custom'],
+            'max_users' => ['required', 'integer', 'min:1', 'max:1000'],
+            'subscription_price' => ['nullable', 'numeric', 'min:0'],
+            'expires_at' => ['required', 'date'],
+            'is_active' => ['nullable', 'boolean'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $plan = null;
+        if (! empty($validated['plan_id'])) {
+            $plan = Plan::find($validated['plan_id']);
+        }
+
+        $tenant->update([
+            'plan_id' => $plan?->id ?? $tenant->plan_id,
+            'plan_name' => $plan?->name ?? $tenant->plan_name,
+            'billing_cycle' => $validated['billing_cycle'],
+            'max_users' => $validated['max_users'],
+            'subscription_price' => $validated['subscription_price'] ?? $tenant->subscription_price,
+            'expires_at' => Carbon::parse($validated['expires_at']),
+            'is_active' => $request->boolean('is_active'),
+            'notes' => $validated['notes'] ?? $tenant->notes,
+        ]);
+
+        return back()->with('status', 'success')
+            ->with('message', "تم تحديث دورة الفاتورة وتفاصيل اشتراك ({$tenant->name}) بنجاح (الصلاحية حتى {$tenant->expires_at->format('Y-m-d')}).");
     }
 
     /**

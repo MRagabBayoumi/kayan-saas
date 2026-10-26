@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Plan;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -38,8 +39,19 @@ class TenantManagerService
         $maxUsers = $data['max_users'] ?? ($plan?->max_users ?? 3);
         $planName = $plan?->name ?? ($data['plan_name'] ?? 'الباقة المخصصة');
         $price = $data['subscription_price'] ?? ($billingCycle === 'yearly' ? ($plan?->price_yearly ?? 0) : ($plan?->price_monthly ?? 0));
-        $startsAt = now();
-        $expiresAt = $billingCycle === 'yearly' ? now()->addYear() : now()->addDays(30);
+        $startsAt = ! empty($data['starts_at']) ? Carbon::parse($data['starts_at']) : now();
+
+        if (! empty($data['expires_at'])) {
+            $expiresAt = Carbon::parse($data['expires_at']);
+        } else {
+            $expiresAt = match ($billingCycle) {
+                'yearly' => $startsAt->copy()->addYear(),
+                'semi_annual' => $startsAt->copy()->addMonths(6),
+                'quarterly' => $startsAt->copy()->addMonths(3),
+                'trial' => $startsAt->copy()->addDays(14),
+                default => $startsAt->copy()->addDays(30),
+            };
+        }
 
         $modules = $data['modules'] ?? ($plan?->modules ?? [
             'accounting' => true,
@@ -68,7 +80,14 @@ class TenantManagerService
         $this->migrateTenantDatabase($dbName);
 
         // 4. Seed default admin user inside the tenant's database
-        $this->seedTenantAdmin($dbName, $data['admin_email'] ?? "admin@{$subdomain}.local", $data['admin_password'] ?? 'admin123', $data['name']);
+        $this->seedTenantAdmin(
+            $dbName,
+            $data['admin_email'] ?? "admin@{$subdomain}.local",
+            $data['admin_password'] ?? 'admin123',
+            $data['name'],
+            $data['admin_name'] ?? null,
+            $data['admin_username'] ?? null
+        );
 
         return $tenant;
     }
@@ -96,17 +115,26 @@ class TenantManagerService
     /**
      * Seed initial admin user in the newly created tenant DB.
      */
-    public function seedTenantAdmin(string $dbName, string $email, string $password, string $companyName): void
-    {
+    public function seedTenantAdmin(
+        string $dbName,
+        string $email,
+        string $password,
+        string $companyName,
+        ?string $adminName = null,
+        ?string $adminUsername = null
+    ): void {
         Config::set('database.connections.tenant_migration.database', $dbName);
         DB::purge('tenant_migration');
 
+        $username = ! empty($adminUsername) ? trim($adminUsername) : 'admin';
+        $name = ! empty($adminName) ? trim($adminName) : 'مدير النظام';
+
         // Check if admin user exists, otherwise create
-        $exists = DB::connection('tenant_migration')->table('users')->where('username', 'admin')->exists();
+        $exists = DB::connection('tenant_migration')->table('users')->where('username', $username)->exists();
         if (! $exists) {
             DB::connection('tenant_migration')->table('users')->insert([
-                'name' => 'مدير النظام',
-                'username' => 'admin',
+                'name' => $name,
+                'username' => $username,
                 'email' => $email,
                 'password' => Hash::make($password),
                 'role' => 'admin',

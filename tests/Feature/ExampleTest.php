@@ -27,5 +27,5 @@ test('the application returns a successful response with BayoSoft ERP layout', f
     $response->assertSee('sidebarToggleBtn');
     $response->assertSee('sidebarDesktopToggle');
     $response->assertSee('لوحة التحكم');
-    $response->assertSee('Cairo');
+    $response->assertSee('cairo.css', false);
 });

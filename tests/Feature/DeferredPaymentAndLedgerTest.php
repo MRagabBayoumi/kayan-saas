@@ -354,8 +354,8 @@ test('customer and supplier show views display invoice ledger and credit metrics
     $customerRes->assertOk();
     $customerRes->assertSee('سجل فواتير المبيعات وحركات الآجل للعميل');
     $customerRes->assertSee('إجمالي المشتريات');
-    $customerRes->assertSee('إجمالي المسدد نقداً');
-    $customerRes->assertSee('الرصيد الآجل المعلق');
+    $customerRes->assertSee('إجمالي المسدد والمتحصلات');
+    $customerRes->assertSee('الرصيد المالي الحالي');
 
     $supplierRes = $this->get(route('suppliers.show', $supplier));
     $supplierRes->assertOk();

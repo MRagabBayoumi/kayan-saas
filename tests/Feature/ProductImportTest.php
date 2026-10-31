@@ -338,8 +338,7 @@ test('barcode takes precedence over SKU and float numbers are sanitized to integ
     $row = $reviewData['rows'][0];
     expect($row['action'])->toBe('new')
         ->and($row['barcode'])->toBe('10280') // stripped of .0
-        ->and($row['sku'])->toBe('hb-79-10280') // disambiguated to prevent collision with oldProduct
-        ->and($row['sku_adjusted'])->toBeTrue()
+        ->and($row['sku'])->toBe('hb-79')
         ->and($row['pieces_per_package'])->toBe(12) // integer, not float
         ->and((float) $row['opening_quantity'])->toBe(10.0);
 
@@ -358,7 +357,7 @@ test('barcode takes precedence over SKU and float numbers are sanitized to integ
     // New product must be created cleanly in DB
     $this->assertDatabaseHas('products', [
         'name' => 'hb-79 اظافر صافي',
-        'sku' => 'hb-79-10280',
+        'sku' => 'hb-79',
         'barcode' => '10280',
         'pieces_per_package' => 12,
     ]);

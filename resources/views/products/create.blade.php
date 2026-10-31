@@ -155,7 +155,7 @@
                                 type="text" 
                                 id="productBarcode" 
                                 name="barcode" 
-                                value="{{ old('barcode') }}" 
+                                value="{{ old('barcode', $suggestedBarcode) }}" 
                                 class="erp-input font-numeric pl-11 @error('barcode') erp-input-error @enderror" 
                                 placeholder="امسح بالكاميرا أو اكتب الباركود..."
                             >
@@ -306,7 +306,6 @@
             </div>
 
             <!-- Panel 2.5: E-Commerce Storefront Settings -->
-            @hasModule('ecommerce')
             <div class="erp-card col-span-full">
                 <div class="erp-card-header flex items-center justify-between">
                     <div class="erp-card-title">
@@ -370,21 +369,19 @@
                         <!-- Online Description -->
                         <div class="erp-form-group">
                             <label for="onlineDescription" class="erp-form-label">
-                                <span>وصف المنتج ومواصفاته للمشترين أونلاين</span>
+                                <span>وصف ومواصفات المنتج للمتجر الإلكتروني (اختياري)</span>
                             </label>
                             <textarea 
                                 id="onlineDescription" 
                                 name="online_description" 
-                                rows="2" 
+                                rows="3" 
                                 class="erp-input" 
-                                style="height: auto; min-height: 38px;"
-                                placeholder="مواصفات تظهر في المتجر عن الخامات، المميزات، طريقة الاستخدام..."
+                                placeholder="اكتب نبذة أو مواصفات أو تفاصيل للمشترين عبر المتجر أونلاين..."
                             >{{ old('online_description') }}</textarea>
                         </div>
                     </div>
                 </div>
             </div>
-            @endhasModule
 
             <!-- Panel 3: Opening Stock Balance -->
             <div class="erp-card col-span-full">

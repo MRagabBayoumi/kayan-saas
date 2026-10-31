@@ -6,8 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? $settings->store_name ?? 'المتجر الإلكتروني' }}</title>
     
+    <link rel="icon" type="image/png" href="{{ $settings->logo_url }}">
+    <link rel="apple-touch-icon" href="{{ $settings->logo_url }}">
     <link rel="stylesheet" href="{{ asset('fonts/cairo/cairo.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/shop.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/shop.css') }}?v={{ file_exists(public_path('css/shop.css')) ? filemtime(public_path('css/shop.css')) : time() }}">
 </head>
 <body class="shop-body">
 
@@ -27,16 +29,16 @@
                 <div class="shop-header-inner">
                     
                     <!-- Logo & Store Branding -->
-                    <a href="{{ route('shop.catalog') }}" class="shop-brand">
-                        <div class="shop-brand-logo">
-                            <x-icon name="shopping-bag" size="22" />
+                    <a href="{{ route('shop.catalog') }}" class="shop-brand" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; flex-shrink: 0;">
+                        <div class="shop-brand-logo" style="width: 44px; height: 44px; min-width: 44px; max-width: 44px; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #ffffff; padding: 2px; border: 1px solid #e2e8f0; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);">
+                            <img src="{{ $settings->logo_url }}" alt="{{ $settings->store_name ?? 'Kayan Store' }}" class="shop-brand-logo-img" style="width: 100%; height: 100%; max-width: 40px; max-height: 40px; object-fit: contain; display: block; border-radius: 10px;">
                         </div>
-                        <div>
-                            <span class="shop-brand-title">
+                        <div style="min-width: 0;">
+                            <span class="shop-brand-title" style="display: block; font-size: 17px; font-weight: 800; color: #0f172a; line-height: 1.2;">
                                 {{ $settings->store_name ?? 'متجرنا الإلكتروني' }}
                             </span>
                             @if($settings->store_tagline)
-                                <span class="shop-brand-tagline">
+                                <span class="shop-brand-tagline" style="display: block; font-size: 11px; color: #64748b; margin-top: 2px;">
                                     {{ $settings->store_tagline }}
                                 </span>
                             @endif
@@ -123,9 +125,9 @@
             <div class="shop-container">
                 <div class="footer-grid">
                     <div>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <div class="shop-brand-logo" style="width: 32px; height: 32px; border-radius: 10px;">
-                                <x-icon name="shopping-bag" size="16" />
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <div class="shop-brand-logo" style="width: 36px; height: 36px; min-width: 36px; max-width: 36px; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #ffffff; padding: 2px; border: 1px solid #e2e8f0; flex-shrink: 0;">
+                                <img src="{{ $settings->logo_url }}" alt="{{ $settings->store_name ?? 'Kayan Store' }}" class="shop-brand-logo-img" style="width: 100%; height: 100%; max-width: 32px; max-height: 32px; object-fit: contain; display: block; border-radius: 8px;">
                             </div>
                             <strong style="color: #0f172a; font-size: 15px;">{{ $settings->store_name ?? 'متجرنا الإلكتروني' }}</strong>
                         </div>

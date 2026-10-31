@@ -283,9 +283,15 @@ test('cashier has read-only access to products and cannot create, edit, or acces
         'is_active' => true,
     ]);
 
-    // Allowed read-only product views
-    $this->get(route('products.index'))->assertOk();
-    $this->get(route('products.show', $product))->assertOk();
+    // Allowed read-only product views without cost price
+    $this->get(route('products.index'))
+        ->assertOk()
+        ->assertDontSee('سعر الشراء');
+
+    $this->get(route('products.show', $product))
+        ->assertOk()
+        ->assertDontSee('سعر الشراء');
+
     $this->get(route('products.lookup-barcode', ['barcode' => $product->barcode]))->assertOk();
 
     // Forbidden modifications
@@ -299,6 +305,77 @@ test('cashier has read-only access to products and cannot create, edit, or acces
     $this->get(route('purchases.index'))->assertForbidden();
     $this->get(route('inventory.index'))->assertForbidden();
     $this->get(route('settings.index'))->assertForbidden();
+});
+
+test('cashier cannot see cost price unless explicitly granted view-cost-price permission', function () {
+    $cashier = User::create([
+        'name' => 'كاشير المحل للتكلفة',
+        'email' => 'cashier-cost@kayan.test',
+        'password' => Hash::make('Secret123!'),
+        'role' => User::ROLE_CASHIER,
+    ]);
+
+    $admin = User::create([
+        'name' => 'مدير النظام للتكلفة',
+        'email' => 'admin-cost@kayan.test',
+        'password' => Hash::make('Secret123!'),
+        'role' => User::ROLE_ADMIN,
+    ]);
+
+    $category = Category::create(['name' => 'تصنيف تكلفة', 'code' => 'CAT-COST-P']);
+    $product = Product::create([
+        'category_id' => $category->id,
+        'sku' => 'SKU-COST-01',
+        'name' => 'صنف فحص التكلفة',
+        'cost_price' => 77.50,
+        'wholesale_price' => 120.00,
+        'retail_price' => 150.00,
+        'unit' => 'قطعة',
+        'is_active' => true,
+    ]);
+
+    // 1. Cashier cannot see cost price on index or show
+    $this->actingAs($cashier)
+        ->get(route('products.index'))
+        ->assertOk()
+        ->assertDontSee('سعر الشراء')
+        ->assertDontSee('77.50');
+
+    $this->actingAs($cashier)
+        ->get(route('products.show', $product))
+        ->assertOk()
+        ->assertDontSee('سعر الشراء')
+        ->assertDontSee('77.50');
+
+    // 2. Admin CAN see cost price
+    $this->actingAs($admin)
+        ->get(route('products.index'))
+        ->assertOk()
+        ->assertSee('سعر الشراء')
+        ->assertSee('77.50');
+
+    $this->actingAs($admin)
+        ->get(route('products.show', $product))
+        ->assertOk()
+        ->assertSee('سعر الشراء')
+        ->assertSee('77.50');
+
+    // 3. Grant view-cost-price permission to cashier role
+    $perm = Permission::firstOrCreate(['slug' => 'view-cost-price'], [
+        'name' => 'عرض سعر الشراء والتكلفة',
+        'module' => 'المنتجات والتسعير',
+    ]);
+    $role = Role::firstOrCreate(['slug' => 'cashier'], ['name' => 'كاشير']);
+    if (! $role->permissions()->where('permissions.id', $perm->id)->exists()) {
+        $role->permissions()->attach($perm->id);
+    }
+    $cashier->update(['role_id' => $role->id]);
+
+    $this->actingAs($cashier->fresh(['roleRelation.permissions']))
+        ->get(route('products.index'))
+        ->assertOk()
+        ->assertSee('سعر الشراء')
+        ->assertSee('77.50');
 });
 
 test('created_by and user_id are populated from the currently authenticated user', function () {

@@ -305,9 +305,6 @@ class CustomerPaymentController extends Controller
                 $lockedInvoice->increment('remaining_amount', $amount);
             }
 
-            // Sync customer balance accurately
-            $customer->recalculateCurrentBalance();
-
             // If cash and shift still open, reverse shift cash
             if ($payment->cashier_shift_id && $payment->payment_method === CustomerPayment::METHOD_CASH) {
                 $shift = CashierShift::find($payment->cashier_shift_id);
@@ -326,6 +323,9 @@ class CustomerPaymentController extends Controller
             );
 
             $payment->delete();
+
+            // Sync customer balance accurately after payment is deleted
+            $customer->recalculateCurrentBalance();
         });
 
         if ($invoice) {

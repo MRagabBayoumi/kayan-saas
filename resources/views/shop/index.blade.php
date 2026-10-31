@@ -5,6 +5,11 @@
 
     <!-- Store Hero Banner -->
     <div class="shop-hero">
+        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+            <div style="width: 76px; height: 76px; min-width: 76px; max-width: 76px; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35); border: 3px solid rgba(255, 255, 255, 0.3); background: #ffffff; display: flex; align-items: center; justify-content: center; padding: 4px;">
+                <img src="{{ $settings->logo_url }}" alt="{{ $settings->store_name ?? 'Kayan Store' }}" style="width: 100%; height: 100%; max-width: 68px; max-height: 68px; object-fit: contain; display: block; border-radius: 16px;">
+            </div>
+        </div>
         <div class="hero-tag">
             <x-icon name="sparkles" size="13" />
             <span>المتجر الرسمي المعتمد</span>

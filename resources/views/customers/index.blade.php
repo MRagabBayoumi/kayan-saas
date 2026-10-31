@@ -7,6 +7,43 @@
                 <x-icon name="plus" size="16" />
                 <span>إضافة عميل جديد</span>
             </a>
+
+            <!-- Customer Balance Due Report & Print Menu -->
+            <div class="erp-dropdown">
+                <button type="button" class="erp-btn erp-btn-secondary" data-dropdown-toggle="customerIndexBalanceMenu">
+                    <x-icon name="printer" size="16" />
+                    <span>طباعة حسابات العملاء</span>
+                    <x-icon name="chevron-down" size="14" />
+                </button>
+                <div id="customerIndexBalanceMenu" class="erp-dropdown-menu">
+                    <a href="{{ route('customers.balance-due-report') }}" class="erp-dropdown-item">
+                        <x-icon name="eye" size="16" />
+                        <span>استعراض تقرير الأرصدة والمديونيات</span>
+                    </a>
+                    <a href="{{ route('customers.balance-due-report', ['only_with_balance' => 1]) }}" class="erp-dropdown-item">
+                        <x-icon name="filter" size="16" />
+                        <span>استعراض المدينين فقط (عليهم مبالغ)</span>
+                    </a>
+                    <div class="erp-dropdown-divider"></div>
+                    <a href="{{ route('customers.balance-due-report.print', ['format' => 'a4']) }}" target="_blank" class="erp-dropdown-item">
+                        <x-icon name="file-text" size="16" />
+                        <span>طباعة حسابات العملاء A4 قياسي</span>
+                    </a>
+                    <a href="{{ route('customers.balance-due-report.print', ['format' => 'a4', 'only_with_balance' => 1]) }}" target="_blank" class="erp-dropdown-item">
+                        <x-icon name="file-text" size="16" />
+                        <span>طباعة المدينين فقط A4</span>
+                    </a>
+                    <a href="{{ route('customers.balance-due-report.print', ['format' => 'a5']) }}" target="_blank" class="erp-dropdown-item">
+                        <x-icon name="file" size="16" />
+                        <span>طباعة حسابات العملاء A5 وسط</span>
+                    </a>
+                    <a href="{{ route('customers.balance-due-report.print', ['format' => 'thermal_80mm']) }}" target="_blank" class="erp-dropdown-item">
+                        <x-icon name="printer" size="16" />
+                        <span>طباعة حراري 80 مم</span>
+                    </a>
+                </div>
+            </div>
+
             <a href="{{ route('suppliers.index') }}" class="erp-btn erp-btn-secondary">
                 <x-icon name="truck" size="16" />
                 <span>الموردون ومصانع الصين</span>
@@ -14,6 +51,10 @@
             <a href="{{ route('shipping-offices.index') }}" class="erp-btn erp-btn-secondary">
                 <x-icon name="navigation" size="16" />
                 <span>مكاتب الشحن</span>
+            </a>
+            <a href="{{ route('products.price-list') }}" class="erp-btn erp-btn-secondary" title="قائمة أسعار وبيان تعبئة المنتجات للعملاء">
+                <x-icon name="clipboard" size="16" />
+                <span>قائمة أسعار المنتجات</span>
             </a>
         </x-slot:actions>
 
@@ -88,15 +129,18 @@
                 </div>
             </div>
 
-            <div class="customer-kpi-card">
-                <div class="customer-kpi-icon warning">
+            <a href="{{ route('customers.balance-due-report', ['only_with_balance' => 1]) }}" class="customer-kpi-card hover:border-[var(--primary)] transition-colors cursor-pointer group" title="استعراض كشف مديونيات وحسابات العملاء">
+                <div class="customer-kpi-icon warning group-hover:scale-105 transition-transform">
                     <x-icon name="calculator" size="22" />
                 </div>
                 <div class="customer-kpi-info">
-                    <div class="customer-kpi-label">مستحقات آجلة لدى العملاء</div>
+                    <div class="customer-kpi-label flex items-center gap-1">
+                        <span>مستحقات آجلة لدى العملاء</span>
+                        <x-icon name="arrow-left" size="12" class="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--primary)]" />
+                    </div>
                     <div class="customer-kpi-value font-numeric">{{ number_format($metrics['total_receivables'], 2) }} <span class="text-xs font-normal text-[var(--text-muted)]">ج.م</span></div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- Filter & Search Bar -->

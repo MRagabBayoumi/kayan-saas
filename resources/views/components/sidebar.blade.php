@@ -176,10 +176,16 @@
         <div class="erp-nav-section">
             <div class="erp-nav-section-title">المخزون والمنتجات</div>
             @can('view-products')
-            <a href="{{ url('/products') }}" class="erp-nav-item {{ request()->is('products*') ? 'active' : '' }}" title="المنتجات والأصناف">
+            <a href="{{ url('/products') }}" class="erp-nav-item {{ (request()->is('products*') && !request()->is('products/price-list*')) ? 'active' : '' }}" title="المنتجات والأصناف">
                 <div class="erp-nav-content">
                     <span class="erp-nav-icon"><x-icon name="package" size="18" /></span>
                     <span class="erp-nav-label">المنتجات والأصناف</span>
+                </div>
+            </a>
+            <a href="{{ route('packing-list.index') }}" class="erp-nav-item {{ request()->is('packing-list*') ? 'active' : '' }}" title="قائمة التعبئة والتجهيز (Packing List)">
+                <div class="erp-nav-content">
+                    <span class="erp-nav-icon"><x-icon name="clipboard" size="18" /></span>
+                    <span class="erp-nav-label">قائمة التعبئة (Packing List)</span>
                 </div>
             </a>
             @endcan

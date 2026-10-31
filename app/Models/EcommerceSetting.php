@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class EcommerceSetting extends Model
 {
@@ -26,6 +27,30 @@ class EcommerceSetting extends Model
         'is_store_open' => 'boolean',
         'allow_cod' => 'boolean',
     ];
+
+    /**
+     * Get the store logo URL with automatic fallback to company logo or app icon.
+     */
+    public function getLogoUrlAttribute(): string
+    {
+        if ($this->store_logo && Storage::disk('public')->exists($this->store_logo)) {
+            return '/storage/'.$this->store_logo;
+        }
+
+        try {
+            $company = CompanySetting::first();
+            if ($company && ! empty($company->logo_url)) {
+                return $company->logo_url;
+            }
+        } catch (\Throwable $e) {
+        }
+
+        if (file_exists(public_path('icon-192.png'))) {
+            return asset('icon-192.png');
+        }
+
+        return asset('favicon.png');
+    }
 
     /**
      * Get or create active store settings singleton.

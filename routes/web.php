@@ -15,6 +15,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinancialReportController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\PackingListController;
 use App\Http\Controllers\PortalAttendanceController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\PortalVisitController;
@@ -160,6 +161,16 @@ Route::middleware('auth')->group(function () {
     // Product & Category Management
     // Read-only product routes accessible to admin, warehouse, and cashier
     Route::middleware('can:view-products')->group(function () {
+        // Packing List Dedicated Builder
+        Route::get('/packing-list', [PackingListController::class, 'index'])->name('packing-list.index');
+        Route::get('/products/packing-list', fn () => redirect()->route('packing-list.index'));
+        Route::get('/packing-list/search-products', [PackingListController::class, 'searchProducts'])->name('packing-list.search-products');
+        Route::post('/packing-list/export-excel', [PackingListController::class, 'exportExcel'])->name('packing-list.export-excel');
+        Route::post('/packing-list/export-csv', [PackingListController::class, 'exportCsv'])->name('packing-list.export-csv');
+        Route::match(['get', 'post'], '/packing-list/print', [PackingListController::class, 'print'])->name('packing-list.print');
+
+        Route::get('/products/price-list', [ProductController::class, 'priceList'])->name('products.price-list');
+        Route::get('/products/price-list/print', [ProductController::class, 'printPriceList'])->name('products.price-list.print');
         Route::get('/products/lookup-barcode', [ProductController::class, 'lookupBarcode'])->name('products.lookup-barcode');
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
         Route::get('/products/{product}', [ProductController::class, 'show'])->whereNumber('product')->name('products.show');
@@ -189,6 +200,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::post('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
         Route::post('/products/{product}/toggle-online', [ProductController::class, 'toggleOnline'])->name('products.toggle-online');
+        Route::post('/products/bulk-toggle-online', [ProductController::class, 'bulkToggleOnline'])->name('products.bulk-toggle-online');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
         Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
@@ -309,6 +321,8 @@ Route::middleware('auth')->group(function () {
         ->name('customers.store');
 
     Route::middleware('can:manage-customers')->group(function () {
+        Route::get('/customers/balance-due-report', [CustomerController::class, 'balanceDueReport'])->name('customers.balance-due-report');
+        Route::get('/customers/balance-due-report/print', [CustomerController::class, 'printBalanceDueReport'])->name('customers.balance-due-report.print');
         Route::get('/customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
         Route::get('/customers/{customer}/statement/print', [CustomerController::class, 'printStatement'])->name('customers.statement.print');
         Route::get('/customers/{customer}/purchased-items', [CustomerController::class, 'purchasedItems'])->name('customers.purchased-items');

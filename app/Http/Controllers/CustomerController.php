@@ -375,4 +375,86 @@ class CustomerController extends Controller
             'results' => $customers,
         ]);
     }
+
+    /**
+     * Display Customer Balance Due report across all customers.
+     */
+    public function balanceDueReport(Request $request): View
+    {
+        $customerId = $request->filled('customer_id') ? (int) $request->input('customer_id') : null;
+        $customerType = $request->input('type');
+        $city = $request->input('city');
+        $salesRepId = $request->filled('sales_rep_id') ? (int) $request->input('sales_rep_id') : null;
+        $onlyWithBalance = $request->boolean('only_with_balance', false);
+        $search = $request->input('search');
+
+        $report = $this->statementService->getCustomerBalanceDueReport(
+            customerId: $customerId,
+            customerType: $customerType,
+            city: $city,
+            salesRepId: $salesRepId,
+            onlyWithBalance: $onlyWithBalance,
+            search: $search
+        );
+
+        $allCustomers = Customer::active()->orderBy('name')->get();
+        $cities = Customer::whereNotNull('city')->where('city', '!=', '')->distinct()->pluck('city')->sort()->values();
+        $salesReps = User::salesReps()->where('is_active', true)->orderBy('name')->get();
+
+        return view('customers.balance-due-report', [
+            'title' => 'تقرير أرصدة ومديونيات العملاء (حسابات العملاء)',
+            'report' => $report,
+            'allCustomers' => $allCustomers,
+            'cities' => $cities,
+            'salesReps' => $salesReps,
+            'customerId' => $customerId,
+            'customerType' => $customerType,
+            'city' => $city,
+            'salesRepId' => $salesRepId,
+            'onlyWithBalance' => $onlyWithBalance,
+            'search' => $search,
+        ]);
+    }
+
+    /**
+     * Dedicated printable Customer Balance Due report supporting A4, A5, and Thermal 80mm.
+     */
+    public function printBalanceDueReport(Request $request): View
+    {
+        $customerId = $request->filled('customer_id') ? (int) $request->input('customer_id') : null;
+        $customerType = $request->input('type');
+        $city = $request->input('city');
+        $salesRepId = $request->filled('sales_rep_id') ? (int) $request->input('sales_rep_id') : null;
+        $onlyWithBalance = $request->boolean('only_with_balance', false);
+        $search = $request->input('search');
+        $format = $request->input('format', 'a4');
+        if (! in_array($format, ['a4', 'a5', 'thermal_80mm', 'thermal'], true)) {
+            $format = 'a4';
+        }
+
+        $report = $this->statementService->getCustomerBalanceDueReport(
+            customerId: $customerId,
+            customerType: $customerType,
+            city: $city,
+            salesRepId: $salesRepId,
+            onlyWithBalance: $onlyWithBalance,
+            search: $search
+        );
+
+        $company = CompanySetting::getSettings();
+
+        return view('customers.balance-due-report-print', [
+            'title' => 'كشف أرصدة ومديونيات العملاء',
+            'report' => $report,
+            'format' => $format,
+            'company' => $company,
+            'customerId' => $customerId,
+            'customerType' => $customerType,
+            'city' => $city,
+            'salesRepId' => $salesRepId,
+            'onlyWithBalance' => $onlyWithBalance,
+            'search' => $search,
+            'autoPrint' => $request->boolean('auto_print', false),
+        ]);
+    }
 }

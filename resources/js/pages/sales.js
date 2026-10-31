@@ -105,6 +105,62 @@ function initSalesPOS(posPage = null) {
     let isSubmitting = false;
     let lastProductSelectTime = 0;
 
+    // Non-blocking POS notification toaster (replaces jarring browser alerts)
+    function showPosNotification(message, type = 'warning') {
+        let container = document.getElementById('posToastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'posToastContainer';
+            container.style.cssText = `
+                position: fixed;
+                bottom: 24px;
+                left: 24px;
+                z-index: 99999;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                pointer-events: none;
+                max-width: 400px;
+                width: calc(100% - 48px);
+            `;
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        const bg = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#f59e0b');
+        toast.style.cssText = `
+            background: ${bg};
+            color: #ffffff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0;
+            transform: translateY(12px);
+            pointer-events: auto;
+            direction: rtl;
+        `;
+        const icon = type === 'error' ? '❌' : (type === 'success' ? '✅' : '⚠️');
+        toast.innerHTML = `<span style="font-size:15px;line-height:1;">${icon}</span><span style="flex:1;">${message}</span>`;
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+        });
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(12px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3200);
+    }
+
     // Helper: Get product price based on selected tier and target unit factor
     function getProductPriceForTier(product, tier = null, targetUnitFactor = null) {
         if (!product) return 0.00;
@@ -743,7 +799,7 @@ function initSalesPOS(posPage = null) {
                         selectProduct(matched, false);
                     }
                 } else {
-                    alert(`لم يتم العثور على صنف مطابق لهذا الباركود أو الكود: "${cleanTerm}"`);
+                    showPosNotification(`لم يتم العثور على صنف مطابق لهذا الباركود أو الكود: "${cleanTerm}"`, 'warning');
                     quickProductInput.select();
                 }
             }
@@ -858,32 +914,40 @@ function initSalesPOS(posPage = null) {
 
         if (!product) {
             const term = (quickProductInput ? quickProductInput.value : '').trim();
+            // If field is completely empty and no product selected:
+            if (!pId && !term) {
+                if (quickProductInput) quickProductInput.focus();
+                return; // Silent return! Do not trigger any alert when nothing is entered.
+            }
             product = findProductByTerm(term, searchModeSelect ? searchModeSelect.value : 'barcode');
         }
 
         if (!product) {
-            alert('يرجى اختيار صنف صحيح من القائمة أو ضرب باركود مسجل أولاً.');
-            if (quickProductInput) quickProductInput.focus();
+            showPosNotification('يرجى اختيار صنف صحيح من القائمة أو ضرب باركود مسجل أولاً.', 'warning');
+            if (quickProductInput) {
+                quickProductInput.focus();
+                quickProductInput.select();
+            }
             return;
         }
 
         const qty = parseFloat(quickQtyInput ? quickQtyInput.value : 1) || 1;
         if (qty <= 0) {
-            alert('الكمية يجب أن تكون أكبر من الصفر.');
+            showPosNotification('الكمية يجب أن تكون أكبر من الصفر.', 'warning');
             if (quickQtyInput) quickQtyInput.focus();
             return;
         }
 
         const price = parseFloat(quickPriceInput ? quickPriceInput.value : 0) || 0;
         if (price < 0) {
-            alert('سعر البيع لا يمكن أن يكون سالباً.');
+            showPosNotification('سعر البيع لا يمكن أن يكون سالباً.', 'warning');
             if (quickPriceInput) quickPriceInput.focus();
             return;
         }
 
         const lineDisc = parseFloat(quickLineDiscountInput ? quickLineDiscountInput.value : 0) || 0;
         if (lineDisc < 0) {
-            alert('خصم البند لا يمكن أن يكون سالباً.');
+            showPosNotification('خصم البند لا يمكن أن يكون سالباً.', 'warning');
             if (quickLineDiscountInput) quickLineDiscountInput.focus();
             return;
         }
@@ -1162,7 +1226,7 @@ function initSalesPOS(posPage = null) {
             e.preventDefault();
             const firstProd = productsData[0];
             if (!firstProd) {
-                alert('لا توجد منتجات مسجلة في النظام.');
+                showPosNotification('لا توجد منتجات مسجلة في النظام.', 'warning');
                 return;
             }
             const prodUnitName = (firstProd.unit || 'قطعة').trim();
@@ -1513,21 +1577,49 @@ function initSalesPOS(posPage = null) {
         // F9: Fast Checkout & Post
         if (e.key === 'F9') {
             e.preventDefault();
+            const actionField = document.getElementById('salesActionField');
+            if (actionField) actionField.value = 'post';
+
             if (posSubmitBtn && !isSubmitting) {
                 posSubmitBtn.click();
+            } else if (topPostSubmitBtn && !isSubmitting) {
+                topPostSubmitBtn.click();
+            } else if (salesForm && !isSubmitting) {
+                salesForm.requestSubmit();
             }
             return;
         }
     });
 
-    // Guard Against Double Submissions
+    // Wire up all action buttons to synchronize the hidden action input field
+    const salesActionField = document.getElementById('salesActionField');
+    const topPostSubmitBtn = document.getElementById('topPostSubmitBtn');
+    const topDraftSubmitBtn = document.getElementById('topDraftSubmitBtn');
+
+    document.querySelectorAll('[data-action], button[name="action"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const act = btn.getAttribute('data-action') || btn.value || 'post';
+            if (salesActionField) {
+                salesActionField.value = act;
+            }
+        });
+    });
+
+    // Guard Against Double Submissions and Provide Responsive Feedback
     if (salesForm) {
         salesForm.addEventListener('submit', (e) => {
             const rows = tableBody ? tableBody.querySelectorAll('.sales-item-row') : [];
             if (rows.length === 0) {
                 e.preventDefault();
-                alert('سلة المبيعات فارغة! يرجى إضافة صنف واحد على الأقل قبل حفظ الفاتورة.');
+                showPosNotification('سلة المبيعات فارغة! يرجى إضافة صنف واحد على الأقل قبل حفظ الفاتورة.', 'warning');
                 if (quickProductInput) quickProductInput.focus();
+                isSubmitting = false;
+                return;
+            }
+
+            // HTML5 Form Validation Guard
+            if (!salesForm.checkValidity()) {
+                isSubmitting = false;
                 return;
             }
 
@@ -1536,6 +1628,29 @@ function initSalesPOS(posPage = null) {
                 return;
             }
             isSubmitting = true;
+
+            // Visual feedback on post buttons
+            const postButtons = document.querySelectorAll('#posSubmitBtn, #topPostSubmitBtn');
+            postButtons.forEach(b => {
+                b.classList.add('opacity-75', 'cursor-not-allowed');
+                const span = b.querySelector('span');
+                if (span) {
+                    b.dataset.origText = span.textContent;
+                    span.textContent = 'جاري الترحيل والصرف...';
+                }
+            });
+
+            // Safeguard timeout to release submission lock if submission doesn't unload page
+            setTimeout(() => {
+                isSubmitting = false;
+                postButtons.forEach(b => {
+                    b.classList.remove('opacity-75', 'cursor-not-allowed');
+                    const span = b.querySelector('span');
+                    if (span && b.dataset.origText) {
+                        span.textContent = b.dataset.origText;
+                    }
+                });
+            }, 6000);
         });
     }
 

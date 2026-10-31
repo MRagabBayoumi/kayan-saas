@@ -26,7 +26,6 @@
                 <x-icon name="pencil" size="16" />
                 <span>تعديل الصنف</span>
             </a>
-            @hasModule('ecommerce')
             <form action="{{ route('products.toggle-online', $product) }}" method="POST" class="inline">
                 @csrf
                 <button type="submit" class="erp-btn {{ $product->is_available_online ? 'erp-btn-secondary' : 'erp-btn-primary' }}" title="تغيير حالة عرض المنتج في المتجر الإلكتروني">
@@ -34,7 +33,6 @@
                     <span>{{ $product->is_available_online ? 'إخفاء من المتجر' : 'عرض في المتجر' }}</span>
                 </button>
             </form>
-            @endhasModule
             <form action="{{ route('products.toggle-status', $product) }}" method="POST" class="inline" data-confirm="هل تريد {{ $product->is_active ? 'تعطيل' : 'تنشيط' }} هذا الصنف؟">
                 @csrf
                 <button type="submit" class="erp-btn {{ $product->is_active ? 'erp-btn-warning' : 'erp-btn-success' }}">
@@ -54,6 +52,17 @@
         </x-slot:actions>
 
         <x-slot:extra>
+            @if($product->is_available_online)
+                <span class="erp-badge erp-badge-success py-1 px-2.5 text-xs">
+                    <x-icon name="shopping-bag" size="12" />
+                    <span>معروض بالمتجر أونلاين</span>
+                </span>
+            @else
+                <span class="erp-badge erp-badge-neutral py-1 px-2.5 text-xs">
+                    <x-icon name="eye-off" size="12" />
+                    <span>مخفي من المتجر</span>
+                </span>
+            @endif
             @if($product->is_active)
                 <span class="erp-badge erp-badge-success py-1 px-2.5 text-xs">
                     <x-icon name="check" size="12" />
@@ -65,19 +74,6 @@
                     <span>الحالة: معطل</span>
                 </span>
             @endif
-            @hasModule('ecommerce')
-                @if($product->is_available_online)
-                    <span class="erp-badge erp-badge-success py-1 px-2.5 text-xs">
-                        <x-icon name="shopping-bag" size="12" />
-                        <span>معروض بالمتجر أونلاين</span>
-                    </span>
-                @else
-                    <span class="erp-badge erp-badge-neutral py-1 px-2.5 text-xs">
-                        <x-icon name="eye-off" size="12" />
-                        <span>مخفي من المتجر</span>
-                    </span>
-                @endif
-            @endhasModule
         </x-slot:extra>
     </x-control-panel>
 @endsection
@@ -115,8 +111,41 @@
                     </div>
                 </div>
 
-                <!-- 1.5. Dedicated E-Commerce Showcase & Toggle Card -->
-                @hasModule('ecommerce')
+                <!-- 2. Thermal Barcode Label Card -->
+                <div class="erp-card">
+                    <div class="erp-card-header">
+                        <div class="erp-card-title">
+                            <x-icon name="barcode" size="18" />
+                            <span>ملصق الباركود ({{ (int) ($barcodeSettings->label_width_mm ?? 38) }}×{{ (int) ($barcodeSettings->label_height_mm ?? 15) }} مم)</span>
+                        </div>
+                    </div>
+                    <div class="erp-card-body p-4 text-center flex flex-col items-center">
+                        <div class="erp-barcode-label-box">
+                            {!! $completeLabelSvg !!}
+                        </div>
+
+                        <div class="mt-3 w-full flex flex-col gap-2">
+                            <div class="flex items-center justify-between bg-[var(--bg-surface-alt)] p-1.5 rounded border border-[var(--border-color)]">
+                                <span class="text-xs font-semibold text-[var(--text-muted)] mr-1">عدد النسخ:</span>
+                                <div class="inline-flex items-center bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-0.5">
+                                    <button type="button" data-action="adjust-show-qty" data-delta="-1" class="erp-btn erp-btn-ghost font-numeric py-1 px-2.5 font-bold text-sm" title="إنقاص الكمية">−</button>
+                                    <input type="number" id="cardLabelQty" value="1" min="1" max="500" class="font-numeric w-12 text-center p-1 font-bold border-0 bg-transparent text-[var(--text-main)] text-sm" title="عدد النسخ">
+                                    <button type="button" data-action="adjust-show-qty" data-delta="1" class="erp-btn erp-btn-ghost font-numeric py-1 px-2.5 font-bold text-sm" title="زيادة الكمية">+</button>
+                                </div>
+                            </div>
+                            <button type="button" data-action="direct-print-show" class="erp-btn erp-btn-primary w-full justify-center text-sm" title="طباعة فورية على الطابعة بدون نوافذ">
+                                <x-icon name="printer" size="16" />
+                                <span>طباعة فورية على الطابعة</span>
+                            </button>
+                            <button type="button" data-action="open-print-modal" class="erp-btn erp-btn-secondary w-full justify-center text-xs" title="تخصيص عدد النسخ وخيارات الملصق">
+                                <x-icon name="sliders" size="14" />
+                                <span>تخصيص الكميات والخيارات</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- E-Commerce Storefront Card -->
                 <div class="erp-card">
                     <div class="erp-card-header flex items-center justify-between">
                         <div class="erp-card-title">
@@ -173,41 +202,6 @@
                                 <span>معاينة صفحة المنتج بالمتجر</span>
                             </a>
                         @endif
-                    </div>
-                </div>
-                @endhasModule
-
-                <!-- 2. Thermal Barcode Label Card -->
-                <div class="erp-card">
-                    <div class="erp-card-header">
-                        <div class="erp-card-title">
-                            <x-icon name="barcode" size="18" />
-                            <span>ملصق الباركود ({{ (int) ($barcodeSettings->label_width_mm ?? 38) }}×{{ (int) ($barcodeSettings->label_height_mm ?? 15) }} مم)</span>
-                        </div>
-                    </div>
-                    <div class="erp-card-body p-4 text-center flex flex-col items-center">
-                        <div class="erp-barcode-label-box">
-                            {!! $completeLabelSvg !!}
-                        </div>
-
-                        <div class="mt-3 w-full flex flex-col gap-2">
-                            <div class="flex items-center justify-between bg-[var(--bg-surface-alt)] p-1.5 rounded border border-[var(--border-color)]">
-                                <span class="text-xs font-semibold text-[var(--text-muted)] mr-1">عدد النسخ:</span>
-                                <div class="inline-flex items-center bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-0.5">
-                                    <button type="button" data-action="adjust-show-qty" data-delta="-1" class="erp-btn erp-btn-ghost font-numeric py-1 px-2.5 font-bold text-sm" title="إنقاص الكمية">−</button>
-                                    <input type="number" id="cardLabelQty" value="1" min="1" max="500" class="font-numeric w-12 text-center p-1 font-bold border-0 bg-transparent text-[var(--text-main)] text-sm" title="عدد النسخ">
-                                    <button type="button" data-action="adjust-show-qty" data-delta="1" class="erp-btn erp-btn-ghost font-numeric py-1 px-2.5 font-bold text-sm" title="زيادة الكمية">+</button>
-                                </div>
-                            </div>
-                            <button type="button" data-action="direct-print-show" class="erp-btn erp-btn-primary w-full justify-center text-sm" title="طباعة فورية على الطابعة بدون نوافذ">
-                                <x-icon name="printer" size="16" />
-                                <span>طباعة فورية على الطابعة</span>
-                            </button>
-                            <button type="button" data-action="open-print-modal" class="erp-btn erp-btn-secondary w-full justify-center text-xs" title="تخصيص عدد النسخ وخيارات الملصق">
-                                <x-icon name="sliders" size="14" />
-                                <span>تخصيص الكميات والخيارات</span>
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -284,14 +278,16 @@
                     </div>
                     <div class="erp-card-body">
                         <div class="erp-pricing-grid">
-                            <!-- Cost Price -->
-                            <div class="erp-pricing-card">
-                                <span class="erp-pricing-label">سعر الشراء</span>
-                                <div class="font-numeric erp-pricing-value">
-                                    {{ number_format((float)$product->cost_price, 2) }}
-                                    <span class="erp-pricing-unit">ج.م</span>
+                            @can('view-cost-price')
+                                <!-- Cost Price -->
+                                <div class="erp-pricing-card">
+                                    <span class="erp-pricing-label">سعر الشراء</span>
+                                    <div class="font-numeric erp-pricing-value">
+                                        {{ number_format((float)$product->cost_price, 2) }}
+                                        <span class="erp-pricing-unit">ج.م</span>
+                                    </div>
                                 </div>
-                            </div>
+                            @endcan
 
                             <!-- Retail Price -->
                             <div class="erp-pricing-card erp-pricing-card-retail">
@@ -300,13 +296,15 @@
                                     {{ number_format((float)$product->retail_price, 2) }}
                                     <span class="erp-pricing-unit">ج.م</span>
                                 </div>
-                                @php
-                                    $retailProfit = (float)$product->retail_price - (float)$product->cost_price;
-                                    $retailMargin = (float)$product->cost_price > 0 ? ($retailProfit / (float)$product->cost_price) * 100 : 0;
-                                @endphp
-                                <small class="font-numeric block mt-1 text-[11px] text-[var(--danger-text)]">
-                                    هامش الربح: +{{ number_format($retailProfit, 2) }} ج.م ({{ number_format($retailMargin, 1) }}%)
-                                </small>
+                                @can('view-cost-price')
+                                    @php
+                                        $retailProfit = (float)$product->retail_price - (float)$product->cost_price;
+                                        $retailMargin = (float)$product->cost_price > 0 ? ($retailProfit / (float)$product->cost_price) * 100 : 0;
+                                    @endphp
+                                    <small class="font-numeric block mt-1 text-[11px] text-[var(--danger-text)]">
+                                        هامش الربح: +{{ number_format($retailProfit, 2) }} ج.م ({{ number_format($retailMargin, 1) }}%)
+                                    </small>
+                                @endcan
                             </div>
 
                             <!-- Wholesale Price -->
@@ -316,13 +314,15 @@
                                     {{ number_format((float)$product->wholesale_price, 2) }}
                                     <span class="erp-pricing-unit">ج.م</span>
                                 </div>
-                                @php
-                                    $wholesaleProfit = (float)$product->wholesale_price - (float)$product->cost_price;
-                                    $wholesaleMargin = (float)$product->cost_price > 0 ? ($wholesaleProfit / (float)$product->cost_price) * 100 : 0;
-                                @endphp
-                                <small class="font-numeric block mt-1 text-[11px] text-[var(--success-text)]">
-                                    هامش الربح: +{{ number_format($wholesaleProfit, 2) }} ج.م ({{ number_format($wholesaleMargin, 1) }}%)
-                                </small>
+                                @can('view-cost-price')
+                                    @php
+                                        $wholesaleProfit = (float)$product->wholesale_price - (float)$product->cost_price;
+                                        $wholesaleMargin = (float)$product->cost_price > 0 ? ($wholesaleProfit / (float)$product->cost_price) * 100 : 0;
+                                    @endphp
+                                    <small class="font-numeric block mt-1 text-[11px] text-[var(--success-text)]">
+                                        هامش الربح: +{{ number_format($wholesaleProfit, 2) }} ج.م ({{ number_format($wholesaleMargin, 1) }}%)
+                                    </small>
+                                @endcan
                             </div>
 
                             <!-- Distributor Price -->
@@ -337,13 +337,15 @@
                                     @endif
                                 </div>
                                 @if($product->distributor_price)
-                                    @php
-                                        $distributorProfit = (float)$product->distributor_price - (float)$product->cost_price;
-                                        $distributorMargin = (float)$product->cost_price > 0 ? ($distributorProfit / (float)$product->cost_price) * 100 : 0;
-                                    @endphp
-                                    <small class="font-numeric block mt-1 text-[11px] text-[var(--info-text)]">
-                                        هامش الربح: +{{ number_format($distributorProfit, 2) }} ج.م ({{ number_format($distributorMargin, 1) }}%)
-                                    </small>
+                                    @can('view-cost-price')
+                                        @php
+                                            $distributorProfit = (float)$product->distributor_price - (float)$product->cost_price;
+                                            $distributorMargin = (float)$product->cost_price > 0 ? ($distributorProfit / (float)$product->cost_price) * 100 : 0;
+                                        @endphp
+                                        <small class="font-numeric block mt-1 text-[11px] text-[var(--info-text)]">
+                                            هامش الربح: +{{ number_format($distributorProfit, 2) }} ج.م ({{ number_format($distributorMargin, 1) }}%)
+                                        </small>
+                                    @endcan
                                 @endif
                             </div>
                         </div>

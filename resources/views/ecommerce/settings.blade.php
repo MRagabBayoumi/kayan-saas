@@ -58,6 +58,32 @@
             </div>
             <div class="erp-card-body">
                 <div class="erp-form-grid">
+                    <!-- Store Logo Display & Config -->
+                    <div class="erp-form-group erp-form-full">
+                        <label class="erp-form-label">
+                            <span>شعار وأيقونة المتجر الإلكتروني (Logo)</span>
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 16px; background: var(--bg-surface); padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap;">
+                            <div style="width: 64px; height: 64px; min-width: 64px; border-radius: 14px; background: #ffffff; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; padding: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+                                <img src="{{ $settings->logo_url }}" alt="شعار المتجر" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;">
+                            </div>
+                            <div style="flex: 1; min-width: 240px;">
+                                <div style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
+                                    شعار المتجر معتمد ومربوط بإعدادات النظام العامة
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+                                    يتم تحميل هذا الشعار والأيقونة تلقائياً من <strong>إعدادات النظام العامة</strong> لتوحيد الهوية بين نظام إدارة المؤسسة والمتجر الإلكتروني.
+                                </div>
+                                <div style="margin-top: 8px;">
+                                    <a href="{{ route('settings.index') }}" class="erp-btn erp-btn-secondary py-1 px-3 text-xs inline-flex items-center gap-1.5" title="الانتقال لإعدادات الشركة لتحديث الشعار">
+                                        <x-icon name="settings" size="13" />
+                                        <span>تعديل الشعار من إعدادات النظام العامة</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="erp-form-group">
                         <label for="store_name" class="erp-form-label">
                             <span>اسم المتجر الإلكتروني</span>

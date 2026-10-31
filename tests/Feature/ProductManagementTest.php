@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\BarcodeSetting;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -139,7 +138,7 @@ test('product validation rejects missing required fields and negative prices', f
     $response2->assertSessionHasErrors(['cost_price', 'wholesale_price', 'retail_price', 'min_stock_alert']);
 });
 
-test('duplicate SKU is strictly rejected', function () {
+test('duplicate SKU is allowed across products', function () {
     $category = Category::create(['name' => 'تصنيف عام', 'slug' => 'general']);
 
     Product::create([
@@ -154,7 +153,7 @@ test('duplicate SKU is strictly rejected', function () {
     ]);
 
     $response = $this->post(route('products.store'), [
-        'sku' => 'KY-DUP-01', // duplicate!
+        'sku' => 'KY-DUP-01', // duplicate sku allowed
         'name' => 'منتج ثان بنفس الكود',
         'category_id' => $category->id,
         'cost_price' => 12,
@@ -164,7 +163,7 @@ test('duplicate SKU is strictly rejected', function () {
         'min_stock_alert' => 5,
     ]);
 
-    $response->assertSessionHasErrors(['sku']);
+    $response->assertSessionHasNoErrors();
 });
 
 test('duplicate non-null barcode is strictly rejected', function () {
@@ -350,9 +349,8 @@ test('barcode generation endpoint returns valid internal barcode', function () {
     $response->assertJsonStructure(['barcode']);
 
     $barcode = $response->json('barcode');
-    $prefix = BarcodeSetting::getSettings()->barcode_prefix;
-    expect(str_starts_with($barcode, $prefix))->toBeTrue()
-        ->and(strlen($barcode))->toBeGreaterThanOrEqual(12);
+    expect(ctype_digit((string) $barcode))->toBeTrue()
+        ->and((int) $barcode)->toBeGreaterThanOrEqual(10001);
 });
 
 test('barcode lookup endpoint returns product details and executes under 50ms benchmark', function () {

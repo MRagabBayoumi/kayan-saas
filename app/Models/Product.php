@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
@@ -300,6 +301,66 @@ class Product extends Model
     }
 
     /**
+     * Scope query by category ID.
+     */
+    public function scopeByCategory(Builder $query, ?int $categoryId): Builder
+    {
+        if (! $categoryId) {
+            return $query;
+        }
+
+        return $query->where('category_id', $categoryId);
+    }
+
+    /**
+     * Generate an internal collision-resistant barcode.
+     *
+     * Note: This is an internal proprietary barcode format (prefix 20 + 10 random numeric digits),
+     * NOT a certified global GS1 barcode.
+     */
+    /**
+     * Generate the next sequential barcode starting after the current max (starts from 10001 or max + 1).
+     */
+    public static function generateNextSequentialBarcode(int $startingNumber = 10001): string
+    {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            $numericCodes = static::query()
+                ->whereNotNull('barcode')
+                ->where('barcode', '!=', '')
+                ->pluck('barcode')
+                ->filter(fn ($bc) => ctype_digit((string) $bc) && strlen((string) $bc) <= 8)
+                ->map(fn ($bc) => (int) $bc);
+
+            $maxBarcode = $numericCodes->isNotEmpty() ? $numericCodes->max() : null;
+        } else {
+            $maxBarcode = static::query()
+                ->whereNotNull('barcode')
+                ->where('barcode', '!=', '')
+                ->whereRaw("barcode REGEXP '^[0-9]+$' AND CHAR_LENGTH(barcode) <= 8")
+                ->selectRaw('MAX(CAST(barcode AS UNSIGNED)) as max_code')
+                ->value('max_code');
+        }
+
+        $next = $maxBarcode ? max((int) $maxBarcode + 1, $startingNumber) : $startingNumber;
+
+        while (static::where('barcode', (string) $next)->exists()) {
+            $next++;
+        }
+
+        return (string) $next;
+    }
+
+    /**
+     * Generate an internal sequential barcode.
+     */
+    public static function generateInternalBarcode(): string
+    {
+        return static::generateNextSequentialBarcode(10001);
+    }
+
+    /**
      * Scope query to products available in online store.
      */
     public function scopeAvailableOnline(Builder $query): Builder
@@ -325,48 +386,6 @@ class Product extends Model
             return (float) $this->online_price;
         }
 
-        if ($this->retail_price !== null && (float) $this->retail_price > 0) {
-            return (float) $this->retail_price;
-        }
-
-        return (float) ($this->wholesale_price ?? 0);
-    }
-
-    /**
-     * Scope query by category ID.
-     */
-    public function scopeByCategory(Builder $query, ?int $categoryId): Builder
-    {
-        if (! $categoryId) {
-            return $query;
-        }
-
-        return $query->where('category_id', $categoryId);
-    }
-
-    /**
-     * Generate an internal collision-resistant barcode.
-     *
-     * Note: This is an internal proprietary barcode format (prefix 20 + 10 random numeric digits),
-     * NOT a certified global GS1 barcode.
-     */
-    public static function generateInternalBarcode(): string
-    {
-        $prefix = BarcodeSetting::getSettings()->barcode_prefix ?: '02';
-        $maxAttempts = 15;
-        $attempt = 0;
-
-        do {
-            $attempt++;
-            $candidate = $prefix.str_pad((string) random_int(1000000000, 9999999999), 10, '0', STR_PAD_LEFT);
-            $exists = static::where('barcode', $candidate)->exists();
-        } while ($exists && $attempt < $maxAttempts);
-
-        if ($exists) {
-            // High-entropy fallback
-            $candidate = $prefix.substr((string) microtime(true), -8).random_int(10, 99);
-        }
-
-        return $candidate;
+        return (float) $this->retail_price;
     }
 }

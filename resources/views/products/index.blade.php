@@ -7,10 +7,70 @@
                 <x-icon name="plus" size="16" />
                 <span>إضافة منتج جديد</span>
             </a>
+            <!-- إجراءات المتجر الإلكتروني -->
+            <div class="erp-dropdown">
+                <button type="button" class="erp-btn erp-btn-secondary" data-dropdown-toggle="storeVisibilityDropdown" title="التحكم في ظهور الأصناف بالمتجر الإلكتروني">
+                    <x-icon name="globe" size="16" />
+                    <span>عرض بالمتجر</span>
+                    <span id="topBatchStoreBadge" class="hidden erp-badge erp-badge-primary text-[10px] py-0 px-1.5 font-numeric">0</span>
+                    <x-icon name="chevron-down" size="14" />
+                </button>
+                <div id="storeVisibilityDropdown" class="erp-dropdown-menu p-1.5 w-60 shadow-lg right-0">
+                    <div class="px-2.5 py-1 text-[11px] font-bold text-[var(--text-muted)] border-b border-[var(--border-color)] mb-1 flex items-center justify-between">
+                        <span>الأصناف المحددة:</span>
+                        <strong class="font-numeric selected-count-display text-[var(--primary)] text-xs">0</strong>
+                    </div>
+                    <button type="button" data-action="batch-store-toggle" data-state="1" class="flex items-center gap-2 w-full px-2.5 py-2 text-xs font-semibold rounded hover:bg-emerald-50 text-emerald-600 dark:hover:bg-emerald-950/30 transition-colors cursor-pointer">
+                        <x-icon name="check" size="14" />
+                        <span>إظهار الأصناف المحددة في المتجر</span>
+                    </button>
+                    <button type="button" data-action="batch-store-toggle" data-state="0" class="flex items-center gap-2 w-full px-2.5 py-2 text-xs font-semibold rounded hover:bg-rose-50 text-rose-600 dark:hover:bg-rose-950/30 transition-colors cursor-pointer">
+                        <x-icon name="eye-off" size="14" />
+                        <span>إخفاء الأصناف المحددة من المتجر</span>
+                    </button>
+                </div>
+            </div>
             <button type="button" id="topBatchPrintBtn" data-action="direct-print-batch" class="erp-btn erp-btn-secondary hidden text-[var(--primary)]" title="طباعة فورية للأصناف المحددة بدون نوافذ">
                 <x-icon name="printer" size="16" />
                 <span>طباعة ملصقات (<span id="topBatchCount" class="font-numeric">0</span>)</span>
             </button>
+            <!-- Customer Price & Packing List Menu -->
+            <div class="erp-dropdown">
+                <button type="button" class="erp-btn erp-btn-secondary" data-dropdown-toggle="productPriceListMenu" title="قائمة أسعار وبيان تعبئة المنتجات للعملاء">
+                    <x-icon name="clipboard" size="16" />
+                    <span>قائمة الأسعار والباكنج</span>
+                    <x-icon name="chevron-down" size="14" />
+                </button>
+                <div id="productPriceListMenu" class="erp-dropdown-menu">
+                    <a href="{{ route('packing-list.index') }}" class="erp-dropdown-item font-semibold text-emerald-700 dark:text-emerald-400">
+                        <x-icon name="clipboard" size="16" />
+                        <span>صانع قائمة الباكنج ليست المخصصة (جديد)</span>
+                    </a>
+                    <div class="erp-dropdown-divider"></div>
+                    <a href="{{ route('products.price-list') }}" class="erp-dropdown-item">
+                        <x-icon name="eye" size="16" />
+                        <span>استعراض قائمة الأسعار والباكنج</span>
+                    </a>
+                    <a href="{{ route('products.price-list', ['in_stock_only' => 1]) }}" class="erp-dropdown-item">
+                        <x-icon name="check-circle" size="16" />
+                        <span>استعراض المتوفر بالمخزن فقط</span>
+                    </a>
+                    <div class="erp-dropdown-divider"></div>
+                    <a href="{{ route('products.price-list.print', ['format' => 'a4']) }}" target="_blank" class="erp-dropdown-item">
+                        <x-icon name="file-text" size="16" />
+                        <span>طباعة قائمة الأسعار A4 قياسي</span>
+                    </a>
+                    <a href="{{ route('products.price-list.print', ['format' => 'a4', 'price_type' => 'wholesale']) }}" target="_blank" class="erp-dropdown-item">
+                        <x-icon name="file-text" size="16" />
+                        <span>طباعة سعر الجملة فقط A4</span>
+                    </a>
+                    <a href="{{ route('products.price-list.print', ['format' => 'a5']) }}" target="_blank" class="erp-dropdown-item">
+                        <x-icon name="file" size="16" />
+                        <span>طباعة قائمة الأسعار A5 وسط</span>
+                    </a>
+                </div>
+            </div>
+
             <a href="{{ route('products.import.form') }}" class="erp-btn erp-btn-secondary">
                 <x-icon name="upload" size="16" />
                 <span>استيراد من إكسيل</span>
@@ -206,7 +266,9 @@
                                 <th class="w-[110px]">التصنيف</th>
                                 <th class="w-[100px]">كود الصنف</th>
                                 <th class="w-[120px]">باركود</th>
-                                <th class="w-[90px] text-left">سعر الشراء</th>
+                                @can('view-cost-price')
+                                    <th class="w-[90px] text-left">سعر الشراء</th>
+                                @endcan
                                 <th class="w-[90px] text-left">سعر التجزئة</th>
                                 <th class="w-[90px] text-left">الجملة</th>
                                 <th class="w-[90px] text-left">الموزع</th>
@@ -245,14 +307,12 @@
                                                     @if(! $product->is_active)
                                                         <span class="erp-badge erp-badge-danger text-[10px] py-0 px-1 font-normal shrink-0">معطل</span>
                                                     @endif
-                                                    @hasModule('ecommerce')
-                                                        @if($product->is_available_online)
-                                                            <span class="erp-badge erp-badge-success text-[10px] py-0 px-1 font-normal shrink-0 inline-flex items-center gap-0.5" title="معروض في المتجر أونلاين">
-                                                                <x-icon name="globe" size="10" />
-                                                                <span>أونلاين</span>
-                                                            </span>
-                                                        @endif
-                                                    @endhasModule
+                                                    @if($product->is_available_online)
+                                                        <span class="erp-badge erp-badge-success text-[10px] py-0 px-1 font-normal shrink-0 inline-flex items-center gap-0.5" title="معروض في المتجر أونلاين">
+                                                            <x-icon name="globe" size="10" />
+                                                            <span>أونلاين</span>
+                                                        </span>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
@@ -283,11 +343,13 @@
                                         @endif
                                     </td>
 
-                                    <!-- 5. سعر الشراء -->
-                                    <td class="text-left font-numeric whitespace-nowrap">
-                                        <span>{{ number_format((float)$product->cost_price, 2) }}</span>
-                                        <small class="text-[var(--text-muted)] text-[10px]">ج.م</small>
-                                    </td>
+                                    @can('view-cost-price')
+                                        <!-- 5. سعر الشراء -->
+                                        <td class="text-left font-numeric whitespace-nowrap">
+                                            <span>{{ number_format((float)$product->cost_price, 2) }}</span>
+                                            <small class="text-[var(--text-muted)] text-[10px]">ج.م</small>
+                                        </td>
+                                    @endcan
 
                                     <!-- 6. سعر التجزئة -->
                                     <td class="text-left font-numeric whitespace-nowrap">
@@ -322,6 +384,13 @@
                                     <!-- 11. إجراءات -->
                                     <td class="text-center whitespace-nowrap">
                                         <div class="flex items-center justify-center gap-1">
+                                            <button type="button" 
+                                                    data-action="toggle-online-row" 
+                                                    data-product-id="{{ $product->id }}" 
+                                                    class="erp-btn erp-btn-ghost erp-btn-icon {{ $product->is_available_online ? 'text-emerald-600 hover:text-emerald-700' : 'text-slate-400 hover:text-emerald-600' }}" 
+                                                    title="{{ $product->is_available_online ? 'معروض في المتجر أونلاين - انقر للإخفاء' : 'مخفي من المتجر - انقر للإظهار أونلاين' }}">
+                                                <x-icon name="globe" size="15" />
+                                            </button>
                                             <button type="button" class="erp-btn erp-btn-ghost erp-btn-icon" title="طباعة فورية للملصق ({{ (int) ($barcodeSettings->label_width_mm ?? 38) }}×{{ (int) ($barcodeSettings->label_height_mm ?? 15) }} مم) بدون نوافذ" data-action="direct-print-row" data-product-id="{{ $product->id }}">
                                                 <x-icon name="printer" size="15" />
                                             </button>
@@ -405,6 +474,14 @@
                 </span>
             </div>
             <div class="flex items-center gap-2">
+                <button type="button" data-action="batch-store-toggle" data-state="1" class="erp-btn erp-btn-secondary text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50" title="إظهار الأصناف المحددة في المتجر الإلكتروني">
+                    <x-icon name="globe" size="16" />
+                    <span>إظهار في المتجر</span>
+                </button>
+                <button type="button" data-action="batch-store-toggle" data-state="0" class="erp-btn erp-btn-secondary text-rose-600 dark:text-rose-400 hover:bg-rose-50" title="إخفاء الأصناف المحددة من المتجر الإلكتروني">
+                    <x-icon name="eye-off" size="16" />
+                    <span>إخفاء من المتجر</span>
+                </button>
                 <button type="button" data-action="direct-print-batch" class="erp-btn erp-btn-primary" title="طباعة فورية للملصقات مباشرة بدون نوافذ">
                     <x-icon name="printer" size="16" />
                     <span>طباعة فورية للمحددة</span>

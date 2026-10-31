@@ -852,7 +852,7 @@ class SalesInvoiceController extends Controller
             }
         });
 
-        return back()
+        return redirect()->route('sales.show', $sale)
             ->with('status', 'success')
             ->with('message', 'تم إلغاء فاتورة المبيعات بنجاح واسترجاع رصيد الدفعات المخزنية.');
     }

@@ -119,6 +119,7 @@ class ProductController extends Controller
 
         // Generate a suggested SKU format e.g. KY-26-0001
         $suggestedSku = 'KY-'.date('y').'-'.str_pad((string) (Product::max('id') + 1), 4, '0', STR_PAD_LEFT);
+        $suggestedBarcode = Product::generateInternalBarcode();
 
         return view('products.create', [
             'title' => 'إضافة منتج جديد',
@@ -128,6 +129,7 @@ class ProductController extends Controller
             'units' => Unit::active()->orderBy('id')->get(),
             'defaultWarehouse' => $defaultWarehouse,
             'suggestedSku' => $suggestedSku,
+            'suggestedBarcode' => $suggestedBarcode,
         ]);
     }
 
@@ -137,7 +139,7 @@ class ProductController extends Controller
     public function store(Request $request, InventoryService $inventoryService): RedirectResponse
     {
         $validated = $request->validate([
-            'sku' => ['required', 'string', 'max:80', 'unique:products,sku'],
+            'sku' => ['required', 'string', 'max:80'],
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:categories,id'],
             'barcode' => ['nullable', 'string', 'max:100', 'unique:products,barcode'],
@@ -160,7 +162,6 @@ class ProductController extends Controller
             'online_description' => ['nullable', 'string', 'max:2000'],
         ], [
             'sku.required' => 'كود الصنف (SKU) مطلوب.',
-            'sku.unique' => 'كود الصنف مستخدم بالفعل في صنف آخر.',
             'name.required' => 'اسم المنتج مطلوب ولا يمكن تركه فارغاً.',
             'category_id.required' => 'يرجى اختيار تصنيف المنتج.',
             'category_id.exists' => 'التصنيف المختار غير موجود في النظام.',
@@ -199,9 +200,9 @@ class ProductController extends Controller
             }
         }
 
-        // Normalize empty barcode string to null so MySQL unique constraint permits it
+        // Automatically generate next sequential barcode if omitted by user
         if (empty($validated['barcode'])) {
-            $validated['barcode'] = null;
+            $validated['barcode'] = Product::generateInternalBarcode();
         }
 
         // Handle image upload
@@ -347,7 +348,7 @@ class ProductController extends Controller
     public function update(Request $request, Product $product, InventoryService $inventoryService): RedirectResponse
     {
         $validated = $request->validate([
-            'sku' => ['required', 'string', 'max:80', Rule::unique('products', 'sku')->ignore($product->id)],
+            'sku' => ['required', 'string', 'max:80'],
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:categories,id'],
             'barcode' => ['nullable', 'string', 'max:100', Rule::unique('products', 'barcode')->ignore($product->id)],
@@ -366,7 +367,6 @@ class ProductController extends Controller
             'online_description' => ['nullable', 'string', 'max:2000'],
         ], [
             'sku.required' => 'كود الصنف (SKU) مطلوب.',
-            'sku.unique' => 'كود الصنف مستخدم بالفعل في صنف آخر.',
             'name.required' => 'اسم المنتج مطلوب ولا يمكن تركه فارغاً.',
             'category_id.required' => 'يرجى اختيار تصنيف المنتج.',
             'category_id.exists' => 'التصنيف المختار غير موجود في النظام.',
@@ -457,9 +457,9 @@ class ProductController extends Controller
             }
         }
 
-        // Normalize empty barcode string to null
+        // Auto-generate sequential barcode if omitted
         if (empty($validated['barcode'])) {
-            $validated['barcode'] = null;
+            $validated['barcode'] = Product::generateInternalBarcode();
         }
 
         // Handle image upload and cleanup of old image
@@ -714,17 +714,60 @@ class ProductController extends Controller
     /**
      * Toggle display of product in E-Commerce storefront.
      */
-    public function toggleOnline(Product $product): RedirectResponse
+    public function toggleOnline(Product $product, Request $request): JsonResponse|RedirectResponse
     {
         $product->update([
             'is_available_online' => ! $product->is_available_online,
         ]);
 
         $statusText = $product->is_available_online ? 'تفعيل عرض' : 'إلغاء عرض';
+        $message = "تم {$statusText} الصنف ({$product->name}) في المتجر الإلكتروني بنجاح.";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'is_available_online' => $product->is_available_online,
+                'message' => $message,
+            ]);
+        }
 
         return back()
             ->with('status', 'success')
-            ->with('message', "تم {$statusText} الصنف ({$product->name}) في المتجر الإلكتروني بنجاح.");
+            ->with('message', $message);
+    }
+
+    /**
+     * Batch toggle display of multiple products in E-Commerce storefront.
+     */
+    public function batchToggleOnline(Request $request): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'product_ids' => ['required', 'array', 'min:1'],
+            'product_ids.*' => ['integer', 'exists:products,id'],
+            'is_available_online' => ['required', 'boolean'],
+        ]);
+
+        $isAvailable = (bool) $validated['is_available_online'];
+        $count = Product::whereIn('id', $validated['product_ids'])
+            ->update([
+                'is_available_online' => $isAvailable,
+            ]);
+
+        $actionText = $isAvailable ? 'إظهار' : 'إخفاء';
+        $message = "تم {$actionText} {$count} صنف في المتجر الإلكتروني بنجاح.";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'count' => $count,
+                'is_available_online' => $isAvailable,
+                'message' => $message,
+            ]);
+        }
+
+        return back()
+            ->with('status', 'success')
+            ->with('message', $message);
     }
 
     /**
@@ -756,20 +799,25 @@ class ProductController extends Controller
         }
 
         $product = Product::with(['category', 'stockBalances'])
-            ->where(function ($query) use ($term) {
-                $cleanAlpha = preg_replace('/[^a-zA-Z0-9\x{0600}-\x{06FF}]/u', '', $term);
-
-                $query->where('barcode', $term)
-                    ->orWhere('sku', $term)
-                    ->orWhere('sku', strtoupper($term))
-                    ->orWhere('sku', strtolower($term))
-                    ->orWhere('name', $term);
-
-                if (! empty($cleanAlpha) && mb_strlen($cleanAlpha) >= 2) {
-                    $query->orWhereRaw("REPLACE(REPLACE(REPLACE(sku, '-', ''), ' ', ''), '_', '') = ?", [$cleanAlpha]);
-                }
-            })
+            ->where('barcode', $term)
             ->first();
+
+        if (! $product) {
+            $product = Product::with(['category', 'stockBalances'])
+                ->where(function ($query) use ($term) {
+                    $cleanAlpha = preg_replace('/[^a-zA-Z0-9\x{0600}-\x{06FF}]/u', '', $term);
+
+                    $query->where('sku', $term)
+                        ->orWhere('sku', strtoupper($term))
+                        ->orWhere('sku', strtolower($term))
+                        ->orWhere('name', $term);
+
+                    if (! empty($cleanAlpha) && mb_strlen($cleanAlpha) >= 2) {
+                        $query->orWhereRaw("REPLACE(REPLACE(REPLACE(sku, '-', ''), ' ', ''), '_', '') = ?", [$cleanAlpha]);
+                    }
+                })
+                ->first();
+        }
 
         if (! $product) {
             return response()->json([
@@ -1272,7 +1320,7 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:categories,id'],
-            'sku' => ['nullable', 'string', 'max:80', 'unique:products,sku'],
+            'sku' => ['nullable', 'string', 'max:80'],
             'barcode' => ['nullable', 'string', 'max:100', 'unique:products,barcode'],
             'unit' => ['required', 'string', 'max:50'],
             'pieces_per_package' => ['nullable', 'integer', 'min:1'],
@@ -1285,7 +1333,6 @@ class ProductController extends Controller
             'name.required' => 'اسم المنتج مطلوب ولا يمكن تركه فارغاً.',
             'category_id.required' => 'يرجى اختيار تصنيف المنتج.',
             'category_id.exists' => 'التصنيف المختار غير موجود في النظام.',
-            'sku.unique' => 'كود الصنف (SKU) مستخدم بالفعل في صنف آخر.',
             'barcode.unique' => 'الباركود المدخل مستخدم بالفعل في صنف آخر.',
             'cost_price.required' => 'سعر شراء/تكلفة الصنف مطلوب.',
             'cost_price.min' => 'سعر التكلفة لا يمكن أن يكون سالباً.',
@@ -1297,11 +1344,7 @@ class ProductController extends Controller
 
         if (empty($validated['sku'])) {
             $nextId = (Product::max('id') ?? 0) + 1;
-            do {
-                $candidateSku = 'KY-'.date('y').'-'.str_pad((string) $nextId, 4, '0', STR_PAD_LEFT);
-                $nextId++;
-            } while (Product::where('sku', $candidateSku)->exists());
-            $validated['sku'] = $candidateSku;
+            $validated['sku'] = 'KY-'.date('y').'-'.str_pad((string) $nextId, 4, '0', STR_PAD_LEFT);
         }
 
         $cost = (float) $validated['cost_price'];
@@ -1320,7 +1363,7 @@ class ProductController extends Controller
         $validated['is_active'] = true;
 
         if (empty($validated['barcode'])) {
-            $validated['barcode'] = null;
+            $validated['barcode'] = Product::generateInternalBarcode();
         }
 
         $product = Product::create($validated);
@@ -1345,6 +1388,104 @@ class ProductController extends Controller
                 'total_stock' => 0.0,
                 'formatted_stock' => '0 '.($product->unit ?? 'قطعة'),
             ],
+        ]);
+    }
+
+    /**
+     * Display Customer Price List & Packing List report.
+     */
+    public function priceList(Request $request): View
+    {
+        $categories = Category::active()->orderBy('name')->get();
+        $units = Unit::active()->orderBy('name')->get();
+
+        $query = Product::with(['category', 'stockBalances'])->where('is_active', true);
+
+        if ($request->filled('search')) {
+            $query->search($request->input('search'));
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', (int) $request->input('category_id'));
+        }
+
+        if ($request->filled('unit')) {
+            $query->where('unit', trim((string) $request->input('unit')));
+        }
+
+        $inStockOnly = $request->boolean('in_stock_only', false);
+        if ($inStockOnly) {
+            $query->whereHas('stockBalances', function ($q) {
+                $q->where('quantity', '>', 0);
+            });
+        }
+
+        $priceType = $request->input('price_type', 'all');
+        $showStock = $request->boolean('show_stock', true);
+
+        $products = $query->orderBy('category_id')->orderBy('name')->paginate(50)->withQueryString();
+
+        return view('products.price-list', [
+            'title' => 'قائمة أسعار وبيان تعبئة المنتجات للعملاء (Packing & Price List)',
+            'products' => $products,
+            'categories' => $categories,
+            'units' => $units,
+            'categoryId' => $request->input('category_id'),
+            'unit' => $request->input('unit'),
+            'search' => $request->input('search'),
+            'inStockOnly' => $inStockOnly,
+            'priceType' => $priceType,
+            'showStock' => $showStock,
+        ]);
+    }
+
+    /**
+     * Dedicated printable Customer Price List & Packing List (A4 / A5).
+     */
+    public function printPriceList(Request $request): View
+    {
+        $query = Product::with(['category', 'stockBalances'])->where('is_active', true);
+
+        if ($request->filled('search')) {
+            $query->search($request->input('search'));
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', (int) $request->input('category_id'));
+        }
+
+        if ($request->filled('unit')) {
+            $query->where('unit', trim((string) $request->input('unit')));
+        }
+
+        $inStockOnly = $request->boolean('in_stock_only', false);
+        if ($inStockOnly) {
+            $query->whereHas('stockBalances', function ($q) {
+                $q->where('quantity', '>', 0);
+            });
+        }
+
+        $priceType = $request->input('price_type', 'all');
+        $showStock = $request->boolean('show_stock', false);
+        $format = $request->input('format', 'a4');
+        if (! in_array($format, ['a4', 'a5'], true)) {
+            $format = 'a4';
+        }
+
+        $products = $query->orderBy('category_id')->orderBy('name')->get();
+        $company = CompanySetting::getSettings();
+        $selectedCategory = $request->filled('category_id') ? Category::find($request->input('category_id')) : null;
+
+        return view('products.price-list-print', [
+            'title' => 'قائمة أسعار وبيان تعبئة المنتجات',
+            'products' => $products,
+            'company' => $company,
+            'format' => $format,
+            'priceType' => $priceType,
+            'showStock' => $showStock,
+            'inStockOnly' => $inStockOnly,
+            'selectedCategory' => $selectedCategory,
+            'autoPrint' => $request->boolean('auto_print', false),
         ]);
     }
 }

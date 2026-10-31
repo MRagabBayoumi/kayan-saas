@@ -736,22 +736,6 @@ class ProductImportService
                             $sku = 'SKU-'.$barcode;
                             $skuKey = mb_strtolower(trim($sku));
                         }
-
-                        // Disambiguate SKU if it collides with another product in DB or file
-                        if (isset($existingSkus[$skuKey]) || isset($seenInFileSkus[$skuKey])) {
-                            $candidateSku = $sku.'-'.$barcode;
-                            $candidateKey = mb_strtolower(trim($candidateSku));
-                            $c = 1;
-                            while (isset($existingSkus[$candidateKey]) || isset($seenInFileSkus[$candidateKey])) {
-                                $c++;
-                                $candidateSku = $sku.'-'.$barcode.'-'.$c;
-                                $candidateKey = mb_strtolower(trim($candidateSku));
-                            }
-                            $sku = $candidateSku;
-                            $skuKey = $candidateKey;
-                            $row['sku'] = $sku;
-                            $skuAdjusted = true;
-                        }
                     }
                 } else {
                     // Barcode is EMPTY -> Fallback to SKU
@@ -947,13 +931,6 @@ class ProductImportService
                         }
 
                         if ($product) {
-                            // Ensure updating SKU does not collide with another product
-                            if (! empty($payload['sku']) && $payload['sku'] !== $product->sku) {
-                                if (Product::where('sku', $payload['sku'])->where('id', '!=', $product->id)->exists()) {
-                                    $payload['sku'] = $product->sku;
-                                }
-                            }
-
                             $hasStockHistory = $product->batches()->exists()
                                 || $product->stockBalances()->where('quantity', '>', 0)->exists()
                                 || ((float) $product->opening_quantity > 0);
@@ -969,9 +946,6 @@ class ProductImportService
                             }
                             $updatedCount++;
                         } else {
-                            if (Product::where('sku', $payload['sku'])->exists()) {
-                                $payload['sku'] = $payload['sku'].'-'.($payload['barcode'] ?: Str::random(4));
-                            }
                             if (empty($payload['barcode'])) {
                                 $payload['barcode'] = Product::generateInternalBarcode();
                             }
@@ -983,15 +957,6 @@ class ProductImportService
                         $skippedCount++;
                     }
                 } else {
-                    if (Product::where('sku', $payload['sku'])->exists()) {
-                        $candidate = $payload['sku'].'-'.($payload['barcode'] ?: Str::random(4));
-                        $c = 1;
-                        while (Product::where('sku', $candidate)->exists()) {
-                            $c++;
-                            $candidate = $payload['sku'].'-'.($payload['barcode'] ?: Str::random(4)).'-'.$c;
-                        }
-                        $payload['sku'] = $candidate;
-                    }
                     if (empty($payload['barcode'])) {
                         $payload['barcode'] = Product::generateInternalBarcode();
                     }

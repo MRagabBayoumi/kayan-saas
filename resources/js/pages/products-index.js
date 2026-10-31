@@ -27,6 +27,19 @@ export function initProductsIndex() {
         if (selectedCountEl) selectedCountEl.textContent = count;
         if (topBatchCountEl) topBatchCountEl.textContent = count;
 
+        const topBatchStoreBadge = document.getElementById('topBatchStoreBadge');
+        const selectedCountDisplays = document.querySelectorAll('.selected-count-display');
+        selectedCountDisplays.forEach(el => el.textContent = count);
+
+        if (topBatchStoreBadge) {
+            if (count > 0) {
+                topBatchStoreBadge.textContent = count;
+                topBatchStoreBadge.classList.remove('hidden');
+            } else {
+                topBatchStoreBadge.classList.add('hidden');
+            }
+        }
+
         if (count > 0) {
             if (actionBar) {
                 actionBar.classList.remove('hidden');
@@ -346,6 +359,100 @@ export function initProductsIndex() {
                 showPrintToast('حدث خطأ في الاتصال بالخادم أثناء إرسال أمر الطباعة.');
             } finally {
                 btn.disabled = false;
+            }
+        });
+    });
+
+    // Bulk store visibility toggle (Show / Hide in E-Commerce Storefront)
+    document.querySelectorAll('[data-action="batch-store-toggle"]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const state = parseInt(btn.dataset.state, 10);
+            const selected = getSelectedCheckboxes();
+
+            if (selected.length === 0) {
+                alert('يرجى تحديد صنف واحد على الأقل عبر مربعات الاختيار أولاً.');
+                return;
+            }
+
+            const actionWord = state === 1 ? 'إظهار' : 'إخفاء';
+            const count = selected.length;
+            if (!confirm(`هل أنت متأكد من ${actionWord} عدد (${count}) صنف في المتجر الإلكتروني؟`)) {
+                return;
+            }
+
+            const ids = selected.map(cb => parseInt(cb.dataset.id, 10));
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            btn.disabled = true;
+            showPrintToast(`جاري ${actionWord} الأصناف في المتجر الإلكتروني...`);
+
+            try {
+                const response = await fetch('/products/batch-toggle-online', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_ids: ids,
+                        is_available_online: state,
+                    }),
+                });
+
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    showPrintToast(data.message);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    alert(data.message || 'حدث خطأ أثناء تحديث حالة الأصناف.');
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('تعذر الاتصال بالخادم أثناء تحديث الأصناف.');
+                btn.disabled = false;
+            }
+        });
+    });
+
+    // Single row online toggle
+    document.querySelectorAll('[data-action="toggle-online-row"]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const productId = btn.dataset.productId;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            btn.disabled = true;
+            showPrintToast('جاري تحديث حالة العرض بالمتجر...');
+
+            try {
+                const response = await fetch(`/products/${productId}/toggle-online`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    showPrintToast(data.message);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 400);
+                } else {
+                    window.location.reload();
+                }
+            } catch (err) {
+                console.error(err);
+                window.location.reload();
             }
         });
     });

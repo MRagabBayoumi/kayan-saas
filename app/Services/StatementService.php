@@ -648,4 +648,99 @@ class StatementService
             'filtered_currency' => $currency,
         ];
     }
+
+    /**
+     * Build Customer Balance Due report across all customers with outstanding receivables.
+     */
+    public function getCustomerBalanceDueReport(
+        ?int $customerId = null,
+        ?string $customerType = null,
+        ?string $city = null,
+        ?int $salesRepId = null,
+        bool $onlyWithBalance = false,
+        ?string $search = null
+    ): array {
+        $query = Customer::query()->active()->with('salesRep');
+
+        if ($customerId) {
+            $query->where('id', $customerId);
+        }
+
+        if ($customerType && in_array($customerType, ['wholesale', 'retail', 'distributor'], true)) {
+            $query->where('customer_type', $customerType);
+        }
+
+        if ($city) {
+            $query->where('city', $city);
+        }
+
+        if ($salesRepId) {
+            $query->where('sales_rep_id', $salesRepId);
+        }
+
+        if ($search) {
+            $query->search($search);
+        }
+
+        if ($onlyWithBalance) {
+            $query->where('current_balance', '>', 0);
+        }
+
+        $customers = $query->orderByDesc('current_balance')->orderBy('name')->get();
+
+        $rows = [];
+        $totalReceivables = 0.00;
+        $totalCreditBalances = 0.00;
+        $customersWithBalanceCount = 0;
+
+        foreach ($customers as $cust) {
+            $balance = (float) $cust->current_balance;
+
+            if ($balance > 0) {
+                $totalReceivables += $balance;
+                $customersWithBalanceCount++;
+            } elseif ($balance < 0) {
+                $totalCreditBalances += abs($balance);
+            }
+
+            $lastSale = SalesInvoice::where('customer_id', $cust->id)
+                ->where('status', SalesInvoice::STATUS_POSTED)
+                ->latest('invoice_date')
+                ->latest('id')
+                ->first();
+
+            $lastPayment = CustomerPayment::where('customer_id', $cust->id)
+                ->latest('payment_date')
+                ->latest('id')
+                ->first();
+
+            $rows[] = [
+                'customer' => $cust,
+                'id' => $cust->id,
+                'name' => $cust->name,
+                'company_name' => $cust->company_name ?: '—',
+                'type_label' => $cust->getTypeLabel(),
+                'phone' => $cust->phone ?: '—',
+                'phone_alt' => $cust->phone_alt ?: '',
+                'city' => $cust->city ?: '—',
+                'sales_rep_name' => $cust->salesRep?->name ?: '—',
+                'credit_limit' => (float) ($cust->credit_limit ?? 0.00),
+                'current_balance' => $balance,
+                'last_sale_date' => $lastSale?->invoice_date ? Carbon::parse($lastSale->invoice_date)->format('Y-m-d') : null,
+                'last_sale_number' => $lastSale?->invoice_number,
+                'last_sale_amount' => $lastSale ? (float) $lastSale->total_amount : 0.00,
+                'last_payment_date' => $lastPayment?->payment_date ? Carbon::parse($lastPayment->payment_date)->format('Y-m-d') : null,
+                'last_payment_amount' => $lastPayment ? (float) $lastPayment->amount : 0.00,
+            ];
+        }
+
+        return [
+            'rows' => $rows,
+            'total_receivables' => $totalReceivables,
+            'total_credit_balances' => $totalCreditBalances,
+            'net_receivables' => $totalReceivables - $totalCreditBalances,
+            'total_customers_count' => count($rows),
+            'customers_with_balance_count' => $customersWithBalanceCount,
+        ];
+    }
 }

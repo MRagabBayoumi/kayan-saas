@@ -343,8 +343,12 @@ class AccountingService
         }
 
         $totalAmount = round((float) $invoice->total_amount, 2);
-        $paidAmount = round((float) $invoice->paid_amount, 2);
-        $remainingAmount = round((float) $invoice->remaining_amount, 2);
+        $paidAmount = round((float) ($invoice->paid_amount ?? 0), 2);
+        $remainingAmount = round((float) ($invoice->remaining_amount ?? 0), 2);
+
+        if ($remainingAmount <= 0.0 && $paidAmount < $totalAmount) {
+            $remainingAmount = round($totalAmount - $paidAmount, 2);
+        }
 
         if ($totalAmount <= 0.0) {
             return null;

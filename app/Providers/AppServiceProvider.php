@@ -114,6 +114,14 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('override-credit-limit', fn (User $user) => $user->hasPermission('override-credit-limit') || $user->isAdmin());
         Gate::define('approve-rep-customers', fn (User $user) => $user->hasPermission('approve-rep-customers') || $user->isAdmin());
         Gate::define('track-rep-gps', fn (User $user) => $user->hasPermission('track-rep-gps') || $user->isAdmin());
+        Gate::define('manage-saas', fn (User $user) => $user->isAdmin());
+
+        // Ensure database connection safely resets to central upon request termination
+        app()->terminating(function () {
+            if (config('database.connections.central.database')) {
+                config(['database.connections.mysql.database' => config('database.connections.central.database')]);
+            }
+        });
 
         // Auto copy backup zip to optional custom folder
         Event::listen(

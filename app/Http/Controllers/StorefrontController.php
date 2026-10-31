@@ -342,8 +342,10 @@ class StorefrontController extends Controller
     public function orderSuccess(string $orderNumber): View
     {
         $order = WebOrder::with('items.product')->where('order_number', $orderNumber)->firstOrFail();
+        $isOwner = (! empty(session('order_id')) && (int) session('order_id') === (int) $order->id)
+            || (auth()->check() && auth()->user()->isAdmin());
         $settings = EcommerceSetting::getSettings();
 
-        return view('shop.order-success', compact('order', 'settings'));
+        return view('shop.order-success', compact('order', 'settings', 'isOwner'));
     }
 }

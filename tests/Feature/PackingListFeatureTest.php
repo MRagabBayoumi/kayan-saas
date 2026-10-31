@@ -112,6 +112,20 @@ test('user can export packing list to excel format with or without price and qua
     ]);
     $responseNoPrice->assertOk();
     $this->assertStringNotContainsString('سعر الوحدة', $responseNoPrice->getContent());
+    $this->assertStringNotContainsString('الإجمالي</th>', $responseNoPrice->getContent());
+
+    // Export WITHOUT quantity (quotation / price list mode)
+    $responseNoQty = $this->actingAs($this->admin)->post(route('packing-list.export-excel'), [
+        'doc_number' => 'PL-TEST-NOQTY',
+        'show_quantity' => '0',
+        'show_price' => '1',
+        'show_packages' => '0',
+        'items' => json_encode($items),
+    ]);
+    $responseNoQty->assertOk();
+    $this->assertStringContainsString('سعر الوحدة', $responseNoQty->getContent());
+    $this->assertStringNotContainsString('الكمية', $responseNoQty->getContent());
+    $this->assertStringNotContainsString('الإجمالي</th>', $responseNoQty->getContent());
 });
 
 test('user can export packing list to csv format with conditional columns', function () {
@@ -197,4 +211,88 @@ test('user can render print view in a4, a5, and thermal 80mm formats respecting 
     $respThermal->assertOk();
     $respThermal->assertSee('data-format="thermal_80mm"', false);
     $respThermal->assertSee('قائمة التعبئة والتجهيز (PACKING)');
+});
+
+test('user can save packing list to database archive and search by customer name like الحافظ', function () {
+    $items = [
+        [
+            'sku' => 'HAF-01',
+            'barcode' => '62210001',
+            'name' => 'طقم صحون سيراميك الحافظ',
+            'category_name' => 'أدوات منزلية',
+            'unit' => 'طقم',
+            'qty' => 12,
+            'packages_count' => 3,
+            'price' => 150.00,
+            'total' => 1800.00,
+            'notes' => 'توصيل مخزن الحافظ الرئيسي',
+        ],
+    ];
+
+    // 1. Save packing list via API
+    $saveResponse = $this->actingAs($this->admin)->postJson(route('packing-list.save'), [
+        'doc_number' => 'PL-HAFEZ-001',
+        'doc_date' => '2026-10-31',
+        'customer_name' => 'شركة الحافظ للتجارة',
+        'warehouse_name' => 'المخزن الرئيسي',
+        'price_type' => 'wholesale',
+        'show_quantity' => true,
+        'show_price' => true,
+        'show_packages' => true,
+        'notes' => 'عرض أسعار وباكنج شحن خاص بشركة الحافظ',
+        'items' => $items,
+    ]);
+
+    $saveResponse->assertOk();
+    $saveResponse->assertJsonPath('success', true);
+    $saveResponse->assertJsonPath('packing_number', 'PL-HAFEZ-001');
+
+    $listId = $saveResponse->json('id');
+    $this->assertDatabaseHas('packing_lists', [
+        'id' => $listId,
+        'packing_number' => 'PL-HAFEZ-001',
+        'customer_name' => 'شركة الحافظ للتجارة',
+        'total_quantity' => 12,
+        'total_packages' => 3,
+        'total_amount' => 1800,
+    ]);
+
+    $this->assertDatabaseHas('packing_list_items', [
+        'packing_list_id' => $listId,
+        'product_name' => 'طقم صحون سيراميك الحافظ',
+        'quantity' => 12,
+        'unit_price' => 150,
+    ]);
+
+    // 2. View Archive page and search for الحافظ
+    $archiveResponse = $this->actingAs($this->admin)->get(route('packing-list.archive', ['search' => 'الحافظ']));
+    $archiveResponse->assertOk();
+    $archiveResponse->assertSee('شركة الحافظ للتجارة');
+    $archiveResponse->assertSee('PL-HAFEZ-001');
+    $archiveResponse->assertSee('سجل قوائم التعبئة والتجهيز');
+
+    // 3. Pre-load into builder
+    $loadResponse = $this->actingAs($this->admin)->get(route('packing-list.index', ['load_id' => $listId]));
+    $loadResponse->assertOk();
+    $loadResponse->assertSee('أنت تقوم باستعراض وتعديل قائمة محفوظة');
+    $loadResponse->assertSee('PL-HAFEZ-001');
+    $loadResponse->assertSee('شركة الحافظ للتجارة');
+
+    // 4. Direct print from model
+    $printModelResponse = $this->actingAs($this->admin)->get(route('packing-list.print-model', ['packingList' => $listId, 'format' => 'a4']));
+    $printModelResponse->assertOk();
+    $printModelResponse->assertSee('شركة الحافظ للتجارة');
+    $printModelResponse->assertSee('PL-HAFEZ-001');
+
+    // 5. Direct Excel export from model
+    $excelModelResponse = $this->actingAs($this->admin)->get(route('packing-list.export-excel-model', ['packingList' => $listId]));
+    $excelModelResponse->assertOk();
+    $excelModelResponse->assertHeader('Content-Type', 'application/vnd.ms-excel; charset=UTF-8');
+    $this->assertStringContainsString('شركة الحافظ للتجارة', $excelModelResponse->getContent());
+
+    // 6. Delete from archive
+    $deleteResponse = $this->actingAs($this->admin)->delete(route('packing-list.destroy', ['packingList' => $listId]));
+    $deleteResponse->assertRedirect(route('packing-list.archive'));
+    $this->assertDatabaseMissing('packing_lists', ['id' => $listId]);
+    $this->assertDatabaseMissing('packing_list_items', ['packing_list_id' => $listId]);
 });

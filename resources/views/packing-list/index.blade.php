@@ -3,10 +3,17 @@
 @section('control_panel')
     <x-control-panel title="قائمة التعبئة والتجهيز (Packing List)" :breadcrumbs="['المخزون والمنتجات' => route('products.index'), 'قائمة التعبئة (Packing List)' => route('packing-list.index')]">
         <x-slot:actions>
-            <a href="{{ route('products.index') }}" class="erp-btn erp-btn-secondary">
-                <x-icon name="arrow-right" size="16" />
-                <span>العودة للأصناف</span>
+            <!-- Archive / History Link -->
+            <a href="{{ route('packing-list.archive') }}" class="erp-btn erp-btn-secondary" title="عرض كافة قوائم التعبئة السابقة والبحث بالعميل">
+                <x-icon name="archive" size="16" />
+                <span>سجل القوائم السابقة</span>
             </a>
+
+            <!-- Save To Archive Button -->
+            <button type="button" id="saveToArchiveBtn" class="erp-btn erp-btn-primary" style="background: #059669; border-color: #059669;" title="حفظ قائمة التعبئة الحالية في السجل الدائم">
+                <x-icon name="save" size="16" />
+                <span id="saveBtnText">{{ $loadedPackingList ? 'تحديث في السجل' : 'حفظ في السجل' }}</span>
+            </button>
 
             <!-- Reset / Clear Button -->
             <button type="button" id="clearListBtn" class="erp-btn erp-btn-danger erp-btn-sm" title="تفريغ كافة الأصناف">
@@ -73,6 +80,32 @@
 
 @section('content')
 <div id="packingListApp" data-page="packing-list" class="space-y-4">
+
+    @if($loadedPackingList)
+        <!-- Loaded Packing List Banner -->
+        <div class="erp-card border-r-4 border-r-indigo-500 bg-indigo-50/70 dark:bg-indigo-950/40 p-3.5 rounded-lg flex flex-wrap items-center justify-between gap-3 text-sm">
+            <div class="flex items-center gap-2.5 text-indigo-950 dark:text-indigo-200">
+                <x-icon name="info" size="18" class="text-indigo-600 flex-shrink-0" />
+                <div>
+                    <span class="font-bold">أنت تقوم باستعراض وتعديل قائمة محفوظة:</span>
+                    <span class="font-numeric font-extrabold text-indigo-700 dark:text-indigo-400 mx-1">{{ $loadedPackingList->packing_number }}</span>
+                    <span>للعميل:</span>
+                    <strong class="mx-1 text-[var(--text-main)]">{{ $loadedPackingList->customer_name }}</strong>
+                    <span class="text-xs text-indigo-700/80 dark:text-indigo-400/80">({{ $loadedPackingList->items->count() }} أصناف - تم الحفظ {{ $loadedPackingList->created_at->diffForHumans() }})</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('packing-list.index') }}" class="erp-btn erp-btn-sm erp-btn-secondary">
+                    <x-icon name="plus" size="14" />
+                    <span>إنشاء قائمة جديدة فارغة</span>
+                </a>
+                <a href="{{ route('packing-list.archive') }}" class="erp-btn erp-btn-sm erp-btn-secondary">
+                    <x-icon name="archive" size="14" />
+                    <span>العودة للأرشيف</span>
+                </a>
+            </div>
+        </div>
+    @endif
 
     <!-- 1. Document Metadata Header Card -->
     <div class="erp-card">
@@ -192,9 +225,9 @@
 
         <div class="purchases-quick-entry-body">
             <!-- Row 1: Search hero input + UOM + Qty Stepper + Packages + Price + Add Button -->
-            <div class="purchases-quick-row-2" style="grid-template-columns: minmax(300px, 4fr) minmax(110px, 1.2fr) minmax(130px, 1.3fr) minmax(110px, 1.2fr) minmax(120px, 1.3fr) auto; gap: 10px; align-items: flex-end;">
+            <div class="flex flex-wrap items-end gap-3 w-full">
                 <!-- Product Search & Barcode -->
-                <div class="erp-form-group mb-0 relative">
+                <div class="erp-form-group mb-0 relative flex-1 min-w-[280px]">
                     <label for="productSearchInput" class="erp-form-label text-xs font-semibold flex items-center justify-between">
                         <span class="flex items-center gap-1">
                             <x-icon name="barcode" size="13" class="text-[var(--primary)]" />
@@ -226,19 +259,24 @@
                 </div>
 
                 <!-- Unit of Measurement -->
-                <div class="erp-form-group mb-0">
-                    <label for="itemUnitSelect" class="erp-form-label text-xs font-semibold">الوحدة</label>
-                    <select id="itemUnitSelect" class="erp-input erp-select text-xs">
-                        <option value="قطعة" data-factor="1">قطعة</option>
-                        <option value="دستة" data-factor="12">دستة</option>
-                        <option value="كرتونة" data-factor="1">كرتونة</option>
-                        <option value="طقم" data-factor="1">طقم</option>
-                        <option value="باكت" data-factor="1">باكت</option>
+                <div class="erp-form-group mb-0 w-28 flex-shrink-0">
+                    <label for="itemUnitSelect" class="erp-form-label text-xs font-semibold flex items-center justify-between">
+                        <span>الوحدة</span>
+                        <span id="detectedUnitBadge" class="text-[10px] text-emerald-600 font-bold hidden font-sans">تلقائي ✓</span>
+                    </label>
+                    <select id="itemUnitSelect" class="erp-input erp-select text-xs font-semibold text-[var(--text-main)] w-full">
+                        @php
+                            $defaultUnits = ['قطعة', 'علبة', 'كرتونة', 'دستة', 'طقم', 'باكت', 'كيلو', 'متر', 'لتر'];
+                            $allUnitNames = collect($units->pluck('name'))->merge($defaultUnits)->unique()->filter()->values();
+                        @endphp
+                        @foreach($allUnitNames as $uName)
+                            <option value="{{ $uName }}" {{ $uName === 'قطعة' ? 'selected' : '' }}>{{ $uName }}</option>
+                        @endforeach
                     </select>
                 </div>
 
                 <!-- Quantity Stepper -->
-                <div class="erp-form-group mb-0" id="quickQtyWrapper">
+                <div class="erp-form-group mb-0 w-32 flex-shrink-0" id="quickQtyWrapper">
                     <label for="itemQtyInput" class="erp-form-label text-xs font-semibold">الكمية</label>
                     <div class="pos-qty-stepper w-full">
                         <button type="button" class="pos-qty-btn" id="qtyMinusBtn" tabindex="-1">−</button>
@@ -255,7 +293,7 @@
                 </div>
 
                 <!-- Packages / Cartons Count -->
-                <div class="erp-form-group mb-0" id="quickPackagesWrapper">
+                <div class="erp-form-group mb-0 w-24 flex-shrink-0" id="quickPackagesWrapper">
                     <label for="itemPackagesInput" class="erp-form-label text-xs font-semibold">عدد الطرود</label>
                     <input 
                         type="number" 
@@ -263,13 +301,13 @@
                         min="0" 
                         step="1" 
                         value="0" 
-                        class="erp-input font-numeric text-center text-xs" 
+                        class="erp-input font-numeric text-center text-xs w-full" 
                         placeholder="0"
                     >
                 </div>
 
                 <!-- Price Input with Affix -->
-                <div class="erp-form-group mb-0" id="quickPriceWrapper">
+                <div class="erp-form-group mb-0 w-36 flex-shrink-0" id="quickPriceWrapper">
                     <label for="itemPriceInput" class="erp-form-label text-xs font-semibold flex items-center justify-between">
                         <span>السعر</span>
                         <span id="selectedPriceTierBadge" class="text-[10px] text-[var(--primary)] font-bold">(جملة)</span>
@@ -288,8 +326,8 @@
                 </div>
 
                 <!-- Add Button -->
-                <div class="erp-form-group mb-0">
-                    <button type="button" id="addItemBtn" class="erp-btn erp-btn-primary font-bold" style="height: 42px; padding: 0 18px;">
+                <div class="erp-form-group mb-0 flex-shrink-0">
+                    <button type="button" id="addItemBtn" class="erp-btn erp-btn-primary font-bold flex items-center gap-1.5" style="height: 40px; padding: 0 18px;">
                         <x-icon name="plus" size="16" />
                         <span>إدراج للصنف</span>
                     </button>
@@ -336,8 +374,8 @@
                             <th class="w-24 text-center">الوحدة</th>
                             <th class="w-28 text-center col-qty">الكمية</th>
                             <th class="w-24 text-center col-packages">عدد الطرود</th>
-                            <th class="w-40 text-center col-price">السعر المختار</th>
-                            <th class="w-32 text-center col-price">الإجمالي</th>
+                            <th class="w-36 text-center col-unit-price">السعر المختار</th>
+                            <th class="w-32 text-center col-line-total">الإجمالي</th>
                             <th class="w-40">ملاحظات التعبئة</th>
                             <th class="w-12 text-center">حذف</th>
                         </tr>
@@ -358,8 +396,8 @@
                             <td colspan="5" class="py-2.5 px-4 text-left font-bold text-xs">الإجمالي الكلي:</td>
                             <td class="py-2.5 px-2 text-center font-numeric font-bold text-sm text-[var(--primary)] col-qty" id="footTotalQty">0</td>
                             <td class="py-2.5 px-2 text-center font-numeric font-bold text-sm col-packages" id="footTotalPackages">0</td>
-                            <td class="py-2.5 px-2 text-center text-xs text-[var(--text-muted)] col-price">-</td>
-                            <td class="py-2.5 px-2 text-center font-numeric font-bold text-sm text-emerald-600 col-price" id="footTotalAmount">0.00 ج.م</td>
+                            <td class="py-2.5 px-2 text-center text-xs text-[var(--text-muted)] col-unit-price">-</td>
+                            <td class="py-2.5 px-2 text-center font-numeric font-bold text-sm text-emerald-600 col-line-total" id="footTotalAmount">0.00 ج.م</td>
                             <td colspan="2"></td>
                         </tr>
                     </tfoot>
@@ -414,6 +452,13 @@
             </div>
         </div>
     </div>
+    <!-- Action Feedback Toast -->
+    <div id="packingNotificationToast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-3 rounded-lg shadow-xl border text-sm font-semibold transition-all duration-300 hidden" style="background: #f0fdf4; border-color: #10b981; color: #166534;">
+        <span id="packingToastIcon">
+            <x-icon name="check-circle" size="18" />
+        </span>
+        <span id="packingToastMessage">تم الحفظ بنجاح</span>
+    </div>
 </div>
 
 <script>
@@ -422,6 +467,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let packingItems = [];
     let currentSelectedProduct = null;
     let searchDebounceTimer = null;
+
+    // Check if a saved list was passed from controller for viewing/editing
+    const serverLoadedList = {!! json_encode($loadedData ?? null) !!};
+    let currentListId = serverLoadedList ? serverLoadedList.id : null;
 
     // Elements
     const docNumberInput = document.getElementById('docNumberInput');
@@ -452,6 +501,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchResultsDropdown = document.getElementById('searchResultsDropdown');
     const quickStockBadge = document.getElementById('quickStockBadge');
     const itemUnitSelect = document.getElementById('itemUnitSelect');
+    const detectedUnitBadge = document.getElementById('detectedUnitBadge');
+    let currentCandidateProduct = null;
+    let currentSearchResults = [];
+    let activeDropdownIndex = -1;
     const itemQtyInput = document.getElementById('itemQtyInput');
     const qtyMinusBtn = document.getElementById('qtyMinusBtn');
     const qtyPlusBtn = document.getElementById('qtyPlusBtn');
@@ -477,6 +530,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const cardTotalAmount = document.getElementById('cardTotalAmount');
 
     // Action buttons
+    const saveToArchiveBtn = document.getElementById('saveToArchiveBtn');
+    const saveBtnText = document.getElementById('saveBtnText');
     const clearListBtn = document.getElementById('clearListBtn');
     const exportExcelBtn = document.getElementById('exportExcelBtn');
     const exportCsvBtn = document.getElementById('exportCsvBtn');
@@ -498,21 +553,32 @@ document.addEventListener('DOMContentLoaded', function () {
         const showQty = toggleShowQtyCheckbox.checked;
         const showPrice = toggleShowPriceCheckbox.checked;
         const showPackages = toggleShowPackagesCheckbox.checked;
+        const showLineTotal = showQty && showPrice;
 
         // Table headers and footer cells
         document.querySelectorAll('.col-qty').forEach(el => el.style.display = showQty ? '' : 'none');
-        document.querySelectorAll('.col-price').forEach(el => el.style.display = showPrice ? '' : 'none');
         document.querySelectorAll('.col-packages').forEach(el => el.style.display = showPackages ? '' : 'none');
+        document.querySelectorAll('.col-unit-price').forEach(el => el.style.display = showPrice ? '' : 'none');
+        document.querySelectorAll('.col-line-total').forEach(el => el.style.display = showLineTotal ? '' : 'none');
 
         // Quick Entry Wrappers
         if (quickQtyWrapper) quickQtyWrapper.style.display = showQty ? '' : 'none';
-        if (quickPriceWrapper) quickPriceWrapper.style.display = showPrice ? '' : 'none';
         if (quickPackagesWrapper) quickPackagesWrapper.style.display = showPackages ? '' : 'none';
+        if (quickPriceWrapper) quickPriceWrapper.style.display = showPrice ? '' : 'none';
+
+        // Table Footer visibility: hide whole footer if neither Qty, Packages nor LineTotal is active
+        const tableFooter = document.getElementById('tableFooter');
+        if (tableFooter) {
+            tableFooter.style.display = (showQty || showPackages || showLineTotal) ? '' : 'none';
+        }
 
         // KPI Cards
         if (kpiQtyCard) kpiQtyCard.style.display = showQty ? '' : 'none';
-        if (kpiAmountCard) kpiAmountCard.style.display = showPrice ? '' : 'none';
         if (kpiPackagesCard) kpiPackagesCard.style.display = showPackages ? '' : 'none';
+        if (kpiAmountCard) kpiAmountCard.style.display = showLineTotal ? '' : 'none';
+
+        // Top Header Badges
+        if (topQtyCountBadge) topQtyCountBadge.style.display = showQty ? '' : 'none';
     }
 
     // Fast-scan toggle text change
@@ -537,25 +603,67 @@ document.addEventListener('DOMContentLoaded', function () {
         clearTimeout(searchDebounceTimer);
         if (val.length === 0) {
             hideDropdown();
+            currentSelectedProduct = null;
+            currentCandidateProduct = null;
+            currentSearchResults = [];
+            activeDropdownIndex = -1;
+            quickStockBadge.classList.add('hidden');
+            if (detectedUnitBadge) detectedUnitBadge.classList.add('hidden');
+            setUnit('قطعة', false);
             return;
         }
 
         searchDebounceTimer = setTimeout(() => {
             fetchProducts(val);
-        }, 220);
+        }, 150);
     });
 
     // Search Keydown
     productSearchInput.addEventListener('keydown', async function (e) {
+        if (e.key === 'ArrowDown') {
+            if (currentSearchResults.length > 0) {
+                e.preventDefault();
+                activeDropdownIndex = (activeDropdownIndex + 1) % currentSearchResults.length;
+                updateDropdownHighlight();
+            }
+            return;
+        }
+
+        if (e.key === 'ArrowUp') {
+            if (currentSearchResults.length > 0) {
+                e.preventDefault();
+                activeDropdownIndex = (activeDropdownIndex - 1 + currentSearchResults.length) % currentSearchResults.length;
+                updateDropdownHighlight();
+            }
+            return;
+        }
+
         if (e.key === 'Enter') {
             e.preventDefault();
             const term = this.value.trim();
             if (!term) return;
 
+            // If an item in dropdown is highlighted or candidate exists
+            if (activeDropdownIndex >= 0 && currentSearchResults[activeDropdownIndex]) {
+                selectProduct(currentSearchResults[activeDropdownIndex]);
+            } else if (currentCandidateProduct && !currentSelectedProduct) {
+                selectProduct(currentCandidateProduct);
+            }
+
             if (fastScanModeCheckbox.checked) {
-                await directBarcodeLookup(term);
+                if (currentSelectedProduct) {
+                    addItemFromForm();
+                } else {
+                    await directBarcodeLookup(term);
+                }
             } else {
-                addItemFromForm();
+                if (currentSelectedProduct) {
+                    hideDropdown();
+                    itemQtyInput.focus();
+                    itemQtyInput.select();
+                } else {
+                    addItemFromForm();
+                }
             }
         } else if (e.key === 'Escape') {
             hideDropdown();
@@ -566,8 +674,13 @@ document.addEventListener('DOMContentLoaded', function () {
         productSearchInput.value = '';
         clearSearchBtn.classList.add('hidden');
         quickStockBadge.classList.add('hidden');
+        if (detectedUnitBadge) detectedUnitBadge.classList.add('hidden');
+        setUnit('قطعة', false);
         hideDropdown();
         currentSelectedProduct = null;
+        currentCandidateProduct = null;
+        currentSearchResults = [];
+        activeDropdownIndex = -1;
         productSearchInput.focus();
     });
 
@@ -622,6 +735,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (packingItems.length === 0) return;
         if (confirm('هل أنت متأكد من تفريغ كافة أصناف قائمة التعبئة؟')) {
             packingItems = [];
+            currentListId = null;
+            if (saveBtnText) saveBtnText.textContent = 'حفظ في السجل';
             renderTable();
             localStorage.removeItem(STORAGE_KEY);
             productSearchInput.focus();
@@ -697,14 +812,76 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Functions
 
+    function setUnit(unitName, showBadge = true) {
+        if (!unitName) unitName = 'قطعة';
+        unitName = unitName.trim();
+
+        let found = false;
+        for (let i = 0; i < itemUnitSelect.options.length; i++) {
+            if (itemUnitSelect.options[i].value.trim().toLowerCase() === unitName.toLowerCase()) {
+                itemUnitSelect.selectedIndex = i;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            const opt = document.createElement('option');
+            opt.value = unitName;
+            opt.textContent = unitName;
+            opt.selected = true;
+            itemUnitSelect.appendChild(opt);
+            itemUnitSelect.value = unitName;
+        }
+
+        if (detectedUnitBadge) {
+            if (showBadge && unitName) {
+                detectedUnitBadge.textContent = 'وحدة الصنف: ' + unitName;
+                detectedUnitBadge.classList.remove('hidden');
+            } else {
+                detectedUnitBadge.classList.add('hidden');
+            }
+        }
+    }
+
     async function fetchProducts(q) {
         try {
             const resp = await fetch('{{ route('packing-list.search-products') }}?q=' + encodeURIComponent(q));
             const data = await resp.json();
             if (data.success && data.products.length > 0) {
+                currentSearchResults = data.products;
+                activeDropdownIndex = 0;
                 renderDropdown(data.products);
+
+                // Auto-detect and show unit of measurement for closest matching product as user types
+                const qNorm = q.trim().toLowerCase();
+                const matched = data.products.find(p => 
+                    p.name.trim().toLowerCase() === qNorm ||
+                    (p.sku && p.sku.trim().toLowerCase() === qNorm) ||
+                    (p.barcode && p.barcode.trim() === q)
+                ) || data.products.find(p => 
+                    p.name.trim().toLowerCase().startsWith(qNorm)
+                ) || data.products[0];
+
+                if (matched) {
+                    currentCandidateProduct = matched;
+                    setUnit(matched.unit, true);
+
+                    quickStockBadge.textContent = 'المتاح: ' + matched.total_stock + ' ' + (matched.unit || 'قطعة');
+                    quickStockBadge.classList.remove('hidden');
+
+                    const mode = defaultPriceModeSelect.value;
+                    const price = resolveItemPrice(matched, mode);
+                    itemPriceInput.value = price.toFixed(2);
+                    selectedPriceTierBadge.textContent = '(' + getPriceModeLabel(mode) + ')';
+                }
             } else {
+                currentSearchResults = [];
+                currentCandidateProduct = null;
+                activeDropdownIndex = -1;
                 renderDropdown([]);
+                if (detectedUnitBadge) detectedUnitBadge.classList.add('hidden');
+                quickStockBadge.classList.add('hidden');
             }
         } catch (e) {
             console.error('Failed to search products:', e);
@@ -727,6 +904,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function updateDropdownHighlight() {
+        const items = searchResultsDropdown.querySelectorAll('.purchases-suggestion-item');
+        items.forEach((el, idx) => {
+            if (idx === activeDropdownIndex) {
+                el.classList.add('bg-[var(--bg-hover)]', 'border-r-4', 'border-r-[var(--primary)]');
+                const prod = currentSearchResults[idx];
+                if (prod) {
+                    currentCandidateProduct = prod;
+                    setUnit(prod.unit, true);
+                    quickStockBadge.textContent = 'المتاح: ' + prod.total_stock + ' ' + (prod.unit || 'قطعة');
+                    quickStockBadge.classList.remove('hidden');
+                    const mode = defaultPriceModeSelect.value;
+                    const price = resolveItemPrice(prod, mode);
+                    itemPriceInput.value = price.toFixed(2);
+                    selectedPriceTierBadge.textContent = '(' + getPriceModeLabel(mode) + ')';
+                }
+            } else {
+                el.classList.remove('bg-[var(--bg-hover)]', 'border-r-4', 'border-r-[var(--primary)]');
+            }
+        });
+    }
+
     function renderDropdown(products) {
         if (products.length === 0) {
             searchResultsDropdown.innerHTML = '<div class="p-3 text-center text-xs text-[var(--text-muted)]">لا توجد نتائج مطابقة</div>';
@@ -735,11 +934,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         let html = '';
-        products.forEach(p => {
+        products.forEach((p, idx) => {
             const mode = defaultPriceModeSelect.value;
             const price = resolveItemPrice(p, mode);
+            const isFirst = idx === 0 ? 'bg-[var(--bg-hover)] border-r-4 border-r-[var(--primary)]' : '';
             html += `
-                <div class="purchases-suggestion-item p-2.5 hover:bg-[var(--bg-hover)] cursor-pointer border-b border-[var(--border-light)] last:border-b-0 flex items-center justify-between" data-prod-id="${p.id}">
+                <div class="purchases-suggestion-item p-2.5 hover:bg-[var(--bg-hover)] cursor-pointer border-b border-[var(--border-light)] last:border-b-0 flex items-center justify-between ${isFirst}" data-index="${idx}">
                     <div>
                         <div class="font-bold text-xs text-[var(--text-main)]">${escapeHtml(p.name)}</div>
                         <div class="text-[11px] text-[var(--text-muted)] flex items-center gap-2 mt-0.5 font-numeric">
@@ -748,6 +948,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span>باركود: <span class="font-mono">${p.barcode || '-'}</span></span>
                             <span>·</span>
                             <span>${p.category_name || 'عام'}</span>
+                            <span>·</span>
+                            <span class="text-emerald-700 font-bold bg-emerald-50 px-1 rounded">الوحدة: ${escapeHtml(p.unit || 'قطعة')}</span>
                         </div>
                     </div>
                     <div class="text-left font-numeric">
@@ -761,9 +963,15 @@ document.addEventListener('DOMContentLoaded', function () {
         searchResultsDropdown.innerHTML = html;
         searchResultsDropdown.classList.remove('hidden');
 
-        searchResultsDropdown.querySelectorAll('.purchases-suggestion-item').forEach((el, index) => {
+        searchResultsDropdown.querySelectorAll('.purchases-suggestion-item').forEach((el) => {
+            const idx = parseInt(el.dataset.index);
+            el.addEventListener('mouseenter', function () {
+                activeDropdownIndex = idx;
+                updateDropdownHighlight();
+            });
+
             el.addEventListener('click', function () {
-                const prod = products[index];
+                const prod = products[idx];
                 selectProduct(prod);
                 hideDropdown();
                 itemQtyInput.focus();
@@ -778,13 +986,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function selectProduct(p) {
         currentSelectedProduct = p;
+        currentCandidateProduct = p;
         productSearchInput.value = p.name;
         clearSearchBtn.classList.remove('hidden');
 
         quickStockBadge.textContent = 'المتاح: ' + p.total_stock + ' ' + (p.unit || 'قطعة');
         quickStockBadge.classList.remove('hidden');
 
-        itemUnitSelect.value = p.unit || 'قطعة';
+        setUnit(p.unit, true);
 
         const mode = defaultPriceModeSelect.value;
         const price = resolveItemPrice(p, mode);
@@ -823,6 +1032,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const activeProduct = currentSelectedProduct || (currentCandidateProduct && (currentCandidateProduct.name.trim().toLowerCase() === name.toLowerCase() || !name) ? currentCandidateProduct : null);
+
         let qty = parseFloat(itemQtyInput.value) || 1;
         let packages = parseFloat(itemPackagesInput.value) || 0;
         let price = parseFloat(itemPriceInput.value) || 0;
@@ -830,8 +1041,8 @@ document.addEventListener('DOMContentLoaded', function () {
         let notes = itemNotesInput.value.trim();
 
         let existingIndex = -1;
-        if (currentSelectedProduct) {
-            existingIndex = packingItems.findIndex(i => i.id === currentSelectedProduct.id);
+        if (activeProduct) {
+            existingIndex = packingItems.findIndex(i => i.id === activeProduct.id);
         } else {
             existingIndex = packingItems.findIndex(i => i.name.toLowerCase() === name.toLowerCase());
         }
@@ -846,19 +1057,19 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else {
             const newItem = {
-                id: currentSelectedProduct ? currentSelectedProduct.id : null,
-                sku: currentSelectedProduct ? currentSelectedProduct.sku : '',
-                barcode: currentSelectedProduct ? currentSelectedProduct.barcode : '',
-                name: name,
-                category_name: currentSelectedProduct ? currentSelectedProduct.category_name : 'عام',
+                id: activeProduct ? activeProduct.id : null,
+                sku: activeProduct ? activeProduct.sku : '',
+                barcode: activeProduct ? activeProduct.barcode : '',
+                name: activeProduct ? activeProduct.name : name,
+                category_name: activeProduct ? activeProduct.category_name : 'عام',
                 unit: unit,
                 qty: qty,
                 packages_count: packages,
                 price: price,
-                wholesale_price: currentSelectedProduct ? currentSelectedProduct.wholesale_price : price,
-                retail_price: currentSelectedProduct ? currentSelectedProduct.retail_price : price,
-                distributor_price: currentSelectedProduct ? currentSelectedProduct.distributor_price : price,
-                cost_price: currentSelectedProduct ? currentSelectedProduct.cost_price : price,
+                wholesale_price: activeProduct ? activeProduct.wholesale_price : price,
+                retail_price: activeProduct ? activeProduct.retail_price : price,
+                distributor_price: activeProduct ? activeProduct.distributor_price : price,
+                cost_price: activeProduct ? activeProduct.cost_price : price,
                 total: qty * price,
                 notes: notes,
             };
@@ -868,10 +1079,15 @@ document.addEventListener('DOMContentLoaded', function () {
         productSearchInput.value = '';
         clearSearchBtn.classList.add('hidden');
         quickStockBadge.classList.add('hidden');
+        if (detectedUnitBadge) detectedUnitBadge.classList.add('hidden');
+        setUnit('قطعة', false);
         itemQtyInput.value = '1';
         itemPackagesInput.value = '0';
         itemNotesInput.value = '';
         currentSelectedProduct = null;
+        currentCandidateProduct = null;
+        currentSearchResults = [];
+        activeDropdownIndex = -1;
         hideDropdown();
 
         renderTable();
@@ -884,6 +1100,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const showQty = toggleShowQtyCheckbox.checked;
         const showPrice = toggleShowPriceCheckbox.checked;
         const showPackages = toggleShowPackagesCheckbox.checked;
+        const showLineTotal = showQty && showPrice;
 
         if (packingItems.length === 0) {
             packingListBody.innerHTML = `
@@ -926,7 +1143,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="text-center col-packages" style="${showPackages ? '' : 'display: none;'}">
                         <input type="number" min="0" step="1" value="${item.packages_count}" class="erp-input font-numeric text-center text-xs table-packages-input" style="width: 70px; height: 30px; margin: 0 auto;" data-index="${idx}">
                     </td>
-                    <td class="text-center col-price" style="${showPrice ? '' : 'display: none;'}">
+                    <td class="text-center col-unit-price" style="${showPrice ? '' : 'display: none;'}">
                         <div class="flex items-center gap-1 justify-center">
                             <input type="number" min="0" step="0.01" value="${item.price}" class="erp-input font-numeric text-center text-xs font-bold text-[var(--primary)] table-price-input" style="width: 75px; height: 30px;" data-index="${idx}">
                             <select class="erp-input erp-select text-[10px] p-0 table-price-tier-select" style="width: 70px; height: 30px;" data-index="${idx}">
@@ -939,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             </select>
                         </div>
                     </td>
-                    <td class="text-center font-numeric font-bold text-emerald-600 col-price" style="${showPrice ? '' : 'display: none;'}">
+                    <td class="text-center font-numeric font-bold text-emerald-600 col-line-total" style="${showLineTotal ? '' : 'display: none;'}">
                         ${lineTotal > 0 ? lineTotal.toFixed(2) + ' ج.م' : '—'}
                     </td>
                     <td>
@@ -1049,19 +1266,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateTotals() {
+        const showQty = toggleShowQtyCheckbox.checked;
+        const showPrice = toggleShowPriceCheckbox.checked;
+        const showPackages = toggleShowPackagesCheckbox.checked;
+        const showLineTotal = showQty && showPrice;
+
         let totQty = 0;
         let totPackages = 0;
         let totAmount = 0;
 
         packingItems.forEach(item => {
-            totQty += item.qty;
-            totPackages += item.packages_count;
-            totAmount += (item.qty * item.price);
+            if (showQty) totQty += item.qty;
+            if (showPackages) totPackages += item.packages_count;
+            if (showLineTotal) totAmount += (item.qty * item.price);
         });
 
         footTotalQty.textContent = totQty.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
         footTotalPackages.textContent = totPackages > 0 ? totPackages.toLocaleString('en-US') : '0';
-        footTotalAmount.textContent = totAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م';
+        footTotalAmount.textContent = showLineTotal ? (totAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م') : '—';
 
         topItemsCountBadge.textContent = packingItems.length + ' أصناف';
         topQtyCountBadge.textContent = totQty.toLocaleString('en-US') + ' إجمالي الكميات';
@@ -1070,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cardItemsCount.textContent = packingItems.length;
         cardTotalQty.textContent = totQty.toLocaleString('en-US');
         cardTotalPackages.textContent = totPackages > 0 ? totPackages.toLocaleString('en-US') : '0';
-        cardTotalAmount.textContent = totAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م';
+        cardTotalAmount.textContent = showLineTotal ? (totAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ج.م') : '—';
     }
 
     function saveState() {
@@ -1090,6 +1312,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function loadSavedState() {
+        if (serverLoadedList) {
+            // Priority 1: Load directly from database record passed by controller
+            if (serverLoadedList.doc_number) docNumberInput.value = serverLoadedList.doc_number;
+            if (serverLoadedList.doc_date) docDateInput.value = serverLoadedList.doc_date;
+            if (serverLoadedList.customer_name) customerNameInput.value = serverLoadedList.customer_name;
+            if (serverLoadedList.warehouse_name) warehouseSelect.value = serverLoadedList.warehouse_name;
+            if (serverLoadedList.price_type) defaultPriceModeSelect.value = serverLoadedList.price_type;
+            if (serverLoadedList.notes) docNotesInput.value = serverLoadedList.notes;
+            if (typeof serverLoadedList.show_quantity === 'boolean') toggleShowQtyCheckbox.checked = serverLoadedList.show_quantity;
+            if (typeof serverLoadedList.show_price === 'boolean') toggleShowPriceCheckbox.checked = serverLoadedList.show_price;
+            if (typeof serverLoadedList.show_packages === 'boolean') toggleShowPackagesCheckbox.checked = serverLoadedList.show_packages;
+
+            if (Array.isArray(serverLoadedList.items) && serverLoadedList.items.length > 0) {
+                packingItems = serverLoadedList.items;
+                renderTable();
+            }
+            return;
+        }
+
+        // Priority 2: Fallback to localStorage draft
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (!raw) return;
@@ -1113,6 +1355,115 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (e) {
             console.error('Failed to load saved state:', e);
         }
+    }
+
+    // Save To Database Archive Listener
+    if (saveToArchiveBtn) {
+        saveToArchiveBtn.addEventListener('click', async function () {
+            if (packingItems.length === 0) {
+                showToast('يرجى إضافة صنف واحد على الأقل قبل الحفظ في السجل.', 'warning');
+                return;
+            }
+
+            const origHtml = saveToArchiveBtn.innerHTML;
+            saveToArchiveBtn.disabled = true;
+            saveToArchiveBtn.innerHTML = `
+                <span class="inline-block animate-spin mr-1">⌛</span>
+                <span>جاري الحفظ في السجل...</span>
+            `;
+
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const payload = {
+                    packing_list_id: currentListId,
+                    doc_number: docNumberInput.value.trim(),
+                    doc_date: docDateInput.value,
+                    customer_name: customerNameInput.value.trim(),
+                    warehouse_name: warehouseSelect.value,
+                    price_type: defaultPriceModeSelect.value,
+                    notes: docNotesInput.value.trim(),
+                    show_quantity: toggleShowQtyCheckbox.checked ? 1 : 0,
+                    show_price: toggleShowPriceCheckbox.checked ? 1 : 0,
+                    show_packages: toggleShowPackagesCheckbox.checked ? 1 : 0,
+                    items: packingItems,
+                };
+
+                const res = await fetch("{{ route('packing-list.save') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken || ''
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    currentListId = data.id;
+                    if (data.packing_number) {
+                        docNumberInput.value = data.packing_number;
+                    }
+                    if (saveBtnText) {
+                        saveBtnText.textContent = 'تحديث في السجل';
+                    }
+                    const indicator = document.getElementById('autoSaveIndicator');
+                    if (indicator) {
+                        indicator.innerHTML = `
+                            <svg class="w-3.5 h-3.5 text-emerald-500 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-emerald-700 font-bold">محفوظ في السجل برقم ${escapeHtml(data.packing_number)}</span>
+                        `;
+                    }
+                    showToast(data.message || 'تم حفظ قائمة التعبئة بنجاح في السجل.', 'success');
+                    saveState();
+                } else {
+                    showToast(data.message || 'حدث خطأ أثناء حفظ القائمة في السجل.', 'error');
+                }
+            } catch (err) {
+                console.error('Error saving packing list:', err);
+                showToast('تعذر الاتصال بالخادم لحفظ القائمة.', 'error');
+            } finally {
+                saveToArchiveBtn.disabled = false;
+                saveToArchiveBtn.innerHTML = `
+                    <svg class="w-4 h-4 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                    </svg>
+                    <span>${currentListId ? 'تحديث في السجل' : 'حفظ في السجل'}</span>
+                `;
+            }
+        });
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('packingNotificationToast');
+        const toastMsg = document.getElementById('packingToastMessage');
+        if (!toast || !toastMsg) return;
+
+        toastMsg.textContent = message;
+        if (type === 'error') {
+            toast.style.borderColor = '#ef4444';
+            toast.style.background = '#fef2f2';
+            toast.style.color = '#991b1b';
+        } else if (type === 'warning') {
+            toast.style.borderColor = '#f59e0b';
+            toast.style.background = '#fffbeb';
+            toast.style.color = '#92400e';
+        } else {
+            toast.style.borderColor = '#10b981';
+            toast.style.background = '#f0fdf4';
+            toast.style.color = '#166534';
+        }
+
+        toast.classList.remove('hidden');
+        toast.style.opacity = '1';
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.classList.add('hidden'), 300);
+        }, 3500);
     }
 
     function escapeHtml(text) {

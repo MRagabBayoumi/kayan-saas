@@ -1,3 +1,6 @@
+@php
+    $showLineTotal = $showLineTotal ?? ($showQuantity && $showPrice);
+@endphp
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" class="emerald">
 <head>
@@ -132,6 +135,8 @@
                         @endif
                         @if($showPrice)
                             <th class="col-w-10 text-center font-bold">السعر</th>
+                        @endif
+                        @if($showLineTotal)
                             <th class="col-w-10 text-center font-bold">الإجمالي</th>
                         @endif
                         <th class="col-w-15 text-right">ملاحظات التعبئة</th>
@@ -164,6 +169,8 @@
                             @endif
                             @if($showPrice)
                                 <td class="text-center font-numeric font-bold">{{ $price > 0 ? number_format($price, 2) : '-' }}</td>
+                            @endif
+                            @if($showLineTotal)
                                 <td class="text-center font-numeric font-bold text-emerald-700">{{ $lineTotal > 0 ? number_format($lineTotal, 2) : '-' }}</td>
                             @endif
                             <td class="text-xs">{{ $item['notes'] ?: '-' }}</td>
@@ -189,6 +196,8 @@
                         @endif
                         @if($showPrice)
                             <td>-</td>
+                        @endif
+                        @if($showLineTotal)
                             <td class="text-center font-numeric font-bold text-sm text-emerald-800">{{ number_format($totalAmount, 2) }} ج.م</td>
                         @endif
                         <td></td>
@@ -264,6 +273,8 @@
                         @endif
                         @if($showPrice)
                             <th class="doc-table-price">السعر</th>
+                        @endif
+                        @if($showLineTotal)
                             <th class="doc-table-price">الإجمالي</th>
                         @endif
                     </tr>
@@ -299,6 +310,8 @@
                             @endif
                             @if($showPrice)
                                 <td class="doc-table-price font-numeric">{{ number_format($price, 2) }}</td>
+                            @endif
+                            @if($showLineTotal)
                                 <td class="doc-table-price font-numeric font-bold">{{ number_format($lineTotal, 2) }}</td>
                             @endif
                         </tr>
@@ -324,7 +337,7 @@
                         <td class="doc-summary-val font-bold">{{ number_format($totalPackages, 0) }}</td>
                     </tr>
                     @endif
-                    @if($showPrice)
+                    @if($showLineTotal)
                     <tr class="doc-grand-total">
                         <td class="doc-summary-label">الإجمالي المالي:</td>
                         <td class="doc-summary-val font-bold">{{ number_format($totalAmount, 2) }} ج.م</td>

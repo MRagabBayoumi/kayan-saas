@@ -28,7 +28,7 @@
         </div>
 
         <div style="margin-top: 16px; font-size: 12px; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 10px 14px;">
-            سيتصل بك مندوب الشحن على الهاتف ({{ $order->customer_phone }}) قبل تسليم الشحنة.
+            سيتصل بك مندوب الشحن على الهاتف ({{ !empty($isOwner) ? $order->customer_phone : 'المسجل في الطلب' }}) قبل تسليم الشحنة.
         </div>
     </div>
 
@@ -39,18 +39,23 @@
             <span>تفاصيل الشحنة والمستلم</span>
         </h3>
 
+        @php
+            $maskedPhone = !empty($isOwner) ? $order->customer_phone : (strlen($order->customer_phone) > 6 ? substr($order->customer_phone, 0, 4) . '****' . substr($order->customer_phone, -2) : '****');
+            $maskedAddress = !empty($isOwner) ? ($order->customer_address . ' (' . ($order->customer_city ?? 'غير محدد') . ')') : 'العنوان محفوظ ومؤمن بالنظام (' . ($order->customer_city ?? 'غير محدد') . ')';
+        @endphp
+
         <div style="display: grid; grid-template-columns: 1fr; gap: 12px; font-size: 12px; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
             <div style="display: flex; justify-content: space-between;">
                 <span style="color: #64748b;">اسم المستلم:</span>
-                <strong style="color: #0f172a;">{{ $order->customer_name }}</strong>
+                <strong style="color: #0f172a;">{{ !empty($isOwner) ? $order->customer_name : mb_substr($order->customer_name, 0, 3) . '***' }}</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
                 <span style="color: #64748b;">رقم الهاتف:</span>
-                <strong style="color: #0f172a;" dir="ltr">{{ $order->customer_phone }}</strong>
+                <strong style="color: #0f172a;" dir="ltr">{{ $maskedPhone }}</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
                 <span style="color: #64748b;">عنوان التوصيل:</span>
-                <strong style="color: #0f172a; text-align: left; max-width: 65%;">{{ $order->customer_address }} ({{ $order->customer_city ?? 'غير محدد' }})</strong>
+                <strong style="color: #0f172a; text-align: left; max-width: 65%;">{{ $maskedAddress }}</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
                 <span style="color: #64748b;">طريقة الدفع:</span>

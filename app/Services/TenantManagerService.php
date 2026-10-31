@@ -80,10 +80,11 @@ class TenantManagerService
         $this->migrateTenantDatabase($dbName);
 
         // 4. Seed default admin user inside the tenant's database
+        $adminPassword = ! empty($data['admin_password']) ? $data['admin_password'] : Str::password(16);
         $this->seedTenantAdmin(
             $dbName,
             $data['admin_email'] ?? "admin@{$subdomain}.local",
-            $data['admin_password'] ?? 'admin123',
+            $adminPassword,
             $data['name'],
             $data['admin_name'] ?? null,
             $data['admin_username'] ?? null

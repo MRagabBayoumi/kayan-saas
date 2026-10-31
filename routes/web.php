@@ -45,8 +45,8 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Central SaaS Administration Routes (Strictly secured by EnsureCentralDomain middleware)
-Route::middleware(EnsureCentralDomain::class)->prefix('saas')->name('saas.')->group(function () {
+// Central SaaS Administration Routes (Strictly secured by auth, can:manage-saas, and EnsureCentralDomain middleware)
+Route::middleware(['auth', 'can:manage-saas', EnsureCentralDomain::class])->prefix('saas')->name('saas.')->group(function () {
     Route::get('/', [CentralSaaSController::class, 'index'])->name('index');
     Route::post('/tenants', [CentralSaaSController::class, 'store'])->name('tenants.store');
     Route::get('/tenants/{tenant}', [CentralSaaSController::class, 'show'])->name('tenants.show');
@@ -161,9 +161,14 @@ Route::middleware('auth')->group(function () {
     // Product & Category Management
     // Read-only product routes accessible to admin, warehouse, and cashier
     Route::middleware('can:view-products')->group(function () {
-        // Packing List Dedicated Builder
+        // Packing List Dedicated Builder & Persistent Archive
         Route::get('/packing-list', [PackingListController::class, 'index'])->name('packing-list.index');
+        Route::get('/packing-lists', [PackingListController::class, 'archive'])->name('packing-list.archive');
         Route::get('/products/packing-list', fn () => redirect()->route('packing-list.index'));
+        Route::post('/packing-list/save', [PackingListController::class, 'store'])->name('packing-list.save');
+        Route::delete('/packing-list/{packingList}', [PackingListController::class, 'destroy'])->name('packing-list.destroy');
+        Route::get('/packing-list/{packingList}/print', [PackingListController::class, 'printModel'])->name('packing-list.print-model');
+        Route::get('/packing-list/{packingList}/export-excel', [PackingListController::class, 'exportExcelModel'])->name('packing-list.export-excel-model');
         Route::get('/packing-list/search-products', [PackingListController::class, 'searchProducts'])->name('packing-list.search-products');
         Route::post('/packing-list/export-excel', [PackingListController::class, 'exportExcel'])->name('packing-list.export-excel');
         Route::post('/packing-list/export-csv', [PackingListController::class, 'exportCsv'])->name('packing-list.export-csv');

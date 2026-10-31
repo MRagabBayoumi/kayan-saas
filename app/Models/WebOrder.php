@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class WebOrder extends Model
 {
@@ -57,11 +58,13 @@ class WebOrder extends Model
             ->first();
 
         $seq = 1;
-        if ($lastOrder && preg_match('/-(\d+)$/', $lastOrder->order_number, $matches)) {
+        if ($lastOrder && preg_match('/-(\d+)(?:-[A-Z0-9]+)?$/', $lastOrder->order_number, $matches)) {
             $seq = ((int) $matches[1]) + 1;
         }
 
-        return $prefix.str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+        $entropy = strtoupper(Str::random(6));
+
+        return $prefix.str_pad((string) $seq, 4, '0', STR_PAD_LEFT).'-'.$entropy;
     }
 
     public function getStatusBadgeAttribute(): array

@@ -54,6 +54,7 @@ Route::middleware(['auth', 'can:manage-saas', EnsureCentralDomain::class, 'throt
     Route::post('/tenants/{tenant}/toggle-module', [CentralSaaSController::class, 'toggleModule'])->name('tenants.toggle-module');
     Route::post('/tenants/{tenant}/toggle-status', [CentralSaaSController::class, 'toggleStatus'])->name('tenants.toggle-status');
     Route::post('/tenants/{tenant}/update-subscription', [CentralSaaSController::class, 'updateSubscription'])->name('tenants.update-subscription');
+    Route::get('/tenants/{tenant}/impersonate', [CentralSaaSController::class, 'impersonate'])->name('tenants.impersonate');
 
     // Modules & App Store Management (Odoo-like Modular Platform)
     Route::get('/modules', [CentralSaaSController::class, 'modules'])->name('modules.index');
@@ -88,6 +89,7 @@ Route::get('/', function (Request $request) {
 })->name('home');
 
 // Guest Authentication Routes
+Route::get('/saas/sso-login', [AuthController::class, 'ssoLogin'])->name('saas.sso-login');
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.post');

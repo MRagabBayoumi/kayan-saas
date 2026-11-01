@@ -386,27 +386,52 @@
         }
         table.data-table tr:hover td { background: #fbfcfe; }
 
-        /* Modules Grid */
+        /* Modules Grid (Odoo Style Cards) */
         .modules-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 16px;
             padding: 20px;
         }
         .module-card {
             border: 1px solid var(--odoo-border);
-            border-radius: 10px;
-            padding: 18px;
+            border-radius: 12px;
+            padding: 16px;
             background: #ffffff;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: space-between;
+            gap: 12px;
             transition: all 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
-        .module-card.enabled { border-color: #a7f3d0; background: #f0fdf4; }
-        .module-card.disabled { border-color: #e2e8f0; background: #f8fafc; opacity: 0.8; }
-        .module-info h4 { font-size: 14px; font-weight: 800; color: var(--odoo-text-main); }
-        .module-info p { font-size: 11px; color: var(--odoo-text-muted); margin-top: 2px; }
+        .module-card.enabled { border-color: #a7f3d0; background: #ffffff; border-right: 4px solid #10b981; }
+        .module-card.disabled { border-color: #e2e8f0; background: #fafafa; opacity: 0.85; border-right: 4px solid #94a3b8; }
+        .module-card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.05); }
+        .module-card-top { display: flex; align-items: flex-start; gap: 12px; }
+        .module-card-icon {
+            width: 44px; height: 44px; min-width: 44px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: #ffffff; font-weight: 800;
+        }
+        .module-card-header-info { flex: 1; min-width: 0; }
+        .module-card-title { font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 2px; line-height: 1.3; }
+        .module-card-desc { font-size: 12px; color: #64748b; line-height: 1.4; margin: 0; }
+        .module-card-pricing {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+            padding: 6px 10px; font-size: 11px; font-weight: 800; color: var(--odoo-primary);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn-toggle-module {
+            width: 100%; border: none; padding: 8px 14px; border-radius: 8px;
+            font-size: 12px; font-weight: 700; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: 6px; font-family: inherit;
+            transition: all 0.15s;
+        }
+        .btn-toggle-module.active { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .btn-toggle-module.active:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+        .btn-toggle-module.inactive { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+        .btn-toggle-module.inactive:hover { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
 
         /* Modals */
         .modal-overlay {
@@ -511,10 +536,16 @@
             </div>
         </div>
         <div class="odoo-cp-actions">
+            <!-- SuperUser SSO Direct Login -->
+            <a href="{{ route('saas.tenants.impersonate', $tenant) }}" target="_blank" class="btn-primary" style="background: #00A09D; display: inline-flex; align-items: center; gap: 6px; font-weight: 800;" title="دخول مباشر للنظام كمدير عام SuperUser بدون كلمة مرور">
+                <x-icon name="shield-check" size="15" />
+                <span>دخول النظام (SuperUser) ⚡</span>
+            </a>
+
             <!-- Open ERP Subdomain -->
-            <a href="{{ $tenantUrl }}" target="_blank" class="btn-primary" title="فتح لوحة تحكم المشترك في تبويب جديد">
+            <a href="{{ $tenantUrl }}" target="_blank" class="btn-secondary" title="فتح صفحة الدخول في تبويب جديد">
                 <x-icon name="external-link" size="14" />
-                <span>فتح النظام ({{ $tenant->subdomain }})</span>
+                <span>رابط الدخول ({{ $tenant->subdomain }})</span>
             </a>
 
             <!-- Record Payment -->
@@ -786,34 +817,45 @@
                 @php $mods = $tenant->modules ?? []; @endphp
                 <div class="modules-grid">
                     @forelse($availableModules ?? [] as $m)
-                        <div class="module-card {{ ($mods[$m->code] ?? false) ? 'enabled' : 'disabled' }}" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px;">
-                            <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1;">
-                                <div style="width: 40px; height: 40px; min-width: 40px; border-radius: 8px; background: {{ $m->color ?? '#714B67' }}; color: #ffffff; display: flex; align-items: center; justify-content: center;">
-                                    <x-icon name="{{ $m->icon ?? 'package' }}" size="20" style="color: #ffffff;" />
+                        <div class="module-card {{ ($mods[$m->code] ?? false) ? 'enabled' : 'disabled' }}">
+                            <div class="module-card-top">
+                                <div class="module-card-icon" style="background-color: {{ $m->color ?? '#714B67' }};">
+                                    <x-icon name="{{ $m->icon ?? 'package' }}" size="22" style="color: #ffffff;" />
                                 </div>
-                                <div class="module-info">
-                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                                        <span style="font-size: 10px; font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; color: #475569;">{{ $m->code }}</span>
-                                        <h4 style="margin: 0; font-size: 14px;">{{ $m->name }}</h4>
+                                <div class="module-card-header-info">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 2px;">
+                                        <span style="font-size: 10px; font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #475569;">{{ $m->code }}</span>
+                                        @if($mods[$m->code] ?? false)
+                                            <span style="font-size: 10px; font-weight: 800; color: #059669; background: #d1fae5; padding: 2px 6px; border-radius: 4px;">مفعل حالياً</span>
+                                        @else
+                                            <span style="font-size: 10px; font-weight: 700; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">معطل</span>
+                                        @endif
                                     </div>
-                                    <p style="font-size: 12px; margin: 4px 0;">{{ $m->description }}</p>
-                                    <div style="font-size: 11px; color: var(--odoo-primary); font-weight: 800; margin-top: 4px;">
-                                        {{ number_format($m->price_monthly, 0) }} ج.م/شهرياً &bull; {{ number_format($m->price_yearly, 0) }} ج.م/سنوياً
-                                    </div>
+                                    <h4 class="module-card-title">{{ $m->name }}</h4>
                                 </div>
                             </div>
-                            <form action="{{ route('saas.tenants.toggle-module', $tenant->id) }}" method="POST">
+
+                            <p class="module-card-desc">{{ $m->description }}</p>
+
+                            <div class="module-card-pricing">
+                                <span>شهرياً: <strong>{{ number_format($m->price_monthly, 0) }} ج.م</strong></span>
+                                <span>سنوياً: <strong>{{ number_format($m->price_yearly, 0) }} ج.م</strong></span>
+                            </div>
+
+                            <form action="{{ route('saas.tenants.toggle-module', $tenant->id) }}" method="POST" style="margin: 0;">
                                 @csrf
                                 <input type="hidden" name="module" value="{{ $m->code }}">
-                                <button type="submit" class="btn-secondary" style="font-size: 11px; padding: 5px 12px;">
-                                    @if($mods[$m->code] ?? false)
-                                        <x-icon name="check" size="12" style="color: #047857;" />
-                                        <span>مفعل (إغلاق)</span>
-                                    @else
-                                        <x-icon name="x" size="12" style="color: #ef4444;" />
-                                        <span>معطل (تفعيل)</span>
-                                    @endif
-                                </button>
+                                @if($mods[$m->code] ?? false)
+                                    <button type="submit" class="btn-toggle-module active" title="انقر لتعطيل الموديول عن المشترك">
+                                        <x-icon name="check-circle" size="14" />
+                                        <span>مفعل للمشترك (انقر للإيقاف)</span>
+                                    </button>
+                                @else
+                                    <button type="submit" class="btn-toggle-module inactive" title="انقر لتفعيل الموديول للمشترك">
+                                        <x-icon name="plus-circle" size="14" />
+                                        <span>معطل (انقر للتفعيل والمنح)</span>
+                                    </button>
+                                @endif
                             </form>
                         </div>
                     @empty

@@ -50,6 +50,22 @@ class IdentifyTenant
         app(TenantManagerService::class)->switchConnection($tenant);
         $request->attributes->set('is_central', false);
 
+        // Synchronize company settings in the tenant database with tenant's registered business name
+        try {
+            $currentSettings = \Illuminate\Support\Facades\DB::table('company_settings')->first();
+            if (! $currentSettings || empty($currentSettings->company_name) || in_array($currentSettings->company_name, ['Kayan Fashion Accessories', 'شركة كيان للاستيراد والتوزيع'])) {
+                \Illuminate\Support\Facades\DB::table('company_settings')->updateOrInsert(
+                    ['id' => 1],
+                    [
+                        'company_name' => $tenant->name,
+                        'updated_at' => now(),
+                    ]
+                );
+                \App\Models\CompanySetting::clearSettingsCache();
+            }
+        } catch (\Throwable $e) {
+        }
+
         return $next($request);
     }
 

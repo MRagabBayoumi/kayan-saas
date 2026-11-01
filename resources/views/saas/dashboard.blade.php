@@ -995,6 +995,10 @@
                                 <!-- Actions -->
                                 <td class="actions-cell">
                                     <div style="display: inline-flex; align-items: center; gap: 5px;">
+                                        <a href="{{ route('saas.tenants.impersonate', $t) }}" target="_blank" class="btn-action-primary" style="background: #00A09D; border-color: #008885; font-weight: 800;" title="دخول فوري ومباشر إلى نظام المشترك كمدير عام (SuperUser) بدون كلمة مرور">
+                                            <x-icon name="shield-check" size="13" />
+                                            <span>دخول SuperUser ⚡</span>
+                                        </a>
                                         <a href="{{ route('saas.tenants.show', $t) }}" class="btn-action-secondary" style="color: var(--odoo-primary); font-weight: 700; background: #faf5ff; border-color: #e9d5ff;" title="عرض الملف الكامل وسجل السدادات والتفاصيل">
                                             <x-icon name="user" size="13" />
                                             <span>ملف المشترك</span>

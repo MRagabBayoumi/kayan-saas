@@ -124,4 +124,51 @@ class AuthController extends Controller
             ->with('status', 'success')
             ->with('message', 'تم تسجيل الخروج بنجاح.');
     }
+
+    /**
+     * Handle Single Sign-On (SSO) login for SaaS Super Admin into the tenant instance.
+     */
+    public function ssoLogin(Request $request): RedirectResponse
+    {
+        $token = (string) $request->query('token');
+        if (empty($token)) {
+            return redirect()->route('login')->with('error', 'رمز الدخول السريع غير صالح أو مفقود.');
+        }
+
+        // Atomically pull (retrieve and delete) the token to prevent replay attacks
+        $payload = cache()->pull("sso_impersonate_{$token}");
+        if (! $payload || empty($payload['tenant_id'])) {
+            return redirect()->route('login')->with('error', 'انتهت صلاحية رابط الدخول السريع (SSO). يرجى المحاولة مجدداً من لوحة SaaS.');
+        }
+
+        $currentTenant = app()->bound('tenant') ? app('tenant') : null;
+        if (! $currentTenant || (int) $currentTenant->id !== (int) $payload['tenant_id']) {
+            return redirect()->route('login')->with('error', 'رمز الدخول السريع لا يتطابق مع هذا المشترك.');
+        }
+
+        // Find the tenant admin user, or create one if none exists
+        $user = User::where('role', 'admin')->first()
+            ?? User::where('username', 'admin')->first()
+            ?? User::first();
+
+        if (! $user) {
+            $user = User::create([
+                'name' => $payload['admin_name'] ?? 'مدير النظام (SuperUser)',
+                'username' => 'superuser',
+                'email' => $payload['admin_email'] ?? 'admin@kayan-saas.com',
+                'password' => Hash::make(Str::password(16)),
+                'role' => 'admin',
+                'is_active' => true,
+            ]);
+        }
+
+        Auth::login($user, true);
+        $request->session()->regenerate();
+        $request->session()->put('is_impersonating', true);
+        $request->session()->put('impersonated_by', $payload['admin_name'] ?? 'Super Admin');
+
+        return redirect()->route('dashboard')
+            ->with('status', 'success')
+            ->with('message', 'مرحباً بك! تم تسجيل الدخول بنجاح بصلاحيات المدير العام (SuperUser) للمشترك: '.$currentTenant->name);
+    }
 }

@@ -30,21 +30,26 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         View::composer('*', function ($view) {
-            static $settings = null;
-            static $hasChecked = false;
-
-            if (! $hasChecked) {
-                try {
-                    if (Schema::hasTable('company_settings')) {
-                        $settings = CompanySetting::getSettings();
-                    }
-                } catch (\Throwable $e) {
-                    // Silently fallback if database is not reachable during early boot
+            $settings = null;
+            try {
+                if (Schema::hasTable('company_settings')) {
+                    $settings = CompanySetting::getSettings();
                 }
-                $hasChecked = true;
+            } catch (\Throwable $e) {
+                // Silently fallback if database is not reachable during early boot
+            }
+
+            $tenant = app()->bound('tenant') ? app('tenant') : null;
+            if ($tenant && ! empty($tenant->name)) {
+                if ($settings) {
+                    if (empty($settings->company_name) || in_array($settings->company_name, ['Kayan Fashion Accessories', 'شركة كيان للاستيراد والتوزيع'])) {
+                        $settings->company_name = $tenant->name;
+                    }
+                }
             }
 
             $view->with('globalCompanySetting', $settings);
+            $view->with('currentTenant', $tenant);
         });
 
         Blade::if('hasModule', function (string $module) {

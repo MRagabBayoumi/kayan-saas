@@ -37,6 +37,13 @@
         <div class="erp-topbar-divider"></div>
 
         <span class="erp-module-badge">{{ $moduleName ?? 'لوحة التحكم' }}</span>
+
+        @if(session('is_impersonating'))
+            <span style="background: #fef3c7; border: 1px solid #fde047; color: #854d0e; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">
+                <x-icon name="shield-check" size="13" />
+                <span>وضع مدير المنصة (SuperUser)</span>
+            </span>
+        @endif
     </div>
 
     <div class="erp-topbar-end">

@@ -580,4 +580,39 @@ class CentralSaaSController extends Controller
 
         return back()->with('status', 'success')->with('message', $msg);
     }
+
+    /**
+     * Generate a secure one-time SSO token and redirect the SaaS Super Admin directly
+     * into the tenant's ERP instance as an authenticated SuperUser.
+     */
+    public function impersonate(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $token = \Illuminate\Support\Str::random(60);
+
+        cache()->put("sso_impersonate_{$token}", [
+            'tenant_id' => $tenant->id,
+            'subdomain' => $tenant->subdomain,
+            'admin_id' => auth()->id(),
+            'admin_name' => auth()->user()?->name ?? 'مدير SaaS العام',
+            'admin_email' => auth()->user()?->email ?? 'admin@kayan-saas.com',
+            'created_at' => now()->timestamp,
+        ], 120);
+
+        $host = $request->getHost();
+        $port = $request->getPort();
+        $portSuffix = ($port && ! in_array($port, [80, 443])) ? ":{$port}" : '';
+        $scheme = $request->getScheme();
+
+        // Extract base domain
+        $parts = explode('.', $host);
+        if (count($parts) >= 2) {
+            $baseDomain = implode('.', array_slice($parts, -2));
+        } else {
+            $baseDomain = $host;
+        }
+
+        $targetUrl = "{$scheme}://{$tenant->subdomain}.{$baseDomain}{$portSuffix}/saas/sso-login?token={$token}";
+
+        return redirect()->away($targetUrl);
+    }
 }

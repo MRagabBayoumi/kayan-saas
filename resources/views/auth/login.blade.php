@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'تسجيل الدخول' }} | {{ $globalCompanySetting?->company_name ?? config('app.name', 'Kayan ERP') }}</title>
+    <title>{{ $title ?? 'تسجيل الدخول' }} | {{ $currentTenant?->name ?? $globalCompanySetting?->company_name ?? config('app.name', 'Kayan ERP') }}</title>
 
     @if(!empty($globalCompanySetting?->logo_url))
         <link rel="icon" type="image/png" href="{{ $globalCompanySetting->logo_url }}">
@@ -32,11 +32,11 @@
             <!-- Brand Header -->
             <div class="erp-auth-brand">
                 @if(!empty($globalCompanySetting?->logo_url))
-                    <img src="{{ $globalCompanySetting->logo_url }}" alt="{{ $globalCompanySetting?->company_name ?? 'Kayan ERP' }}" class="erp-company-logo-img max-h-14 mb-3">
+                    <img src="{{ $globalCompanySetting->logo_url }}" alt="{{ $currentTenant?->name ?? $globalCompanySetting?->company_name ?? 'Kayan ERP' }}" class="erp-company-logo-img max-h-14 mb-3">
                 @else
-                    <div class="erp-auth-logo-badge">K</div>
+                    <div class="erp-auth-logo-badge">{{ mb_substr($currentTenant?->name ?? $globalCompanySetting?->company_name ?? 'K', 0, 1) }}</div>
                 @endif
-                <h1 class="erp-auth-title">{{ $globalCompanySetting?->company_name ?? 'شركة كيان للاستيراد والتوزيع' }}</h1>
+                <h1 class="erp-auth-title">{{ $currentTenant?->name ?? $globalCompanySetting?->company_name ?? 'شركة كيان للاستيراد والتوزيع' }}</h1>
                 <p class="erp-auth-subtitle">نظام كيان المتكامل لإدارة موارد المؤسسات والمخازن</p>
             </div>
 
@@ -139,7 +139,7 @@
 
             <!-- Footer -->
             <div class="erp-auth-footer">
-                <span>{{ $globalCompanySetting?->company_name ?? 'شركة كيان للاستيراد والتوزيع' }} &copy; {{ date('Y') }} — جميع الحقوق محفوظة</span>
+                <span>{{ $currentTenant?->name ?? $globalCompanySetting?->company_name ?? 'شركة كيان للاستيراد والتوزيع' }} &copy; {{ date('Y') }} — جميع الحقوق محفوظة</span>
             </div>
         </div>
     </div>

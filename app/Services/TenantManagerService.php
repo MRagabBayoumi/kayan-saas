@@ -146,14 +146,14 @@ class TenantManagerService
         }
 
         // Set initial company settings with the tenant's company name
-        $hasSettings = DB::connection('tenant_migration')->table('company_settings')->exists();
-        if (! $hasSettings) {
-            DB::connection('tenant_migration')->table('company_settings')->insert([
+        DB::connection('tenant_migration')->table('company_settings')->updateOrInsert(
+            ['id' => 1],
+            [
                 'company_name' => $companyName,
                 'created_at' => now(),
                 'updated_at' => now(),
-            ]);
-        }
+            ]
+        );
 
         // Set default warehouse
         $hasWarehouse = DB::connection('tenant_migration')->table('warehouses')->exists();
@@ -208,6 +208,12 @@ class TenantManagerService
             app()->instance('tenant', $tenant);
 
             return;
+        }
+
+        // Auto-provision if physical database is missing in development / local
+        try {
+            DB::connection('central')->statement("CREATE DATABASE IF NOT EXISTS `{$tenant->database_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+        } catch (\Throwable $e) {
         }
 
         Config::set('database.connections.mysql.database', $tenant->database_name);

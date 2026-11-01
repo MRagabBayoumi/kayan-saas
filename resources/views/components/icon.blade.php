@@ -41,10 +41,54 @@
         @case('package')
         @case('product')
         @case('products')
+        @case('box')
             <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/>
             <path d="M12 22V12"/>
             <polyline points="3.29 7 12 12 20.71 7"/>
             <path d="m7.5 4.27 9 5.15"/>
+            @break
+
+        @case('truck')
+            <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
+            <path d="M15 18H9"/>
+            <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/>
+            <circle cx="17" cy="18.5" r="2.5"/>
+            <circle cx="7" cy="18.5" r="2.5"/>
+            @break
+
+        @case('calculator')
+        @case('pos')
+            <rect width="16" height="20" x="4" y="2" rx="2"/>
+            <line x1="8" x2="16" y1="6" y2="6"/>
+            <line x1="16" x2="16" y1="14" y2="18"/>
+            <path d="M16 10h.01"/>
+            <path d="M12 10h.01"/>
+            <path d="M8 10h.01"/>
+            <path d="M12 14h.01"/>
+            <path d="M8 14h.01"/>
+            <path d="M12 18h.01"/>
+            <path d="M8 18h.01"/>
+            @break
+
+        @case('store')
+        @case('shop')
+            <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+            <path d="M2 7h20"/>
+            @break
+
+        @case('book-open')
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            @break
+
+        @case('layers')
+        @case('puzzle')
+        @case('modules')
+            <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
+            <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/>
+            <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>
             @break
 
         @case('tag')
@@ -137,6 +181,11 @@
         @case('shield')
         @case('permissions')
             <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+            @break
+
+        @case('shield-check')
+            <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+            <path d="m9 12 2 2 4-4"/>
             @break
 
         @case('settings')

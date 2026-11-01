@@ -594,30 +594,37 @@
         /* Modal styling */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 100;
-            backdrop-filter: blur(3px);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+            backdrop-filter: blur(4px);
         }
         .modal-overlay.active {
             display: flex;
         }
         .modal-box {
             background: #ffffff;
-            border-radius: 12px;
+            border-radius: 14px;
             width: 100%;
-            max-width: 620px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+            max-width: 640px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             overflow: hidden;
-            max-height: 90vh;
+            max-height: calc(100vh - 40px);
             display: flex;
             flex-direction: column;
+            margin: auto;
+        }
+        .modal-box > form {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
         }
         .modal-header {
             padding: 16px 22px;
@@ -626,6 +633,7 @@
             justify-content: space-between;
             align-items: center;
             background: #f8fafc;
+            flex-shrink: 0;
         }
         .modal-header h3 { font-size: 16px; font-weight: 800; color: var(--odoo-primary); }
         .modal-close {
@@ -635,11 +643,19 @@
             cursor: pointer;
             color: var(--odoo-text-muted);
             line-height: 1;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color 0.15s, background-color 0.15s;
+        }
+        .modal-close:hover {
+            color: #0f172a;
+            background: #e2e8f0;
         }
         .modal-body {
             padding: 22px;
             overflow-y: auto;
             flex: 1;
+            -webkit-overflow-scrolling: touch;
         }
         .modal-footer {
             padding: 14px 22px;
@@ -648,6 +664,7 @@
             justify-content: flex-end;
             gap: 10px;
             background: #f8fafc;
+            flex-shrink: 0;
         }
         .form-group { margin-bottom: 15px; }
         .form-group label {
@@ -1079,17 +1096,18 @@
                                 <x-icon name="grid" size="16" style="color: var(--odoo-primary);" />
                                 <span>تحديد تطبيقات وموديولات المشترك (Odoo-like Custom Modules)</span>
                             </label>
-                            <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 6px; font-weight: 700;">
-                                حاسبة أسعار فورية ⚡
+                            <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                <x-icon name="zap" size="12" />
+                                <span>حاسبة أسعار فورية</span>
                             </span>
                         </div>
                         <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">
                             حدد التطبيقات التي يحتاجها العميل؛ يُحسب سعر الاشتراك الشهري تلقائياً بناءً على تسعير كل موديول.
                         </p>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px;" id="modulesContainer">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 200px; overflow-y: auto; padding: 4px;" id="modulesContainer">
                             @foreach($availableModules ?? [] as $mod)
                                 <label style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; background: #f8fafc; font-size: 12px; transition: background 0.15s;" class="module-calc-item">
-                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 7px;">
                                         <input type="checkbox" name="modules[{{ $mod->code }}]" value="1" 
                                                class="module-chk"
                                                data-code="{{ $mod->code }}"
@@ -1097,6 +1115,7 @@
                                                data-price-yearly="{{ $mod->price_yearly }}" 
                                                {{ $mod->is_core ? 'checked' : '' }}
                                                onchange="recalculateTenantPrice()">
+                                        <x-icon name="{{ $mod->icon ?? 'package' }}" size="14" style="color: {{ $mod->color ?? 'var(--odoo-primary)' }}; flex-shrink: 0;" />
                                         <span style="font-weight: 700;">{{ $mod->name }}</span>
                                     </div>
                                     <span style="font-size: 11px; font-weight: 800; color: var(--odoo-primary);">{{ number_format($mod->price_monthly, 0) }} ج.م</span>

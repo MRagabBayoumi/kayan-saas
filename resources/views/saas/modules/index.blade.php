@@ -354,17 +354,15 @@
         /* Modal Styles */
         .modal {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 100;
+            z-index: 1000;
             padding: 20px;
-            backdrop-filter: blur(3px);
+            overflow-y: auto;
+            backdrop-filter: blur(4px);
         }
         .modal.active {
             display: flex;
@@ -374,16 +372,28 @@
             border-radius: 16px;
             width: 100%;
             max-width: 620px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            margin: auto;
+        }
+        .modal-card > form {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
         }
         .modal-header {
-            padding: 20px 24px;
+            padding: 18px 24px;
             border-bottom: 1px solid var(--odoo-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            background: #ffffff;
+            flex-shrink: 0;
         }
         .modal-header h3 {
             font-size: 17px;
@@ -393,15 +403,26 @@
         .modal-close {
             background: none;
             border: none;
-            font-size: 20px;
+            font-size: 22px;
             color: #94a3b8;
             cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color 0.15s, background-color 0.15s;
+        }
+        .modal-close:hover {
+            color: #0f172a;
+            background: #f1f5f9;
         }
         .modal-body {
             padding: 24px;
             display: flex;
             flex-direction: column;
             gap: 16px;
+            overflow-y: auto;
+            flex: 1;
+            -webkit-overflow-scrolling: touch;
         }
         .modal-footer {
             padding: 16px 24px;
@@ -410,6 +431,7 @@
             justify-content: flex-end;
             gap: 10px;
             background: #f8fafc;
+            flex-shrink: 0;
         }
         .form-group {
             display: flex;
@@ -512,28 +534,36 @@
                     <div class="kpi-label">إجمالي التطبيقات المعرفة</div>
                     <div class="kpi-value">{{ $metrics['total'] }}</div>
                 </div>
-                <div class="kpi-icon" style="background: #f3e8ff; color: #9333ea;">🧩</div>
+                <div class="kpi-icon" style="background: #f3e8ff; color: #9333ea;">
+                    <x-icon name="layers" size="22" />
+                </div>
             </div>
             <div class="kpi-card">
                 <div>
                     <div class="kpi-label">تطبيقات معروضة للبيع</div>
                     <div class="kpi-value">{{ $metrics['active'] }}</div>
                 </div>
-                <div class="kpi-icon" style="background: #ecfdf5; color: #059669;">✅</div>
+                <div class="kpi-icon" style="background: #ecfdf5; color: #059669;">
+                    <x-icon name="check-circle" size="22" />
+                </div>
             </div>
             <div class="kpi-card">
                 <div>
                     <div class="kpi-label">إجمالي قيمة الحزمة كاملة (شهرياً)</div>
                     <div class="kpi-value">{{ number_format($metrics['monthly_sum'], 0) }} <span style="font-size: 13px; font-weight: 600; color: #64748b;">ج.م</span></div>
                 </div>
-                <div class="kpi-icon" style="background: #f0fdf4; color: #16a34a;">💰</div>
+                <div class="kpi-icon" style="background: #f0fdf4; color: #16a34a;">
+                    <x-icon name="banknote" size="22" />
+                </div>
             </div>
             <div class="kpi-card">
                 <div>
                     <div class="kpi-label">قيمة الحزمة كاملة (سنوياً)</div>
                     <div class="kpi-value">{{ number_format($metrics['yearly_sum'], 0) }} <span style="font-size: 13px; font-weight: 600; color: #64748b;">ج.م</span></div>
                 </div>
-                <div class="kpi-icon" style="background: #eff6ff; color: #2563eb;">💎</div>
+                <div class="kpi-icon" style="background: #eff6ff; color: #2563eb;">
+                    <x-icon name="trending-up" size="22" />
+                </div>
             </div>
         </div>
 
@@ -543,16 +573,7 @@
                 <div class="module-card {{ $module->is_active ? '' : 'inactive' }}">
                     <div class="module-card-header">
                         <div class="module-avatar" style="background-color: {{ $module->color ?? '#714B67' }};">
-                            @if($module->icon === 'calculator') 🧮
-                            @elseif($module->icon === 'box') 📦
-                            @elseif($module->icon === 'truck') 🚚
-                            @elseif($module->icon === 'clipboard') 📋
-                            @elseif($module->icon === 'book-open') 📖
-                            @elseif($module->icon === 'credit-card') 💳
-                            @elseif($module->icon === 'users') 👥
-                            @elseif($module->icon === 'store') 🛍️
-                            @else 🧩
-                            @endif
+                            <x-icon name="{{ $module->icon ?? 'package' }}" size="26" style="color: #ffffff;" />
                         </div>
                         <div class="module-header-meta">
                             <div style="display: flex; gap: 6px; align-items: center;">
@@ -666,14 +687,15 @@
                         <div class="form-group">
                             <label class="form-label">أيقونة التطبيق</label>
                             <select name="icon" class="form-select">
-                                <option value="box">📦 صندوق مخازن</option>
-                                <option value="calculator">🧮 حاسبة / كاشير</option>
-                                <option value="truck">🚚 شاحنة / مشتريات</option>
-                                <option value="clipboard">📋 قائمة تعبئة</option>
-                                <option value="book-open">📖 دفتر حسابات</option>
-                                <option value="credit-card">💳 بطاقة ائتمان / أقساط</option>
-                                <option value="users">👥 فريق عمل / مناديب</option>
-                                <option value="store">🛍️ متجر إلكتروني</option>
+                                <option value="calculator">حاسبة وكاشير (calculator)</option>
+                                <option value="package">مخازن ومستودعات (package)</option>
+                                <option value="truck">مشتريات وشاحنات (truck)</option>
+                                <option value="clipboard">قوائم تعبئة وشحن (clipboard)</option>
+                                <option value="book-open">محاسبة ودفاتر مالية (book-open)</option>
+                                <option value="credit-card">أقساط وبطاقات دفع (credit-card)</option>
+                                <option value="users">مناديب وفريق عمل (users)</option>
+                                <option value="store">متجر إلكتروني (store)</option>
+                                <option value="layers">تطبيق عام / موديول مخصص (layers)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -742,14 +764,15 @@
                         <div class="form-group">
                             <label class="form-label">أيقونة التطبيق</label>
                             <select id="edit_icon" name="icon" class="form-select">
-                                <option value="box">📦 صندوق مخازن</option>
-                                <option value="calculator">🧮 حاسبة / كاشير</option>
-                                <option value="truck">🚚 شاحنة / مشتريات</option>
-                                <option value="clipboard">📋 قائمة تعبئة</option>
-                                <option value="book-open">📖 دفتر حسابات</option>
-                                <option value="credit-card">💳 بطاقة ائتمان / أقساط</option>
-                                <option value="users">👥 فريق عمل / مناديب</option>
-                                <option value="store">🛍️ متجر إلكتروني</option>
+                                <option value="calculator">حاسبة وكاشير (calculator)</option>
+                                <option value="package">مخازن ومستودعات (package)</option>
+                                <option value="truck">مشتريات وشاحنات (truck)</option>
+                                <option value="clipboard">قوائم تعبئة وشحن (clipboard)</option>
+                                <option value="book-open">محاسبة ودفاتر مالية (book-open)</option>
+                                <option value="credit-card">أقساط وبطاقات دفع (credit-card)</option>
+                                <option value="users">مناديب وفريق عمل (users)</option>
+                                <option value="store">متجر إلكتروني (store)</option>
+                                <option value="layers">تطبيق عام / موديول مخصص (layers)</option>
                             </select>
                         </div>
                         <div class="form-group">

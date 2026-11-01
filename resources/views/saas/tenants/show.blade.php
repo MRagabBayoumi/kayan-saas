@@ -410,30 +410,37 @@
 
         /* Modals */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
+            position: fixed; inset: 0;
+            background: rgba(15, 23, 42, 0.65);
             display: none; align-items: center; justify-content: center;
-            z-index: 100; backdrop-filter: blur(3px);
+            z-index: 1000; padding: 20px; overflow-y: auto; backdrop-filter: blur(4px);
         }
         .modal-overlay.active { display: flex; }
         .modal-box {
-            background: #ffffff; border-radius: 12px;
-            width: 100%; max-width: 600px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
-            overflow: hidden; max-height: 90vh;
-            display: flex; flex-direction: column;
+            background: #ffffff; border-radius: 14px;
+            width: 100%; max-width: 620px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden; max-height: calc(100vh - 40px);
+            display: flex; flex-direction: column; margin: auto;
+        }
+        .modal-box > form {
+            display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;
         }
         .modal-header {
             padding: 16px 22px; border-bottom: 1px solid var(--odoo-border);
             display: flex; justify-content: space-between; align-items: center;
-            background: #f8fafc;
+            background: #f8fafc; flex-shrink: 0;
         }
         .modal-header h3 { font-size: 16px; font-weight: 800; color: var(--odoo-primary); }
-        .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--odoo-text-muted); }
-        .modal-body { padding: 22px; overflow-y: auto; flex: 1; }
+        .modal-close {
+            background: none; border: none; font-size: 22px; cursor: pointer; color: var(--odoo-text-muted);
+            line-height: 1; padding: 4px; border-radius: 6px; transition: color 0.15s, background-color 0.15s;
+        }
+        .modal-close:hover { color: #0f172a; background: #e2e8f0; }
+        .modal-body { padding: 22px; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
         .modal-footer {
             padding: 14px 22px; border-top: 1px solid var(--odoo-border);
-            display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc;
+            display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc; flex-shrink: 0;
         }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 5px; }
@@ -779,15 +786,20 @@
                 @php $mods = $tenant->modules ?? []; @endphp
                 <div class="modules-grid">
                     @forelse($availableModules ?? [] as $m)
-                        <div class="module-card {{ ($mods[$m->code] ?? false) ? 'enabled' : 'disabled' }}">
-                            <div class="module-info">
-                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                                    <span style="font-size: 10px; font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; color: #475569;">{{ $m->code }}</span>
-                                    <h4 style="margin: 0; font-size: 14px;">{{ $m->name }}</h4>
+                        <div class="module-card {{ ($mods[$m->code] ?? false) ? 'enabled' : 'disabled' }}" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px;">
+                            <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1;">
+                                <div style="width: 40px; height: 40px; min-width: 40px; border-radius: 8px; background: {{ $m->color ?? '#714B67' }}; color: #ffffff; display: flex; align-items: center; justify-content: center;">
+                                    <x-icon name="{{ $m->icon ?? 'package' }}" size="20" style="color: #ffffff;" />
                                 </div>
-                                <p style="font-size: 12px; margin: 4px 0;">{{ $m->description }}</p>
-                                <div style="font-size: 11px; color: var(--odoo-primary); font-weight: 800; margin-top: 4px;">
-                                    {{ number_format($m->price_monthly, 0) }} ج.م/شهرياً &bull; {{ number_format($m->price_yearly, 0) }} ج.م/سنوياً
+                                <div class="module-info">
+                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                        <span style="font-size: 10px; font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; color: #475569;">{{ $m->code }}</span>
+                                        <h4 style="margin: 0; font-size: 14px;">{{ $m->name }}</h4>
+                                    </div>
+                                    <p style="font-size: 12px; margin: 4px 0;">{{ $m->description }}</p>
+                                    <div style="font-size: 11px; color: var(--odoo-primary); font-weight: 800; margin-top: 4px;">
+                                        {{ number_format($m->price_monthly, 0) }} ج.م/شهرياً &bull; {{ number_format($m->price_yearly, 0) }} ج.م/سنوياً
+                                    </div>
                                 </div>
                             </div>
                             <form action="{{ route('saas.tenants.toggle-module', $tenant->id) }}" method="POST">

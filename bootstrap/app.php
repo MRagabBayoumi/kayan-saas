@@ -22,6 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
             '_boots/*',
         ]);
         $middleware->redirectUsersTo(function (Request $request) {
+            if ($request->attributes->get('is_central')) {
+                return route('saas.index');
+            }
+
             if ($request->user()?->isSalesRep()) {
                 return route('portal.index');
             }

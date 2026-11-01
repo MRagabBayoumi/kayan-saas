@@ -22,10 +22,6 @@ class IdentifyTenant
         if (empty($subdomain)) {
             $request->attributes->set('is_central', true);
 
-            if ($request->is('login')) {
-                return redirect()->route('saas.index');
-            }
-
             return $next($request);
         }
 

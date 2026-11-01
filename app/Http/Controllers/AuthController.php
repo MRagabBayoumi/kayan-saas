@@ -103,7 +103,9 @@ class AuthController extends Controller
                 ->with('message', 'مرحباً بك مجدداً، '.Auth::user()->name);
         }
 
-        return redirect()->intended(route('dashboard'))
+        $defaultRoute = $request->attributes->get('is_central') ? route('saas.index') : route('dashboard');
+
+        return redirect()->intended($defaultRoute)
             ->with('status', 'success')
             ->with('message', 'مرحباً بك مجدداً، '.Auth::user()->name);
     }

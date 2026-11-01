@@ -681,7 +681,7 @@
                         <div class="form-group">
                             <label class="form-label">كود الموديول البرمجي (Code) *</label>
                             <input type="text" id="add_code" name="code" class="form-input" placeholder="مثال: accounting" required dir="ltr">
-                            <small style="color: #64748b; font-size: 11px;">يتحكم في حماية المسارات والقوائم (@hasModule)</small>
+                            <small style="color: #64748b; font-size: 11px;">يتحكم في حماية المسارات والقوائم البرمجية (hasModule)</small>
                         </div>
                         <div class="form-group">
                             <label class="form-label">اسم التطبيق التجاري *</label>

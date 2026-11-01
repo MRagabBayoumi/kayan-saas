@@ -660,33 +660,50 @@
             <form action="{{ route('saas.modules.store') }}" method="POST">
                 @csrf
                 <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">ربط بميزة / موديول من النظام *</label>
+                        <select id="preset_selector" class="form-select" onchange="applyModulePreset(this.value)">
+                            <option value="">-- اختر ميزة من شاشات النظام أو اختر مخصص --</option>
+                            <option value="pos">نقطة البيع والكاشير المباشر (POS & Cashier)</option>
+                            <option value="inventory">إدارة المخازن والمستودعات والمنتجات (Inventory & Stock)</option>
+                            <option value="purchases">المشتريات والموردين وفواتير الشراء (Purchases & Suppliers)</option>
+                            <option value="packing_list">قوائم التعبئة وشيتات الشحن (Packing Lists)</option>
+                            <option value="accounting">المحاسبة العامة وشجرة الحسابات والقيود (Accounting & Ledger)</option>
+                            <option value="installments">الأقساط وجداول التحصيل والسداد (Installments)</option>
+                            <option value="sales_reps">إدارة المناديب وبوابة الزيارات الخارجية (Sales Reps & Portal)</option>
+                            <option value="ecommerce">المتجر الإلكتروني الخارجي للطلبات (E-Commerce Store)</option>
+                            <option value="custom">موديول إضافي مخصص (Custom Feature / Addon)</option>
+                        </select>
+                        <small style="color: #64748b; font-size: 11px;">تحديد شاشات الـ ERP التي سيتحكم هذا الموديول في قفلها وفتحها للمشترك فوراً</small>
+                    </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">كود الموديول البرمجي (Code) *</label>
-                            <input type="text" name="code" class="form-input" placeholder="مثال: hr, analytics, loyalty" required dir="ltr">
-                            <small style="color: #64748b; font-size: 11px;">يستخدم في حماية المسارات برمجياً (أحرف إنجليزية وأرقام فقط)</small>
+                            <input type="text" id="add_code" name="code" class="form-input" placeholder="مثال: accounting" required dir="ltr">
+                            <small style="color: #64748b; font-size: 11px;">يتحكم في حماية المسارات والقوائم (@hasModule)</small>
                         </div>
                         <div class="form-group">
                             <label class="form-label">اسم التطبيق التجاري *</label>
-                            <input type="text" name="name" class="form-input" placeholder="مثال: إدارة شؤون الموظفين والرواتب" required>
+                            <input type="text" id="add_name" name="name" class="form-input" placeholder="مثال: المحاسبة العامة وشجرة الحسابات" required>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">السعر الشهري (ج.م) *</label>
-                            <input type="number" step="0.01" name="price_monthly" class="form-input" placeholder="150" required>
+                            <input type="number" step="0.01" id="add_price_monthly" name="price_monthly" class="form-input" placeholder="150" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">السعر السنوي (ج.م)</label>
-                            <input type="number" step="0.01" name="price_yearly" class="form-input" placeholder="اتركه فارغاً ليتم حسابه تلقائياً">
+                            <input type="number" step="0.01" id="add_price_yearly" name="price_yearly" class="form-input" placeholder="اتركه فارغاً ليتم حسابه تلقائياً">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">أيقونة التطبيق</label>
-                            <select name="icon" class="form-select">
+                            <select id="add_icon" name="icon" class="form-select">
                                 <option value="calculator">حاسبة وكاشير (calculator)</option>
                                 <option value="package">مخازن ومستودعات (package)</option>
                                 <option value="truck">مشتريات وشاحنات (truck)</option>
@@ -700,27 +717,27 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">لون بطاقة التطبيق</label>
-                            <input type="color" name="color" class="form-input" value="#714B67" style="height: 42px; padding: 2px;">
+                            <input type="color" id="add_color" name="color" class="form-input" value="#714B67" style="height: 42px; padding: 2px;">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">وصف التطبيق للعميل</label>
-                        <textarea name="description" rows="2" class="form-textarea" placeholder="اشرح للعميل لماذا يحتاج هذا التطبيق وما فائدته لشركته..."></textarea>
+                        <textarea id="add_description" name="description" rows="2" class="form-textarea" placeholder="اشرح للعميل لماذا يحتاج هذا التطبيق وما فائدته لشركته..."></textarea>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">قائمة الوظائف والميزات (سطر لكل ميزة)</label>
-                        <textarea name="features" rows="4" class="form-textarea" placeholder="تسجيل الحضور والانصراف الذكي&#10;مسيرات الرواتب والسلف والخصومات&#10;طباعة مفردات المرتب"></textarea>
+                        <textarea id="add_features" name="features" rows="4" class="form-textarea" placeholder="تسجيل الحضور والانصراف الذكي&#10;مسيرات الرواتب والسلف والخصومات&#10;طباعة مفردات المرتب"></textarea>
                     </div>
 
                     <div style="display: flex; gap: 20px;">
                         <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">
-                            <input type="checkbox" name="is_core" value="1">
+                            <input type="checkbox" id="add_is_core" name="is_core" value="1">
                             <span>تطبيق أساسي إجباري في كل اشتراك</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">
-                            <input type="checkbox" name="is_active" value="1" checked>
+                            <input type="checkbox" id="add_is_active" name="is_active" value="1" checked>
                             <span>مفعل ومعروض للبيع فوراً</span>
                         </label>
                     </div>
@@ -811,7 +828,132 @@
     </div>
 
     <script>
+        const MODULE_PRESETS = {
+            pos: {
+                code: 'pos',
+                name: 'نقطة البيع ونظام الكاشير المباشر (POS)',
+                price_monthly: 150,
+                price_yearly: 1500,
+                icon: 'calculator',
+                color: '#714B67',
+                description: 'إصدار فواتير بيع كاش وآجل، إدارة ورديات وخزائن الكاشير، الإغلاق اليومي، وطباعة الفواتير الحرارية 80mm.',
+                features: 'إصدار فواتير بيع سريعة (POS)\nإدارة ورديات وخزائن الكاشير\nالطباعة الحرارية السريعة مع الباركود\nمرتجعات ومبيعات فورية',
+                is_core: true
+            },
+            inventory: {
+                code: 'inventory',
+                name: 'المخازن والمستودعات والمنتجات (Inventory)',
+                price_monthly: 150,
+                price_yearly: 1500,
+                icon: 'package',
+                color: '#00A09D',
+                description: 'إدارة المستودعات المتعددة، حركات الأصناف، الجرد الدوري والتسوية، وتنبيهات نواقص المخزون والباركود.',
+                features: 'مستودعات غير محدودة\nتتبع باتشات وتواريخ الصلاحية والباركود\nجرد المخزون والتسويات المخزنية\nتنبيهات انخفاض الكميات والحد الأدنى',
+                is_core: true
+            },
+            purchases: {
+                code: 'purchases',
+                name: 'المشتريات وإدارة الموردين (Purchases)',
+                price_monthly: 120,
+                price_yearly: 1200,
+                icon: 'truck',
+                color: '#3B82F6',
+                description: 'فواتير المشتريات، متابعة حسابات ومستحقات الموردين، وإدارة مكاتب الشحن ومردودات المشتريات.',
+                features: 'فواتير استلام وتوريد بضاعة\nكشف حساب تفصيلي لكل مورد\nمردودات المشتريات والتسويات\nحساب مكاتب وتكاليف الشحن',
+                is_core: false
+            },
+            packing_list: {
+                code: 'packing_list',
+                name: 'قوائم التعبئة والشحن (Packing Lists)',
+                price_monthly: 80,
+                price_yearly: 800,
+                icon: 'clipboard',
+                color: '#10B981',
+                description: 'إنشاء وطباعة شيتات التعبئة لتجهيز شحنات المناديب وتوزيع الطلبيات بدقة وسرعة.',
+                features: 'شيتات التعبئة والتفريغ التلقائية\nطباعة بوليصات التسليم والتجهيز\nتجهيز بضائع مناديب التوزيع\nأرشيف وتصدير إكسل سريع',
+                is_core: false
+            },
+            accounting: {
+                code: 'accounting',
+                name: 'المحاسبة العامة وشجرة الحسابات (Accounting)',
+                price_monthly: 200,
+                price_yearly: 2000,
+                icon: 'book-open',
+                color: '#8B5CF6',
+                description: 'القيود المحاسبية التلقائية واليدوية، شجرة حسابات مرنة، ميزان المراجعة، الأرباح والخسائر والميزانية.',
+                features: 'شجرة حسابات مالية شاملة\nقيود يومية ومرحلة تلقائياً من الفواتير\nميزان المراجعة وقائمة الدخل\nالميزانية العمومية وكشوف الحساب',
+                is_core: false
+            },
+            installments: {
+                code: 'installments',
+                name: 'إدارة الأقساط وجداول التحصيل (Installments)',
+                price_monthly: 120,
+                price_yearly: 1200,
+                icon: 'credit-card',
+                color: '#F59E0B',
+                description: 'توزيع فواتير البيع والشراء على أقساط، إشعارات تواريخ الاستحقاق، وتسجيل السداد الجزئي والكامل.',
+                features: 'جدولة أقساط العملاء والموردين\nتنبيهات الأقساط المتأخرة والواجبة\nتسجيل تحصيل فوري مع سندات القبض\nكشف حساب الأقساط المتبقية',
+                is_core: false
+            },
+            sales_reps: {
+                code: 'sales_reps',
+                name: 'إدارة المناديب وبوابة الزيارات (Sales Reps)',
+                price_monthly: 180,
+                price_yearly: 1800,
+                icon: 'users',
+                color: '#EC4899',
+                description: 'متابعة مناديب المبيعات، خطوط السير، وبوابة هاتف خارجية خاصة بكل مندوب لتسجيل الطلبيات والتحصيلات.',
+                features: 'بوابة هاتف مستقلة للمندوب (/portal)\nتسجيل الزيارات وطلبات العملاء\nتتبع خطوط السير اليومية\nتقارير مبيعات وعمولات المناديب',
+                is_core: false
+            },
+            ecommerce: {
+                code: 'ecommerce',
+                name: 'المتجر الإلكتروني الخارجي (E-Commerce)',
+                price_monthly: 250,
+                price_yearly: 2500,
+                icon: 'store',
+                color: '#14B8A6',
+                description: 'كتالوج منتجات إلكتروني أونلاين مربوط بالمخزون مباشرة، سلة شراء، واستقبال طلبات الزبائن أونلاين.',
+                features: 'متجر أونلاين باسم المشترك (/shop)\nربط حي بالمخزون والأسعار\nاستقبال الطلبات تلقائياً للمبيعات\nسلة مشتريات وتجربة جوال متجاوبة',
+                is_core: false
+            }
+        };
+
+        function applyModulePreset(key) {
+            if (!key || key === 'custom') {
+                if (key === 'custom') {
+                    document.getElementById('add_code').value = '';
+                    document.getElementById('add_code').readOnly = false;
+                    document.getElementById('add_name').value = '';
+                    document.getElementById('add_price_monthly').value = '';
+                    document.getElementById('add_price_yearly').value = '';
+                    document.getElementById('add_icon').value = 'layers';
+                    document.getElementById('add_color').value = '#714B67';
+                    document.getElementById('add_description').value = '';
+                    document.getElementById('add_features').value = '';
+                    document.getElementById('add_is_core').checked = false;
+                }
+                return;
+            }
+
+            const p = MODULE_PRESETS[key];
+            if (p) {
+                document.getElementById('add_code').value = p.code;
+                document.getElementById('add_code').readOnly = true;
+                document.getElementById('add_name').value = p.name;
+                document.getElementById('add_price_monthly').value = p.price_monthly;
+                document.getElementById('add_price_yearly').value = p.price_yearly;
+                document.getElementById('add_icon').value = p.icon;
+                document.getElementById('add_color').value = p.color;
+                document.getElementById('add_description').value = p.description;
+                document.getElementById('add_features').value = p.features;
+                document.getElementById('add_is_core').checked = p.is_core;
+            }
+        }
+
         function openAddModal() {
+            document.getElementById('preset_selector').value = '';
+            document.getElementById('add_code').readOnly = false;
             document.getElementById('addModal').classList.add('active');
         }
         function closeAddModal() {

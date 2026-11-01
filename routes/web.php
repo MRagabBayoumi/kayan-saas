@@ -170,18 +170,20 @@ Route::middleware('auth')->group(function () {
     // Product & Category Management
     // Read-only product routes accessible to admin, warehouse, and cashier
     Route::middleware('can:view-products')->group(function () {
-        // Packing List Dedicated Builder & Persistent Archive
-        Route::get('/packing-list', [PackingListController::class, 'index'])->name('packing-list.index');
-        Route::get('/packing-lists', [PackingListController::class, 'archive'])->name('packing-list.archive');
-        Route::get('/products/packing-list', fn () => redirect()->route('packing-list.index'));
-        Route::post('/packing-list/save', [PackingListController::class, 'store'])->name('packing-list.save');
-        Route::delete('/packing-list/{packingList}', [PackingListController::class, 'destroy'])->name('packing-list.destroy');
-        Route::get('/packing-list/{packingList}/print', [PackingListController::class, 'printModel'])->name('packing-list.print-model');
-        Route::get('/packing-list/{packingList}/export-excel', [PackingListController::class, 'exportExcelModel'])->name('packing-list.export-excel-model');
-        Route::get('/packing-list/search-products', [PackingListController::class, 'searchProducts'])->name('packing-list.search-products');
-        Route::post('/packing-list/export-excel', [PackingListController::class, 'exportExcel'])->name('packing-list.export-excel');
-        Route::post('/packing-list/export-csv', [PackingListController::class, 'exportCsv'])->name('packing-list.export-csv');
-        Route::match(['get', 'post'], '/packing-list/print', [PackingListController::class, 'print'])->name('packing-list.print');
+        // Packing List Dedicated Builder & Persistent Archive (Protected by SaaS Module)
+        Route::middleware('module:packing_list')->group(function () {
+            Route::get('/packing-list', [PackingListController::class, 'index'])->name('packing-list.index');
+            Route::get('/packing-lists', [PackingListController::class, 'archive'])->name('packing-list.archive');
+            Route::get('/products/packing-list', fn () => redirect()->route('packing-list.index'));
+            Route::post('/packing-list/save', [PackingListController::class, 'store'])->name('packing-list.save');
+            Route::delete('/packing-list/{packingList}', [PackingListController::class, 'destroy'])->name('packing-list.destroy');
+            Route::get('/packing-list/{packingList}/print', [PackingListController::class, 'printModel'])->name('packing-list.print-model');
+            Route::get('/packing-list/{packingList}/export-excel', [PackingListController::class, 'exportExcelModel'])->name('packing-list.export-excel-model');
+            Route::get('/packing-list/search-products', [PackingListController::class, 'searchProducts'])->name('packing-list.search-products');
+            Route::post('/packing-list/export-excel', [PackingListController::class, 'exportExcel'])->name('packing-list.export-excel');
+            Route::post('/packing-list/export-csv', [PackingListController::class, 'exportCsv'])->name('packing-list.export-csv');
+            Route::match(['get', 'post'], '/packing-list/print', [PackingListController::class, 'print'])->name('packing-list.print');
+        });
 
         Route::get('/products/price-list', [ProductController::class, 'priceList'])->name('products.price-list');
         Route::get('/products/price-list/print', [ProductController::class, 'printPriceList'])->name('products.price-list.print');
@@ -346,11 +348,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/customers/{customer}/unpaid-invoices', [CustomerInstallmentController::class, 'invoicesForCustomer'])->name('customers.unpaid-invoices');
         Route::resource('customers', CustomerController::class)->except(['store']);
 
-        // Customer Installments & Collection Scheduling
-        Route::get('/customer-installments', [CustomerInstallmentController::class, 'index'])->name('customer-installments.index');
-        Route::post('/customer-installments', [CustomerInstallmentController::class, 'store'])->name('customer-installments.store');
-        Route::post('/customer-installments/{installment}/collect', [CustomerInstallmentController::class, 'collect'])->name('customer-installments.collect');
-        Route::delete('/customer-installments/{installment}', [CustomerInstallmentController::class, 'destroy'])->name('customer-installments.destroy');
+        // Customer Installments & Collection Scheduling (Protected by SaaS Module)
+        Route::middleware('module:installments')->group(function () {
+            Route::get('/customer-installments', [CustomerInstallmentController::class, 'index'])->name('customer-installments.index');
+            Route::post('/customer-installments', [CustomerInstallmentController::class, 'store'])->name('customer-installments.store');
+            Route::post('/customer-installments/{installment}/collect', [CustomerInstallmentController::class, 'collect'])->name('customer-installments.collect');
+            Route::delete('/customer-installments/{installment}', [CustomerInstallmentController::class, 'destroy'])->name('customer-installments.destroy');
+        });
     });
 
     // Directory of Suppliers & Shipping Offices (Purchases & Inventory)
@@ -367,10 +371,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/purchases/{purchase}/payments', [SupplierPaymentController::class, 'storeForInvoice'])->name('purchases.payments.store');
         Route::post('/suppliers/{supplier}/payments', [SupplierPaymentController::class, 'storeForSupplier'])->name('suppliers.payments.store');
 
-        // Supplier Installments & Payment Scheduling
-        Route::get('/supplier-installments', [SupplierInstallmentController::class, 'index'])->name('supplier-installments.index');
-        Route::post('/supplier-installments', [SupplierInstallmentController::class, 'store'])->name('supplier-installments.store');
-        Route::delete('/supplier-installments/{installment}', [SupplierInstallmentController::class, 'destroy'])->name('supplier-installments.destroy');
+        // Supplier Installments & Payment Scheduling (Protected by SaaS Module)
+        Route::middleware('module:installments')->group(function () {
+            Route::get('/supplier-installments', [SupplierInstallmentController::class, 'index'])->name('supplier-installments.index');
+            Route::post('/supplier-installments', [SupplierInstallmentController::class, 'store'])->name('supplier-installments.store');
+            Route::delete('/supplier-installments/{installment}', [SupplierInstallmentController::class, 'destroy'])->name('supplier-installments.destroy');
+        });
     });
 
     // Finance, Treasuries & Accounting (المرحلة الأولى: دورة النقدية والصرف)

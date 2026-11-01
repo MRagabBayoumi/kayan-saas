@@ -182,12 +182,14 @@
                     <span class="erp-nav-label">المنتجات والأصناف</span>
                 </div>
             </a>
+            @hasModule('packing_list')
             <a href="{{ route('packing-list.index') }}" class="erp-nav-item {{ request()->is('packing-list*') ? 'active' : '' }}" title="قائمة التعبئة والتجهيز (Packing List)">
                 <div class="erp-nav-content">
                     <span class="erp-nav-icon"><x-icon name="clipboard" size="18" /></span>
                     <span class="erp-nav-label">قائمة التعبئة (Packing List)</span>
                 </div>
             </a>
+            @endhasModule
             @endcan
             @can('manage-products')
             <a href="{{ route('categories.index') }}" class="erp-nav-item {{ request()->is('categories*') ? 'active' : '' }}" title="تصنيفات المنتجات">

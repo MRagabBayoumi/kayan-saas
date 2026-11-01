@@ -74,8 +74,8 @@ class CentralSaaSController extends Controller
         // Host calculation for link
         $host = request()->getHost();
         $baseHost = str_replace(['www.', 'saas.'], '', $host);
-        if ($baseHost === 'localhost' || $baseHost === '127.0.0.1') {
-            $baseHost = 'lvh.me';
+        if ($baseHost === '127.0.0.1') {
+            $baseHost = 'localhost';
         }
         $port = request()->getPort();
         $portSuffix = ($port && ! in_array($port, [80, 443])) ? ':'.$port : '';
@@ -599,19 +599,15 @@ class CentralSaaSController extends Controller
         ], 120);
 
         $host = $request->getHost();
+        $baseHost = str_replace(['www.', 'saas.'], '', $host);
+        if ($baseHost === '127.0.0.1') {
+            $baseHost = 'localhost';
+        }
         $port = $request->getPort();
         $portSuffix = ($port && ! in_array($port, [80, 443])) ? ":{$port}" : '';
         $scheme = $request->getScheme();
 
-        // Extract base domain
-        $parts = explode('.', $host);
-        if (count($parts) >= 2) {
-            $baseDomain = implode('.', array_slice($parts, -2));
-        } else {
-            $baseDomain = $host;
-        }
-
-        $targetUrl = "{$scheme}://{$tenant->subdomain}.{$baseDomain}{$portSuffix}/saas/sso-login?token={$token}";
+        $targetUrl = "{$scheme}://{$tenant->subdomain}.{$baseHost}{$portSuffix}/saas/sso-login?token={$token}";
 
         return redirect()->away($targetUrl);
     }

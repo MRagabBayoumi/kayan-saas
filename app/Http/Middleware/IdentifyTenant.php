@@ -74,30 +74,52 @@ class IdentifyTenant
      */
     protected function extractSubdomain(string $host): ?string
     {
-        // Ignore plain IP addresses or localhost
-        if (filter_var($host, FILTER_VALIDATE_IP) || $host === 'localhost') {
+        // Strip port if present in host (e.g. localhost:8080 -> localhost)
+        $cleanHost = strtolower(explode(':', $host)[0]);
+
+        // Ignore plain IP addresses or root localhost
+        if (filter_var($cleanHost, FILTER_VALIDATE_IP) || $cleanHost === 'localhost') {
             return null;
         }
 
-        $parts = explode('.', $host);
+        // Support *.localhost (e.g. client1.localhost -> subdomain is client1)
+        if (str_ends_with($cleanHost, '.localhost')) {
+            $subdomain = substr($cleanHost, 0, -strlen('.localhost'));
+            $parts = explode('.', $subdomain);
+            $candidate = $parts[0];
+
+            if ($this->isValidSubdomain($candidate)) {
+                return $candidate;
+            }
+
+            return null;
+        }
+
+        $parts = explode('.', $cleanHost);
 
         // e.g. client1.lvh.me (3 parts) -> subdomain is client1
         // e.g. client1.kayan-erp.com (3 parts) -> subdomain is client1
         // e.g. client1.kayan.local (3 parts) -> subdomain is client1
         if (count($parts) >= 3) {
-            $subdomain = strtolower($parts[0]);
-            if (in_array($subdomain, ['www', 'app', 'saas', 'admin', 'central', 'mail', 'cpanel', 'api'], true)) {
-                return null;
-            }
+            $candidate = strtolower($parts[0]);
 
-            // Security: Strictly allow alphanumeric and hyphens only (prevent path traversal / injection)
-            if (! preg_match('/^[a-z0-9][a-z0-9\-]{0,61}[a-z0-9]$/i', $subdomain)) {
-                return null;
+            if ($this->isValidSubdomain($candidate)) {
+                return $candidate;
             }
-
-            return $subdomain;
         }
 
         return null;
+    }
+
+    /**
+     * Validate if a subdomain candidate is safe and not a reserved name.
+     */
+    protected function isValidSubdomain(string $subdomain): bool
+    {
+        if (in_array($subdomain, ['www', 'app', 'saas', 'admin', 'central', 'mail', 'cpanel', 'api'], true)) {
+            return false;
+        }
+
+        return (bool) preg_match('/^[a-z0-9][a-z0-9\-]{0,61}[a-z0-9]$/i', $subdomain);
     }
 }

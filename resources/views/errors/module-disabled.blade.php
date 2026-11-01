@@ -95,22 +95,28 @@
         <div class="plan-badge">باقتك الحالية: {{ $tenant->plan_name ?? 'الأساسية' }}</div>
         
         @php
-            $moduleNames = [
-                'accounting' => 'المحاسبة والتقارير المالية والأستاذ العام',
-                'sales_reps' => 'إدارة المناديب وتتبع خطوط السير والزيارات',
-                'installments' => 'جدولة الأقساط للموردين والعملاء',
-                'warehouses' => 'تعدد الفروع والمستودعات',
-            ];
-            $readableName = $moduleNames[$module] ?? $module;
+            $saasMod = \App\Models\SaasModule::where('code', $module)->first();
+            $readableName = $saasMod ? $saasMod->name : $module;
+            $modulePrice = $saasMod ? number_format($saasMod->price_monthly, 0) . ' ج.م' : null;
         @endphp
 
-        <h1>موديول غير مفعل في باقتك</h1>
+        <h1>تطبيق / موديول غير مفعّل في اشتراكك</h1>
         <p>
-            موديول <strong>({{ $readableName }})</strong> غير مشمول في باقة الاشتراك الحالية لشركتك. يمكنك الترقية إلى الباقة الأعلى للاستفادة الكاملة من كافة مميزات النظام المتقدمة.
+            تطبيق <strong>({{ $readableName }})</strong> غير مشمول حالياً في خطة اشتراك شركتك.
+            @if($saasMod && $saasMod->description)
+                <span style="display: block; margin-top: 8px; font-size: 13px; color: #475569;">{{ $saasMod->description }}</span>
+            @endif
         </p>
 
-        <a href="https://wa.me/201099616086?text={{ urlencode('مرحباً، أود ترقية باقتي لتفعيل موديول: ' . $readableName) }}" target="_blank" class="btn">
-            طلب ترقية الباقة الآن 🚀
+        @if($modulePrice)
+            <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 12px; margin-bottom: 20px;">
+                <div style="font-size: 12px; color: #64748b;">تكلفة ترقية وإضافة هذا التطبيق:</div>
+                <div style="font-size: 20px; font-weight: 900; color: #714B67;">{{ $modulePrice }} <span style="font-size: 12px; font-weight: 600;">/ شهرياً</span></div>
+            </div>
+        @endif
+
+        <a href="https://wa.me/201099616086?text={{ urlencode('مرحباً، أود ترقية باقتي وإضافة موديول: ' . $readableName . ($modulePrice ? ' (' . $modulePrice . ')' : '')) }}" target="_blank" class="btn">
+            طلب ترقية وتفعيل التطبيق الآن 🚀
         </a>
 
         <a href="/" class="btn-back">← العودة للرئيسية</a>

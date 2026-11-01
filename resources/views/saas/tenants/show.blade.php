@@ -468,6 +468,10 @@
                     <x-icon name="layout-dashboard" size="15" />
                     <span>لوحة التحكم</span>
                 </a>
+                <a href="{{ route('saas.modules.index') }}" class="odoo-nav-item">
+                    <x-icon name="grid" size="15" />
+                    <span>متجر الموديولات والتطبيقات</span>
+                </a>
                 <a href="{{ route('saas.plans.index') }}" class="odoo-nav-item">
                     <x-icon name="tag" size="15" />
                     <span>الباقات والأسعار</span>
@@ -774,89 +778,35 @@
 
                 @php $mods = $tenant->modules ?? []; @endphp
                 <div class="modules-grid">
-                    <!-- Accounting -->
-                    <div class="module-card {{ ($mods['accounting'] ?? false) ? 'enabled' : 'disabled' }}">
-                        <div class="module-info">
-                            <h4>المحاسبة العامة وشجرة الحسابات</h4>
-                            <p>دليل الحسابات، القيود اليومية، ميزان المراجعة والتقارير المالية</p>
+                    @forelse($availableModules ?? [] as $m)
+                        <div class="module-card {{ ($mods[$m->code] ?? false) ? 'enabled' : 'disabled' }}">
+                            <div class="module-info">
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                    <span style="font-size: 10px; font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; color: #475569;">{{ $m->code }}</span>
+                                    <h4 style="margin: 0; font-size: 14px;">{{ $m->name }}</h4>
+                                </div>
+                                <p style="font-size: 12px; margin: 4px 0;">{{ $m->description }}</p>
+                                <div style="font-size: 11px; color: var(--odoo-primary); font-weight: 800; margin-top: 4px;">
+                                    {{ number_format($m->price_monthly, 0) }} ج.م/شهرياً &bull; {{ number_format($m->price_yearly, 0) }} ج.م/سنوياً
+                                </div>
+                            </div>
+                            <form action="{{ route('saas.tenants.toggle-module', $tenant->id) }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="module" value="{{ $m->code }}">
+                                <button type="submit" class="btn-secondary" style="font-size: 11px; padding: 5px 12px;">
+                                    @if($mods[$m->code] ?? false)
+                                        <x-icon name="check" size="12" style="color: #047857;" />
+                                        <span>مفعل (إغلاق)</span>
+                                    @else
+                                        <x-icon name="x" size="12" style="color: #ef4444;" />
+                                        <span>معطل (تفعيل)</span>
+                                    @endif
+                                </button>
+                            </form>
                         </div>
-                        <form action="{{ route('saas.tenants.toggle-module', $tenant->id) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="module" value="accounting">
-                            <button type="submit" class="btn-secondary" style="font-size: 11px; padding: 5px 12px;">
-                                @if($mods['accounting'] ?? false)
-                                    <x-icon name="check" size="12" style="color: #047857;" />
-                                    <span>مفعل (إغلاق)</span>
-                                @else
-                                    <x-icon name="x" size="12" style="color: #ef4444;" />
-                                    <span>معطل (تفعيل)</span>
-                                @endif
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Sales Reps -->
-                    <div class="module-card {{ ($mods['sales_reps'] ?? false) ? 'enabled' : 'disabled' }}">
-                        <div class="module-info">
-                            <h4>إدارة المناديب والتوزيع</h4>
-                            <p>خطوط السير، زيارات العملاء، الحضور والانصراف وعمولات المبيعات</p>
-                        </div>
-                        <form action="{{ route('saas.tenants.toggle-module', $tenant->id) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="module" value="sales_reps">
-                            <button type="submit" class="btn-secondary" style="font-size: 11px; padding: 5px 12px;">
-                                @if($mods['sales_reps'] ?? false)
-                                    <x-icon name="check" size="12" style="color: #047857;" />
-                                    <span>مفعل (إغلاق)</span>
-                                @else
-                                    <x-icon name="x" size="12" style="color: #ef4444;" />
-                                    <span>معطل (تفعيل)</span>
-                                @endif
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Installments -->
-                    <div class="module-card {{ ($mods['installments'] ?? false) ? 'enabled' : 'disabled' }}">
-                        <div class="module-info">
-                            <h4>نظام بيع الأقساط</h4>
-                            <p>جدولة الأقساط الشهرية، تحصيل الأقساط، وغرامات التأخير</p>
-                        </div>
-                        <form action="{{ route('saas.tenants.toggle-module', $tenant->id) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="module" value="installments">
-                            <button type="submit" class="btn-secondary" style="font-size: 11px; padding: 5px 12px;">
-                                @if($mods['installments'] ?? false)
-                                    <x-icon name="check" size="12" style="color: #047857;" />
-                                    <span>مفعل (إغلاق)</span>
-                                @else
-                                    <x-icon name="x" size="12" style="color: #ef4444;" />
-                                    <span>معطل (تفعيل)</span>
-                                @endif
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- E-Commerce -->
-                    <div class="module-card {{ ($mods['ecommerce'] ?? false) ? 'enabled' : 'disabled' }}">
-                        <div class="module-info">
-                            <h4>المتجر الإلكتروني أونلاين</h4>
-                            <p>واجهة متجر احترافية للعملاء، سلة شراء، وطلبات أونلاين</p>
-                        </div>
-                        <form action="{{ route('saas.tenants.toggle-module', $tenant->id) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="module" value="ecommerce">
-                            <button type="submit" class="btn-secondary" style="font-size: 11px; padding: 5px 12px;">
-                                @if($mods['ecommerce'] ?? false)
-                                    <x-icon name="check" size="12" style="color: #047857;" />
-                                    <span>مفعل (إغلاق)</span>
-                                @else
-                                    <x-icon name="x" size="12" style="color: #ef4444;" />
-                                    <span>معطل (تفعيل)</span>
-                                @endif
-                            </button>
-                        </form>
-                    </div>
+                    @empty
+                        <p style="color: #64748b; font-size: 13px;">لا توجد موديولات معرفة بالنظام بعد.</p>
+                    @endforelse
                 </div>
             </div>
         </div>

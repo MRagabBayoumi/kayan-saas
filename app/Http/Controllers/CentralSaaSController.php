@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Plan;
+use App\Models\SaasModule;
 use App\Models\Tenant;
 use App\Models\TenantPayment;
 use App\Services\TenantManagerService;
@@ -43,6 +44,7 @@ class CentralSaaSController extends Controller
         return view('saas.dashboard', [
             'tenants' => $tenants,
             'plans' => $plans,
+            'availableModules' => SaasModule::ordered()->get(),
             'totalTenants' => $totalTenants,
             'activeTenants' => $activeTenants,
             'expiredTenants' => $expiredTenants,
@@ -82,6 +84,7 @@ class CentralSaaSController extends Controller
         return view('saas.tenants.show', [
             'tenant' => $tenant,
             'plans' => $plans,
+            'availableModules' => SaasModule::ordered()->get(),
             'totalPaid' => $totalPaid,
             'userCount' => $userCount,
             'tenantUrl' => $tenantUrl,
@@ -149,9 +152,150 @@ class CentralSaaSController extends Controller
 
         return view('saas.plans', [
             'plans' => $plans,
+            'availableModules' => SaasModule::active()->ordered()->get(),
             'totalPlans' => $plans->count(),
             'activePlans' => $plans->where('is_active', true)->count(),
         ]);
+    }
+
+    /**
+     * Show SaaS Modules & App Store management page.
+     */
+    public function modules(): View
+    {
+        $modules = SaasModule::ordered()->get();
+
+        $metrics = [
+            'total' => $modules->count(),
+            'active' => $modules->where('is_active', true)->count(),
+            'core' => $modules->where('is_core', true)->count(),
+            'monthly_sum' => $modules->where('is_active', true)->sum('price_monthly'),
+            'yearly_sum' => $modules->where('is_active', true)->sum('price_yearly'),
+        ];
+
+        return view('saas.modules.index', [
+            'modules' => $modules,
+            'metrics' => $metrics,
+        ]);
+    }
+
+    /**
+     * Store a newly created SaaS module in the catalog.
+     */
+    public function storeModule(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'code' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:central.saas_modules,code'],
+            'name' => ['required', 'string', 'max:150'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'features' => ['nullable', 'string'],
+            'price_monthly' => ['required', 'numeric', 'min:0'],
+            'price_yearly' => ['nullable', 'numeric', 'min:0'],
+            'icon' => ['nullable', 'string', 'max:50'],
+            'color' => ['nullable', 'string', 'max:20'],
+            'is_core' => ['nullable', 'boolean'],
+            'is_active' => ['nullable', 'boolean'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $features = [];
+        if (! empty($validated['features'])) {
+            $features = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", '', $validated['features'])))));
+        }
+
+        $yearlyPrice = $request->filled('price_yearly')
+            ? (float) $validated['price_yearly']
+            : ((float) $validated['price_monthly'] * 10);
+
+        SaasModule::create([
+            'code' => strtolower($validated['code']),
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'features' => $features,
+            'price_monthly' => $validated['price_monthly'],
+            'price_yearly' => $yearlyPrice,
+            'icon' => $validated['icon'] ?: 'box',
+            'color' => $validated['color'] ?: '#714B67',
+            'is_core' => $request->boolean('is_core'),
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
+            'sort_order' => $validated['sort_order'] ?? 0,
+        ]);
+
+        return redirect()->route('saas.modules.index')
+            ->with('status', 'success')
+            ->with('message', "تم إضافة موديول ({$validated['name']}) الجديد إلى متجر تطبيقات النظام بنجاح.");
+    }
+
+    /**
+     * Update an existing module's details and pricing.
+     */
+    public function updateModule(Request $request, SaasModule $module): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'features' => ['nullable', 'string'],
+            'price_monthly' => ['required', 'numeric', 'min:0'],
+            'price_yearly' => ['required', 'numeric', 'min:0'],
+            'icon' => ['nullable', 'string', 'max:50'],
+            'color' => ['nullable', 'string', 'max:20'],
+            'is_core' => ['nullable', 'boolean'],
+            'is_active' => ['nullable', 'boolean'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $features = [];
+        if (! empty($validated['features'])) {
+            $features = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", '', $validated['features'])))));
+        }
+
+        $module->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'features' => $features,
+            'price_monthly' => $validated['price_monthly'],
+            'price_yearly' => $validated['price_yearly'],
+            'icon' => $validated['icon'] ?: $module->icon,
+            'color' => $validated['color'] ?: $module->color,
+            'is_core' => $request->boolean('is_core'),
+            'is_active' => $request->boolean('is_active'),
+            'sort_order' => $validated['sort_order'] ?? $module->sort_order,
+        ]);
+
+        return back()
+            ->with('status', 'success')
+            ->with('message', "تم حفظ تعديلات وأسعار موديول ({$module->name}) بنجاح.");
+    }
+
+    /**
+     * Toggle module active status.
+     */
+    public function toggleModuleStatus(SaasModule $module): RedirectResponse
+    {
+        $module->update(['is_active' => ! $module->is_active]);
+
+        $state = $module->is_active ? 'تفعيل' : 'إيقاف';
+
+        return back()
+            ->with('status', 'success')
+            ->with('message', "تم {$state} بيع وعرض موديول ({$module->name}) بنجاح.");
+    }
+
+    /**
+     * Delete an optional module from the catalog.
+     */
+    public function destroyModule(SaasModule $module): RedirectResponse
+    {
+        if ($module->is_core) {
+            return back()->with('error', 'لا يمكن حذف موديول أساسي من النظام.');
+        }
+
+        $name = $module->name;
+        $module->delete();
+
+        return redirect()->route('saas.modules.index')
+            ->with('status', 'success')
+            ->with('message', "تم حذف موديول ({$name}) من الكتالوج بنجاح.");
     }
 
     /**
@@ -409,19 +553,20 @@ class CentralSaaSController extends Controller
      */
     public function toggleModule(Request $request, Tenant $tenant): RedirectResponse
     {
-        $module = $request->input('module');
-        if (! in_array($module, ['accounting', 'sales_reps', 'installments', 'ecommerce'], true)) {
+        $moduleCode = $request->input('module');
+        $module = SaasModule::where('code', $moduleCode)->first();
+        if (! $module) {
             return back()->with('error', 'موديول غير صالح.');
         }
 
         $modules = $tenant->modules ?? [];
-        $modules[$module] = ! ($modules[$module] ?? false);
+        $modules[$moduleCode] = ! ($modules[$moduleCode] ?? false);
 
         $tenant->update(['modules' => $modules]);
 
-        $stateText = $modules[$module] ? 'تفعيل' : 'إغلاق';
+        $stateText = $modules[$moduleCode] ? 'تفعيل' : 'إغلاق';
 
-        return back()->with('status', 'success')->with('message', "تم {$stateText} موديول ({$module}) للمشترك بنجاح.");
+        return back()->with('status', 'success')->with('message', "تم {$stateText} موديول ({$module->name}) للمشترك بنجاح.");
     }
 
     /**

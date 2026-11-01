@@ -697,6 +697,10 @@
                     <x-icon name="layout-dashboard" size="15" />
                     <span>لوحة التحكم</span>
                 </a>
+                <a href="{{ route('saas.modules.index') }}" class="odoo-nav-item">
+                    <x-icon name="grid" size="15" />
+                    <span>متجر الموديولات والتطبيقات</span>
+                </a>
                 <a href="{{ route('saas.plans.index') }}" class="odoo-nav-item">
                     <x-icon name="tag" size="15" />
                     <span>الباقات والأسعار</span>
@@ -1057,14 +1061,55 @@
                     </div>
 
                     <div class="form-group">
-                        <label>اختيار باقة الاشتراك *</label>
-                        <select name="plan_id" class="form-control" required>
+                        <label>اختيار باقة الاشتراك الأساسية (اختياري)</label>
+                        <select name="plan_id" id="newTenantPlanSelect" class="form-control" onchange="onPlanSelectChange(this)">
+                            <option value="">-- باقة مخصصة بالقطعة (Custom Modular Plan) --</option>
                             @foreach($plans as $plan)
-                                <option value="{{ $plan->id }}">
+                                <option value="{{ $plan->id }}" data-price="{{ $plan->price_monthly }}" data-modules='@json($plan->modules ?? [])'>
                                     {{ $plan->name }} — {{ number_format($plan->price_monthly, 0) }} ج.م/شهرياً (حد أقصى {{ $plan->max_users }} مستخدمين)
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <!-- Dynamic Modular Apps Selection & Pricing Calculator -->
+                    <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                                <x-icon name="grid" size="16" style="color: var(--odoo-primary);" />
+                                <span>تحديد تطبيقات وموديولات المشترك (Odoo-like Custom Modules)</span>
+                            </label>
+                            <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 6px; font-weight: 700;">
+                                حاسبة أسعار فورية ⚡
+                            </span>
+                        </div>
+                        <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">
+                            حدد التطبيقات التي يحتاجها العميل؛ يُحسب سعر الاشتراك الشهري تلقائياً بناءً على تسعير كل موديول.
+                        </p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 220px; overflow-y: auto; padding: 4px;" id="modulesContainer">
+                            @foreach($availableModules ?? [] as $mod)
+                                <label style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; background: #f8fafc; font-size: 12px; transition: background 0.15s;" class="module-calc-item">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <input type="checkbox" name="modules[{{ $mod->code }}]" value="1" 
+                                               class="module-chk"
+                                               data-code="{{ $mod->code }}"
+                                               data-price-monthly="{{ $mod->price_monthly }}" 
+                                               data-price-yearly="{{ $mod->price_yearly }}" 
+                                               {{ $mod->is_core ? 'checked' : '' }}
+                                               onchange="recalculateTenantPrice()">
+                                        <span style="font-weight: 700;">{{ $mod->name }}</span>
+                                    </div>
+                                    <span style="font-size: 11px; font-weight: 800; color: var(--odoo-primary);">{{ number_format($mod->price_monthly, 0) }} ج.م</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; font-weight: 800; color: #334155;">إجمالي سعر الاشتراك الشهري:</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <input type="number" step="0.01" name="subscription_price" id="calcSubscriptionPrice" class="form-control" style="width: 130px; font-weight: 900; text-align: center; color: var(--odoo-primary);" value="0">
+                                <span style="font-size: 12px; font-weight: 700; color: #64748b;">ج.م</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Flexible Billing Cycle & Expiry Date -->
@@ -1246,8 +1291,47 @@
             }
         }
 
+        function recalculateTenantPrice() {
+            let total = 0;
+            const checkboxes = document.querySelectorAll('.module-chk');
+            checkboxes.forEach(chk => {
+                if (chk.checked) {
+                    total += parseFloat(chk.dataset.priceMonthly || 0);
+                }
+            });
+            const priceInput = document.getElementById('calcSubscriptionPrice');
+            if (priceInput) {
+                priceInput.value = total.toFixed(2);
+            }
+        }
+
+        function onPlanSelectChange(select) {
+            const selectedOpt = select.options[select.selectedIndex];
+            if (!selectedOpt || !selectedOpt.value) {
+                recalculateTenantPrice();
+                return;
+            }
+            try {
+                const modules = JSON.parse(selectedOpt.dataset.modules || '{}');
+                const checkboxes = document.querySelectorAll('.module-chk');
+                checkboxes.forEach(chk => {
+                    const code = chk.dataset.code;
+                    if (modules[code] !== undefined) {
+                        chk.checked = !!modules[code];
+                    }
+                });
+            } catch (e) {}
+
+            const planPrice = parseFloat(selectedOpt.dataset.price || 0);
+            const priceInput = document.getElementById('calcSubscriptionPrice');
+            if (priceInput) {
+                priceInput.value = planPrice.toFixed(2);
+            }
+        }
+
         function openNewTenantModal() {
             document.getElementById('newTenantModal').classList.add('active');
+            recalculateTenantPrice();
         }
         function closeNewTenantModal() {
             document.getElementById('newTenantModal').classList.remove('active');

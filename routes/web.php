@@ -55,6 +55,13 @@ Route::middleware(['auth', 'can:manage-saas', EnsureCentralDomain::class, 'throt
     Route::post('/tenants/{tenant}/toggle-status', [CentralSaaSController::class, 'toggleStatus'])->name('tenants.toggle-status');
     Route::post('/tenants/{tenant}/update-subscription', [CentralSaaSController::class, 'updateSubscription'])->name('tenants.update-subscription');
 
+    // Modules & App Store Management (Odoo-like Modular Platform)
+    Route::get('/modules', [CentralSaaSController::class, 'modules'])->name('modules.index');
+    Route::post('/modules', [CentralSaaSController::class, 'storeModule'])->name('modules.store');
+    Route::put('/modules/{module}', [CentralSaaSController::class, 'updateModule'])->name('modules.update');
+    Route::post('/modules/{module}/toggle', [CentralSaaSController::class, 'toggleModuleStatus'])->name('modules.toggle');
+    Route::delete('/modules/{module}', [CentralSaaSController::class, 'destroyModule'])->name('modules.destroy');
+
     // Plans & Pricing Management
     Route::get('/plans', [CentralSaaSController::class, 'plans'])->name('plans.index');
     Route::post('/plans', [CentralSaaSController::class, 'storePlan'])->name('plans.store');

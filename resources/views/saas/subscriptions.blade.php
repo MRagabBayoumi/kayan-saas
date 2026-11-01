@@ -244,6 +244,10 @@
                     <x-icon name="layout-dashboard" size="15" />
                     <span>لوحة التحكم</span>
                 </a>
+                <a href="{{ route('saas.modules.index') }}" class="odoo-nav-item">
+                    <x-icon name="grid" size="15" />
+                    <span>متجر الموديولات والتطبيقات</span>
+                </a>
                 <a href="{{ route('saas.plans.index') }}" class="odoo-nav-item">
                     <x-icon name="tag" size="15" />
                     <span>الباقات والأسعار</span>

@@ -12,6 +12,16 @@ class SaasSuperUserAndCompanySettingSyncTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function tearDown(): void
+    {
+        Tenant::where('subdomain', 'like', 'naqaa%')
+            ->orWhere('subdomain', 'like', 'sso%')
+            ->orWhere('subdomain', 'like', 'salam%')
+            ->delete();
+
+        parent::tearDown();
+    }
+
     public function test_central_admin_can_generate_sso_token_and_impersonate_tenant(): void
     {
         $admin = User::factory()->create([

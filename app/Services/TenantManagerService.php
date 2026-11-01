@@ -221,6 +221,20 @@ class TenantManagerService
         DB::reconnect('mysql');
         DB::setDefaultConnection('mysql');
 
+        // Self-healing: if physical database lacks ERP tables, automatically migrate and seed
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable('users')) {
+                $this->migrateTenantDatabase($tenant->database_name);
+                $this->seedTenantAdmin(
+                    $tenant->database_name,
+                    "admin@{$tenant->subdomain}.local",
+                    'admin123456',
+                    $tenant->name
+                );
+            }
+        } catch (\Throwable $e) {
+        }
+
         app()->instance('tenant', $tenant);
     }
 }

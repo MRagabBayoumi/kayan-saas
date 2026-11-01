@@ -204,6 +204,12 @@ class TenantManagerService
             throw new \RuntimeException('Security Exception: Invalid tenant database name detected.');
         }
 
+        if (app()->runningUnitTests() && config('database.default') === 'sqlite') {
+            app()->instance('tenant', $tenant);
+
+            return;
+        }
+
         Config::set('database.connections.mysql.database', $tenant->database_name);
         DB::purge('mysql');
         DB::reconnect('mysql');

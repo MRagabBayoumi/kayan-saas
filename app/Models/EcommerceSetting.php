@@ -53,10 +53,32 @@ class EcommerceSetting extends Model
     }
 
     /**
+     * Bootstrap the model and its traits.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            static::clearSettingsCache();
+        });
+    }
+
+    /**
+     * Clear cached singleton settings.
+     */
+    public static function clearSettingsCache(): void
+    {
+        app()->forgetInstance('ecommerce_setting.singleton');
+    }
+
+    /**
      * Get or create active store settings singleton.
      */
     public static function getSettings(): self
     {
+        if (app()->bound('ecommerce_setting.singleton')) {
+            return app('ecommerce_setting.singleton');
+        }
+
         $defaultName = 'متجرنا الإلكتروني';
         try {
             $company = CompanySetting::first();
@@ -67,7 +89,7 @@ class EcommerceSetting extends Model
             // fallback
         }
 
-        return static::firstOrCreate([], [
+        $settings = static::firstOrCreate([], [
             'store_name' => $defaultName,
             'store_tagline' => 'أفضل المنتجات وأسرع توصيل حتى باب المنزل',
             'shipping_flat_rate' => 30.00,
@@ -76,5 +98,9 @@ class EcommerceSetting extends Model
             'allow_cod' => true,
             'announcement_text' => 'أهلاً بكم في متجرنا! التوصيل لجميع المحافظات والدفع عند الاستلام.',
         ]);
+
+        app()->instance('ecommerce_setting.singleton', $settings);
+
+        return $settings;
     }
 }

@@ -29,8 +29,11 @@ class IdentifyTenant
             return $next($request);
         }
 
-        // Look up the tenant
-        $tenant = Tenant::where('subdomain', $subdomain)->first();
+        // Look up the tenant with high-performance cache (saves millions of queries to Central DB)
+        $cacheKey = "tenant_subdomain_{$subdomain}";
+        $tenant = cache()->remember($cacheKey, 600, function () use ($subdomain) {
+            return Tenant::where('subdomain', $subdomain)->first();
+        });
 
         if (! $tenant) {
             return response()->view('errors.tenant-not-found', [

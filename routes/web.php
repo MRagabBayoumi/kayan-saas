@@ -45,8 +45,8 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Central SaaS Administration Routes (Strictly secured by auth, can:manage-saas, and EnsureCentralDomain middleware)
-Route::middleware(['auth', 'can:manage-saas', EnsureCentralDomain::class])->prefix('saas')->name('saas.')->group(function () {
+// Central SaaS Administration Routes (Strictly secured by auth, can:manage-saas, EnsureCentralDomain, and throttle)
+Route::middleware(['auth', 'can:manage-saas', EnsureCentralDomain::class, 'throttle:60,1'])->prefix('saas')->name('saas.')->group(function () {
     Route::get('/', [CentralSaaSController::class, 'index'])->name('index');
     Route::post('/tenants', [CentralSaaSController::class, 'store'])->name('tenants.store');
     Route::get('/tenants/{tenant}', [CentralSaaSController::class, 'show'])->name('tenants.show');
@@ -83,7 +83,7 @@ Route::get('/', function (Request $request) {
 // Guest Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.post');
 });
 
 // Browser Telemetry and Log Endpoint (Silences 405 Method Not Allowed)
@@ -92,7 +92,7 @@ Route::any('/_boots/browser-log', function () {
 })->name('boots.browser-log');
 
 // Public Storefront (E-Commerce) Routes
-Route::middleware('module:ecommerce')->prefix('shop')->name('shop.')->group(function () {
+Route::middleware(['module:ecommerce', 'throttle:180,1'])->prefix('shop')->name('shop.')->group(function () {
     Route::get('/', [StorefrontController::class, 'catalog'])->name('catalog');
     Route::get('/product/{product}', [StorefrontController::class, 'product'])->name('product');
     Route::get('/cart', [StorefrontController::class, 'cart'])->name('cart');
@@ -100,7 +100,7 @@ Route::middleware('module:ecommerce')->prefix('shop')->name('shop.')->group(func
     Route::post('/cart/update', [StorefrontController::class, 'updateCart'])->name('cart.update');
     Route::post('/cart/remove', [StorefrontController::class, 'removeFromCart'])->name('cart.remove');
     Route::get('/checkout', [StorefrontController::class, 'checkout'])->name('checkout');
-    Route::post('/checkout', [StorefrontController::class, 'placeOrder'])->name('checkout.place');
+    Route::post('/checkout', [StorefrontController::class, 'placeOrder'])->middleware('throttle:15,1')->name('checkout.place');
     Route::get('/order/{orderNumber}', [StorefrontController::class, 'orderSuccess'])->name('order.success');
 });
 
@@ -111,7 +111,7 @@ Route::middleware('auth')->group(function () {
     // CSRF Token Refresh Endpoint for Long-Lived Sessions & Direct Printing
     Route::get('/csrf-token', function () {
         return response()->json(['token' => csrf_token()]);
-    })->name('csrf.token');
+    })->middleware('throttle:30,1')->name('csrf.token');
 
     // General Administrative Dashboard (Hidden from cashiers)
     Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');

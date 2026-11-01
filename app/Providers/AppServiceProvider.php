@@ -118,7 +118,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Ensure database connection safely resets to central upon request termination
         app()->terminating(function () {
-            if (config('database.connections.central.database')) {
+            if (! app()->runningUnitTests() && config('database.connections.central.database')) {
                 config(['database.connections.mysql.database' => config('database.connections.central.database')]);
             }
         });

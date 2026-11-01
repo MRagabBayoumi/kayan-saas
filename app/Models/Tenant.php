@@ -35,6 +35,23 @@ class Tenant extends Model
         'subscription_price' => 'decimal:2',
     ];
 
+    /**
+     * The "booted" method of the model to auto-purge cache upon changes.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (Tenant $tenant) {
+            cache()->forget("tenant_subdomain_{$tenant->subdomain}");
+            if ($tenant->isDirty('subdomain') && $tenant->getOriginal('subdomain')) {
+                cache()->forget("tenant_subdomain_{$tenant->getOriginal('subdomain')}");
+            }
+        });
+
+        static::deleted(function (Tenant $tenant) {
+            cache()->forget("tenant_subdomain_{$tenant->subdomain}");
+        });
+    }
+
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);

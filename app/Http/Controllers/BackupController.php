@@ -59,6 +59,7 @@ class BackupController extends Controller
      */
     public function create(Request $request): RedirectResponse
     {
+        @set_time_limit(300);
         $type = $request->input('type', 'db');
 
         try {
@@ -93,7 +94,7 @@ class BackupController extends Controller
     /**
      * Download a specific backup archive.
      */
-    public function download(string $filename): StreamedResponse|RedirectResponse
+    public function download(string $filename): StreamedResponse|\Symfony\Component\HttpFoundation\BinaryFileResponse|RedirectResponse
     {
         $cleanFilename = basename($filename);
 
@@ -104,12 +105,21 @@ class BackupController extends Controller
 
         $path = 'kayan-erp/'.$cleanFilename;
 
-        if (! Storage::disk('backups')->exists($path)) {
-            return redirect()->route('settings.index', ['tab' => 'backups'])
-                ->with('error', 'ملف النسخة الاحتياطية المطلوب غير موجود أو تم حذفه.');
+        if (Storage::disk('backups')->exists($path)) {
+            return Storage::disk('backups')->download($path, $cleanFilename);
         }
 
-        return Storage::disk('backups')->download($path, $cleanFilename);
+        // Fallback: Check if file exists in the custom backup directory
+        $settings = CompanySetting::getSettings();
+        if (! empty($settings->custom_backup_path)) {
+            $customFile = rtrim($settings->custom_backup_path, '\\/').DIRECTORY_SEPARATOR.$cleanFilename;
+            if (File::exists($customFile)) {
+                return response()->download($customFile, $cleanFilename);
+            }
+        }
+
+        return redirect()->route('settings.index', ['tab' => 'backups'])
+            ->with('error', 'ملف النسخة الاحتياطية المطلوب غير موجود أو تم حذفه.');
     }
 
     /**
@@ -157,6 +167,7 @@ class BackupController extends Controller
         $files = $disk->exists('kayan-erp') ? $disk->files('kayan-erp') : [];
 
         $backups = [];
+        $seen = [];
 
         foreach ($files as $file) {
             if (! str_ends_with($file, '.zip')) {
@@ -165,15 +176,46 @@ class BackupController extends Controller
 
             $bytes = (int) $disk->size($file);
             $lastModified = (int) $disk->lastModified($file);
+            $filename = basename($file);
+            $seen[$filename] = true;
 
             $backups[] = [
-                'filename' => basename($file),
+                'filename' => $filename,
                 'path' => $file,
                 'size_formatted' => $this->formatBytes($bytes),
                 'size_bytes' => $bytes,
                 'created_at' => date('Y-m-d H:i:s', $lastModified),
                 'timestamp' => $lastModified,
             ];
+        }
+
+        // Also scan custom backup directory if configured and accessible
+        $settings = CompanySetting::getSettings();
+        if (! empty($settings->custom_backup_path) && File::isDirectory($settings->custom_backup_path)) {
+            try {
+                $customFiles = File::files($settings->custom_backup_path);
+                foreach ($customFiles as $cFile) {
+                    $cName = $cFile->getFilename();
+                    if (! str_ends_with($cName, '.zip') || isset($seen[$cName])) {
+                        continue;
+                    }
+
+                    $bytes = $cFile->getSize();
+                    $lastModified = $cFile->getMTime();
+                    $seen[$cName] = true;
+
+                    $backups[] = [
+                        'filename' => $cName,
+                        'path' => $cFile->getPathname(),
+                        'size_formatted' => $this->formatBytes($bytes),
+                        'size_bytes' => $bytes,
+                        'created_at' => date('Y-m-d H:i:s', $lastModified),
+                        'timestamp' => $lastModified,
+                    ];
+                }
+            } catch (\Throwable $e) {
+                // Silently ignore custom folder scanning issues
+            }
         }
 
         // Sort newest first

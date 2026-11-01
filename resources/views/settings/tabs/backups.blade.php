@@ -38,7 +38,8 @@
                                name="custom_backup_path" 
                                value="{{ old('custom_backup_path', $settings->custom_backup_path) }}" 
                                placeholder="مثال: D:\Kayan_Backups أو E:\FlashDrive\Backups" 
-                               class="erp-input w-full font-mono text-xs">
+                               dir="ltr"
+                               class="erp-input w-full font-mono text-xs text-left">
                     </div>
                     <button type="submit" class="erp-btn erp-btn-primary">
                         <x-icon name="save" size="16" />
@@ -147,16 +148,18 @@
                             @foreach($backupsList as $index => $backup)
                                 <tr class="hover:bg-[var(--bg-surface-alt)] transition-colors">
                                     <td class="font-mono text-xs text-[var(--text-muted)]">{{ $index + 1 }}</td>
-                                    <td class="font-mono font-medium text-[var(--text-main)] flex items-center gap-2">
-                                        <x-icon name="file-text" size="16" class="text-[var(--primary)]" />
-                                        <span>{{ $backup['filename'] }}</span>
+                                    <td class="font-mono font-medium text-[var(--text-main)]">
+                                        <div class="flex items-center gap-2" dir="ltr" style="justify-content: flex-end;">
+                                            <span class="font-mono text-xs select-all">{{ $backup['filename'] }}</span>
+                                            <x-icon name="file-text" size="16" class="text-[var(--primary)] shrink-0" />
+                                        </div>
                                     </td>
                                     <td>
                                         <span class="erp-badge erp-badge-neutral text-xs">
                                             {{ $backup['size_formatted'] }}
                                         </span>
                                     </td>
-                                    <td class="text-xs text-[var(--text-muted)] font-mono">
+                                    <td class="text-xs text-[var(--text-muted)] font-mono" dir="ltr" style="text-align: right;">
                                         {{ $backup['created_at'] }}
                                     </td>
                                     <td class="text-center">

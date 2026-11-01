@@ -32,6 +32,9 @@ class CopyBackupToCustomDirectory
             $destination = rtrim($customPath, '\\/').DIRECTORY_SEPARATOR.$filename;
 
             if (File::exists($sourceZip)) {
+                if (File::exists($destination) && File::size($destination) === File::size($sourceZip)) {
+                    return;
+                }
                 File::copy($sourceZip, $destination);
                 Log::info("Backup archive copied successfully to custom folder: {$destination}");
             }

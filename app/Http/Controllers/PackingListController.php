@@ -8,6 +8,7 @@ use App\Models\PackingList;
 use App\Models\Product;
 use App\Models\Unit;
 use App\Models\Warehouse;
+use App\Services\SimpleXlsxGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,9 +19,22 @@ use Illuminate\View\View;
 class PackingListController extends Controller
 {
     /**
-     * Display the dedicated Packing List builder interface.
+     * Display the packing list landing page (archive / history of previously saved lists).
+     * If load_id is provided, redirect to create / editor mode.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
+    {
+        if ($request->filled('load_id')) {
+            return redirect()->route('packing-list.create', ['load_id' => $request->query('load_id')]);
+        }
+
+        return $this->archive($request);
+    }
+
+    /**
+     * Display the dedicated Packing List builder interface (new or edit existing via load_id).
+     */
+    public function create(Request $request): View
     {
         $categories = Category::active()->orderBy('name')->get();
         $warehouses = Warehouse::active()->orderBy('name')->get();
@@ -30,32 +44,93 @@ class PackingListController extends Controller
         $loadedPackingList = null;
         $loadedData = null;
         if ($request->filled('load_id')) {
-            $loadedPackingList = PackingList::with('items')->find($request->query('load_id'));
+            $loadedPackingList = PackingList::with('items.product.category')->find($request->query('load_id'));
             if ($loadedPackingList) {
+                $skus = $loadedPackingList->items->pluck('sku')->filter()->unique();
+                $barcodes = $loadedPackingList->items->pluck('barcode')->filter()->unique();
+                $productIds = $loadedPackingList->items->pluck('product_id')->filter()->unique();
+
+                $prodsById = Product::with(['category', 'stockBalances'])->whereIn('id', $productIds)->get()->keyBy('id');
+
+                $foundSkuList = $prodsById->pluck('sku')->filter()->all();
+                $missingSkus = $skus->diff($foundSkuList);
+                $prodsBySku = $missingSkus->isNotEmpty()
+                    ? Product::with(['category', 'stockBalances'])->whereIn('sku', $missingSkus)->get()->keyBy('sku')
+                    : collect();
+
+                $foundBarcodeList = $prodsById->pluck('barcode')->merge($prodsBySku->pluck('barcode'))->filter()->all();
+                $missingBarcodes = $barcodes->diff($foundBarcodeList);
+                $prodsByBarcode = $missingBarcodes->isNotEmpty()
+                    ? Product::with(['category', 'stockBalances'])->whereIn('barcode', $missingBarcodes)->get()->keyBy('barcode')
+                    : collect();
+
                 $loadedData = [
                     'id' => $loadedPackingList->id,
                     'doc_number' => $loadedPackingList->packing_number,
                     'doc_date' => $loadedPackingList->packing_date ? $loadedPackingList->packing_date->format('Y-m-d') : date('Y-m-d'),
                     'customer_name' => $loadedPackingList->customer_name,
                     'warehouse_name' => $loadedPackingList->warehouse_name,
-                    'price_type' => $loadedPackingList->price_type,
+                    'price_type' => $loadedPackingList->price_type ?: 'wholesale',
                     'notes' => $loadedPackingList->notes,
                     'show_quantity' => (bool) $loadedPackingList->show_quantity,
                     'show_price' => (bool) $loadedPackingList->show_price,
                     'show_packages' => (bool) $loadedPackingList->show_packages,
-                    'items' => $loadedPackingList->items->map(function ($it) {
+                    'items' => $loadedPackingList->items->map(function ($it) use ($prodsById, $prodsBySku, $prodsByBarcode) {
+                        $prod = ($it->product_id && isset($prodsById[$it->product_id])) ? $prodsById[$it->product_id] : $it->product;
+                        if (! $prod && $it->sku && isset($prodsBySku[$it->sku])) {
+                            $prod = $prodsBySku[$it->sku];
+                        }
+                        if (! $prod && $it->barcode && isset($prodsByBarcode[$it->barcode])) {
+                            $prod = $prodsByBarcode[$it->barcode];
+                        }
+
+                        $unitPrice = (float) $it->unit_price;
+                        $wPrice = $prod && (float) $prod->wholesale_price > 0 ? (float) $prod->wholesale_price : $unitPrice;
+                        $rPrice = $prod && (float) $prod->retail_price > 0 ? (float) $prod->retail_price : $unitPrice;
+                        $dPrice = $prod && (float) $prod->distributor_price > 0 ? (float) $prod->distributor_price : $wPrice;
+                        $cPrice = $prod && (float) $prod->cost_price > 0 ? (float) $prod->cost_price : $unitPrice;
+
+                        $unit = ($prod && ! empty($prod->unit)) ? $prod->unit : ($it->unit ?: 'قطعة');
+                        $cleanUnit = trim($unit);
+                        $piecesPerUnit = 1;
+                        if ($prod) {
+                            if (in_array($cleanUnit, ['دسته', 'دستة', 'دزينة', 'دزينه'])) {
+                                $piecesPerUnit = ($prod->pieces_per_package > 1) ? (int) $prod->pieces_per_package : 12;
+                            } elseif (in_array($cleanUnit, ['كرتونة', 'كرتونه'])) {
+                                $piecesPerUnit = ($prod->pieces_per_package > 1) ? (int) $prod->pieces_per_package : 24;
+                            }
+                        }
+
+                        $totalStockPieces = $prod ? (float) $prod->total_stock : 0.0;
+                        $stockInUnit = $piecesPerUnit > 1 ? ($totalStockPieces / $piecesPerUnit) : $totalStockPieces;
+                        if ($piecesPerUnit > 1 && abs(round($stockInUnit) - $stockInUnit) < 0.05) {
+                            $stockInUnit = (float) round($stockInUnit);
+                        }
+                        $breakdown = $prod ? $prod->formatStockBreakdown() : '0';
+                        $minStockAlert = $prod ? (float) $prod->min_stock_alert : 0;
+
                         return [
-                            'id' => $it->product_id,
+                            'id' => $prod ? $prod->id : $it->product_id,
                             'sku' => $it->sku,
                             'barcode' => $it->barcode,
                             'name' => $it->product_name,
-                            'category_name' => $it->category_name,
-                            'unit' => $it->unit,
+                            'category_name' => $it->category_name ?: ($prod?->category?->name ?: 'عام'),
+                            'unit' => $unit,
                             'qty' => (float) $it->quantity,
                             'packages_count' => (int) $it->packages_count,
-                            'price' => (float) $it->unit_price,
+                            'price' => $unitPrice,
+                            'wholesale_price' => $wPrice,
+                            'retail_price' => $rPrice,
+                            'distributor_price' => $dPrice,
+                            'cost_price' => $cPrice,
                             'total' => (float) $it->total_amount,
                             'notes' => $it->notes,
+                            'total_stock_pieces' => $totalStockPieces,
+                            'stock_in_unit' => round($stockInUnit, 2),
+                            'stock_breakdown' => $breakdown,
+                            'min_stock_alert' => $minStockAlert,
+                            'pieces_per_unit' => $piecesPerUnit,
+                            'is_in_stock' => ($stockInUnit > 0),
                         ];
                     })->values()->all(),
                 ];
@@ -191,8 +266,16 @@ class PackingListController extends Controller
 
                 $sort = 1;
                 foreach ($payload['items'] as $it) {
+                    $productId = ! empty($it['id']) ? (int) $it['id'] : null;
+                    if (! $productId && ! empty($it['sku'])) {
+                        $productId = Product::where('sku', $it['sku'])->value('id');
+                    }
+                    if (! $productId && ! empty($it['barcode'])) {
+                        $productId = Product::where('barcode', $it['barcode'])->value('id');
+                    }
+
                     $packingList->items()->create([
-                        'product_id' => $it['id'] ?: null,
+                        'product_id' => $productId,
                         'sku' => $it['sku'] ?: null,
                         'barcode' => $it['barcode'] ?: null,
                         'product_name' => $it['name'],
@@ -308,124 +391,124 @@ class PackingListController extends Controller
         $showPackages = (bool) $packingList->show_packages;
         $showLineTotal = $showQty && $showPrice;
 
-        $html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-        $html .= '<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
-        $html .= '<style>';
-        $html .= 'body { font-family: Tahoma, Arial, sans-serif; direction: rtl; text-align: right; }';
-        $html .= '.title { font-size: 18px; font-weight: bold; color: #1e293b; text-align: center; margin-bottom: 5px; }';
-        $html .= '.subtitle { font-size: 13px; color: #64748b; text-align: center; margin-bottom: 15px; }';
-        $html .= '.meta-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px; }';
-        $html .= '.meta-table td { padding: 6px; border: 1px solid #cbd5e1; background: #f8fafc; }';
-        $html .= '.meta-label { font-weight: bold; color: #334155; width: 18%; }';
-        $html .= '.meta-val { color: #0f172a; width: 32%; }';
-        $html .= '.items-table { width: 100%; border-collapse: collapse; font-size: 11px; }';
-        $html .= '.items-table th { background: #714B67; color: #ffffff; padding: 8px 6px; border: 1px solid #5d3b54; font-weight: bold; text-align: center; }';
-        $html .= '.items-table td { padding: 6px; border: 1px solid #cbd5e1; text-align: center; }';
-        $html .= '.items-table tr:nth-child(even) td { background: #f8fafc; }';
-        $html .= '.text-right { text-align: right !important; }';
-        $html .= '.text-center { text-align: center !important; }';
-        $html .= '.total-row td { background: #f4ebf2 !important; font-weight: bold; font-size: 12px; border-top: 2px solid #714B67; }';
-        $html .= '</style></head>';
-        $html .= '<body dir="rtl">';
+        $headers = ['م', 'كود الصنف (SKU)', 'الباركود', 'اسم المنتج / الصنف', 'التصنيف', 'الوحدة'];
+        $columnTypes = [
+            0 => 'number',
+            1 => 'text',
+            2 => 'text',
+            3 => 'text',
+            4 => 'text',
+            5 => 'text',
+        ];
+        $columnWidths = [
+            0 => 8,
+            1 => 18,
+            2 => 18,
+            3 => 32,
+            4 => 16,
+            5 => 12,
+        ];
 
-        $html .= '<div class="title">'.htmlspecialchars($company->company_name ?: 'شركة كيان التجارية').'</div>';
-        $html .= '<div class="subtitle">بيان وقائمة التعبئة والتجهيز (Packing & Dispatch List)</div>';
-
-        // Meta Box
-        $html .= '<table class="meta-table">';
-        $html .= '<tr>';
-        $html .= '<td class="meta-label">رقم قائمة التعبئة:</td><td class="meta-val">'.htmlspecialchars($docNumber).'</td>';
-        $html .= '<td class="meta-label">تاريخ الإصدار:</td><td class="meta-val">'.htmlspecialchars($docDate).'</td>';
-        $html .= '</tr>';
-        $html .= '<tr>';
-        $html .= '<td class="meta-label">العميل / المستلم:</td><td class="meta-val">'.htmlspecialchars($customerName ?: 'عميل عام').'</td>';
-        $html .= '<td class="meta-label">المستودع المصدّر:</td><td class="meta-val">'.htmlspecialchars($warehouseName ?: 'المخزن الرئيسي').'</td>';
-        $html .= '</tr>';
-        if (! empty($notes)) {
-            $html .= '<tr>';
-            $html .= '<td class="meta-label">ملاحظات الشحن والتجهيز:</td><td colspan="3" class="meta-val">'.htmlspecialchars($notes).'</td>';
-            $html .= '</tr>';
-        }
-        $html .= '</table>';
-
-        // Items Table
-        $html .= '<table class="items-table">';
-        $html .= '<thead><tr>';
-        $html .= '<th style="width: 4%;">#</th>';
-        $html .= '<th style="width: 15%;">كود الصنف (SKU)</th>';
-        $html .= '<th style="width: 15%;">الباركود</th>';
-        $html .= '<th style="width: 30%;" class="text-right">اسم المنتج والتصنيف</th>';
-        $html .= '<th style="width: 8%;">الوحدة</th>';
+        $colIdx = 6;
         if ($showQty) {
-            $html .= '<th style="width: 10%;">الكمية</th>';
+            $headers[] = 'الكمية المطلوبة';
+            $columnTypes[$colIdx] = 'number';
+            $columnWidths[$colIdx] = 16;
+            $colIdx++;
         }
         if ($showPackages) {
-            $html .= '<th style="width: 10%;">الطرود/الكراتين</th>';
+            $headers[] = 'الطرود/الكراتين';
+            $columnTypes[$colIdx] = 'number';
+            $columnWidths[$colIdx] = 16;
+            $colIdx++;
         }
         if ($showPrice) {
-            $html .= '<th style="width: 10%;">سعر الوحدة</th>';
+            $headers[] = 'سعر الوحدة';
+            $columnTypes[$colIdx] = 'currency';
+            $columnWidths[$colIdx] = 16;
+            $colIdx++;
         }
         if ($showLineTotal) {
-            $html .= '<th style="width: 10%;">الإجمالي</th>';
+            $headers[] = 'إجمالي السعر';
+            $columnTypes[$colIdx] = 'currency';
+            $columnWidths[$colIdx] = 18;
+            $colIdx++;
         }
-        $html .= '<th>ملاحظات التعبئة</th>';
-        $html .= '</tr></thead><tbody>';
+        $headers[] = 'ملاحظات التعبئة والتجهيز';
+        $columnTypes[$colIdx] = 'text';
+        $columnWidths[$colIdx] = 26;
 
+        $rows = [];
         $idx = 1;
         foreach ($packingList->items as $item) {
-            $qty = (float) $item->quantity;
-            $packages = (int) $item->packages_count;
-            $price = (float) $item->unit_price;
-            $lineTotal = (float) $item->total_amount;
-
-            $html .= '<tr>';
-            $html .= '<td>'.$idx++.'</td>';
-            $html .= '<td>'.htmlspecialchars((string) $item->sku).'</td>';
-            $html .= '<td>'.htmlspecialchars((string) $item->barcode).'</td>';
-            $html .= '<td class="text-right"><strong>'.htmlspecialchars((string) $item->product_name).'</strong></td>';
-            $html .= '<td>'.htmlspecialchars((string) $item->unit).'</td>';
+            $row = [
+                $idx++,
+                (string) $item->sku,
+                (string) $item->barcode,
+                (string) $item->product_name,
+                (string) ($item->category_name ?: 'عام'),
+                (string) ($item->unit ?: 'قطعة'),
+            ];
             if ($showQty) {
-                $html .= '<td><strong>'.number_format($qty, 2).'</strong></td>';
+                $row[] = (float) $item->quantity;
             }
             if ($showPackages) {
-                $html .= '<td>'.($packages > 0 ? number_format($packages, 0) : '-').'</td>';
+                $row[] = (int) $item->packages_count;
             }
             if ($showPrice) {
-                $html .= '<td>'.number_format($price, 2).' ج.م</td>';
+                $row[] = (float) $item->unit_price;
             }
             if ($showLineTotal) {
-                $html .= '<td><strong>'.number_format($lineTotal, 2).' ج.م</strong></td>';
+                $row[] = (float) $item->total_amount;
             }
-            $html .= '<td>'.htmlspecialchars((string) $item->notes).'</td>';
-            $html .= '</tr>';
+            $row[] = (string) $item->notes;
+            $rows[] = $row;
         }
 
-        // Totals Row
-        $html .= '<tr class="total-row">';
-        $html .= '<td colspan="5" class="text-right"><strong>الإجمالي الكلي ('.$packingList->items->count().' أصناف)</strong></td>';
+        // Totals summary row
+        $totalsRow = [
+            'الإجمالي',
+            '',
+            '',
+            $packingList->items->count().' أصناف',
+            '',
+            '',
+        ];
         if ($showQty) {
-            $html .= '<td><strong>'.number_format((float) $packingList->total_quantity, 2).'</strong></td>';
+            $totalsRow[] = (float) $packingList->total_quantity;
         }
         if ($showPackages) {
-            $html .= '<td><strong>'.($packingList->total_packages > 0 ? number_format($packingList->total_packages, 0) : '-').'</strong></td>';
+            $totalsRow[] = (int) $packingList->total_packages;
         }
         if ($showPrice) {
-            $html .= '<td>-</td>';
+            $totalsRow[] = '';
         }
         if ($showLineTotal) {
-            $html .= '<td><strong>'.number_format((float) $packingList->total_amount, 2).' ج.م</strong></td>';
+            $totalsRow[] = (float) $packingList->total_amount;
         }
-        $html .= '<td>-</td>';
-        $html .= '</tr>';
+        $totalsRow[] = '';
+        $rows[] = $totalsRow;
 
-        $html .= '</tbody></table>';
-        $html .= '<div style="margin-top: 25px; font-size: 11px; color: #64748b; text-align: center;">تم التصدير آلياً عبر نظام كيان ERP بتاريخ '.date('Y-m-d H:i').'</div>';
-        $html .= '</body></html>';
+        $metaRows = [
+            [$company->company_name ?: 'شركة كيان التجارية', 'بيان وقائمة التعبئة والتجهيز رقم: '.$docNumber],
+            ['تاريخ الإصدار: '.$docDate, 'العميل: '.($customerName ?: 'عميل عام'), 'المستودع: '.($warehouseName ?: 'المخزن الرئيسي')],
+            (! empty($notes) ? ['ملاحظات: '.$notes] : []),
+            [],
+        ];
 
-        $cleanFilename = 'packing_list_'.preg_replace('/[^a-zA-Z0-9_\-]/', '_', $docNumber).'.xls';
+        $xlsxContent = SimpleXlsxGenerator::create(
+            headers: $headers,
+            rows: $rows,
+            columnTypes: $columnTypes,
+            columnWidths: $columnWidths,
+            sheetTitle: 'قائمة التعبئة',
+            metaRows: $metaRows
+        );
 
-        return response($html, 200, [
-            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+        $cleanFilename = 'packing_list_'.preg_replace('/[^a-zA-Z0-9_\-]/', '_', $docNumber).'.xlsx';
+
+        return response($xlsxContent, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => "attachment; filename=\"{$cleanFilename}\"",
         ]);
     }
@@ -441,6 +524,9 @@ class PackingListController extends Controller
         $arabicIndic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
         $standardDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         $term = str_replace($arabicIndic, $standardDigits, $term);
+        // Strip scanner symbology prefix (e.g. ]C1, ]e0, etc.)
+        $term = preg_replace('/^\][A-Za-z0-9]{2}/', '', $term);
+        $term = trim($term);
 
         $query = Product::with(['category', 'stockBalances'])->where('is_active', true);
 
@@ -467,7 +553,9 @@ class PackingListController extends Controller
                 if (! empty($cleanAlpha) && mb_strlen($cleanAlpha) >= 2) {
                     $q->orWhereRaw("REPLACE(REPLACE(REPLACE(sku, '-', ''), ' ', ''), '_', '') LIKE ?", ["%{$cleanAlpha}%"]);
                 }
-            })->take(25)->get();
+            })
+                ->orderByRaw('CASE WHEN barcode = ? THEN 1 WHEN sku = ? THEN 2 WHEN barcode LIKE ? THEN 3 WHEN sku LIKE ? THEN 4 ELSE 5 END', [$term, $term, "{$term}%", "{$term}%"])
+                ->take(25)->get();
         }
 
         $results = $products->map(function (Product $product) {
@@ -484,7 +572,7 @@ class PackingListController extends Controller
                 'cost_price' => (float) $product->cost_price,
                 'wholesale_price' => (float) $product->wholesale_price,
                 'retail_price' => (float) $product->retail_price,
-                'distributor_price' => (float) ($product->distributor_price ?? $product->wholesale_price),
+                'distributor_price' => (float) ($product->distributor_price && (float) $product->distributor_price > 0 ? $product->distributor_price : ($product->wholesale_price ?? 0)),
                 'total_stock' => (float) $product->total_stock,
                 'formatted_stock' => $product->formatStockBreakdown(),
                 'stocks' => $product->stockBalances->pluck('quantity', 'warehouse_id')->map(fn ($q) => (float) $q)->toArray(),
@@ -495,6 +583,88 @@ class PackingListController extends Controller
             'success' => true,
             'count' => $results->count(),
             'products' => $results,
+        ]);
+    }
+
+    /**
+     * Bulk fetch latest product prices, units, and categories for a given list of items.
+     */
+    public function refreshPrices(Request $request): JsonResponse
+    {
+        $items = $request->input('items', []);
+        if (empty($items) || ! is_array($items)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لا توجد أصناف لتحديث أسعارها.',
+                'products' => [],
+            ]);
+        }
+
+        $productIds = collect($items)->pluck('id')->filter()->unique()->values()->all();
+        $skus = collect($items)->pluck('sku')->filter()->unique()->values()->all();
+        $barcodes = collect($items)->pluck('barcode')->filter()->unique()->values()->all();
+
+        $query = Product::with('category')->where('is_active', true);
+        $query->where(function ($q) use ($productIds, $skus, $barcodes) {
+            if (! empty($productIds)) {
+                $q->orWhereIn('id', $productIds);
+            }
+            if (! empty($skus)) {
+                $q->orWhereIn('sku', $skus);
+            }
+            if (! empty($barcodes)) {
+                $q->orWhereIn('barcode', $barcodes);
+            }
+        });
+
+        $products = $query->get();
+
+        $byBarcode = $products->keyBy(fn ($p) => (string) $p->barcode);
+        $bySku = $products->keyBy(fn ($p) => (string) $p->sku);
+        $byId = $products->keyBy(fn ($p) => (int) $p->id);
+
+        $refreshed = [];
+        foreach ($items as $it) {
+            $prod = null;
+            $itId = ! empty($it['id']) ? (int) $it['id'] : null;
+            $itSku = ! empty($it['sku']) ? (string) $it['sku'] : null;
+            $itBarcode = ! empty($it['barcode']) ? (string) $it['barcode'] : null;
+
+            if ($itId && isset($byId[$itId])) {
+                $prod = $byId[$itId];
+            } elseif ($itBarcode && isset($byBarcode[$itBarcode])) {
+                $prod = $byBarcode[$itBarcode];
+            } elseif ($itSku && isset($bySku[$itSku])) {
+                $prod = $bySku[$itSku];
+            }
+
+            if ($prod) {
+                $unitPrice = (float) ($it['price'] ?? 0);
+                $wPrice = (float) $prod->wholesale_price > 0 ? (float) $prod->wholesale_price : $unitPrice;
+                $rPrice = (float) $prod->retail_price > 0 ? (float) $prod->retail_price : $unitPrice;
+                $dPrice = (float) $prod->distributor_price > 0 ? (float) $prod->distributor_price : $wPrice;
+                $cPrice = (float) $prod->cost_price > 0 ? (float) $prod->cost_price : $unitPrice;
+
+                $refreshed[] = [
+                    'item_id' => $itId,
+                    'sku' => $itSku ?: $prod->sku,
+                    'barcode' => $itBarcode ?: $prod->barcode,
+                    'product_id' => $prod->id,
+                    'product_name' => $prod->name,
+                    'category_name' => $prod->category?->name ?: 'عام',
+                    'unit' => $prod->unit ?: 'قطعة',
+                    'wholesale_price' => $wPrice,
+                    'retail_price' => $rPrice,
+                    'distributor_price' => $dPrice,
+                    'cost_price' => $cPrice,
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'count' => count($refreshed),
+            'products' => $refreshed,
         ]);
     }
 
@@ -534,127 +704,803 @@ class PackingListController extends Controller
             }
         }
 
-        $html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-        $html .= '<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
-        $html .= '<style>';
-        $html .= 'body { font-family: Tahoma, Arial, sans-serif; direction: rtl; text-align: right; }';
-        $html .= '.title { font-size: 18px; font-weight: bold; color: #1e293b; text-align: center; margin-bottom: 5px; }';
-        $html .= '.subtitle { font-size: 13px; color: #64748b; text-align: center; margin-bottom: 15px; }';
-        $html .= '.meta-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px; }';
-        $html .= '.meta-table td { padding: 6px; border: 1px solid #cbd5e1; background: #f8fafc; }';
-        $html .= '.meta-label { font-weight: bold; color: #334155; width: 18%; }';
-        $html .= '.meta-val { color: #0f172a; width: 32%; }';
-        $html .= '.items-table { width: 100%; border-collapse: collapse; font-size: 11px; }';
-        $html .= '.items-table th { background: #714B67; color: #ffffff; padding: 8px 6px; border: 1px solid #5d3b54; font-weight: bold; text-align: center; }';
-        $html .= '.items-table td { padding: 6px; border: 1px solid #cbd5e1; text-align: center; }';
-        $html .= '.items-table tr:nth-child(even) td { background: #f8fafc; }';
-        $html .= '.text-right { text-align: right !important; }';
-        $html .= '.text-center { text-align: center !important; }';
-        $html .= '.total-row td { background: #f4ebf2 !important; font-weight: bold; font-size: 12px; border-top: 2px solid #714B67; }';
-        $html .= '</style></head>';
-        $html .= '<body dir="rtl">';
+        $headers = ['م', 'كود الصنف (SKU)', 'الباركود', 'اسم المنتج / الصنف', 'التصنيف', 'الوحدة'];
+        $columnTypes = [
+            0 => 'number',
+            1 => 'text',
+            2 => 'text',
+            3 => 'text',
+            4 => 'text',
+            5 => 'text',
+        ];
+        $columnWidths = [
+            0 => 8,
+            1 => 18,
+            2 => 18,
+            3 => 32,
+            4 => 16,
+            5 => 12,
+        ];
 
-        $html .= '<div class="title">'.htmlspecialchars($company->company_name ?: 'شركة كيان التجارية').'</div>';
-        $html .= '<div class="subtitle">بيان وقائمة التعبئة والتجهيز (Packing & Dispatch List)</div>';
-
-        // Meta Box
-        $html .= '<table class="meta-table">';
-        $html .= '<tr>';
-        $html .= '<td class="meta-label">رقم قائمة التعبئة:</td><td class="meta-val">'.htmlspecialchars($docNumber).'</td>';
-        $html .= '<td class="meta-label">تاريخ الإصدار:</td><td class="meta-val">'.htmlspecialchars($docDate).'</td>';
-        $html .= '</tr>';
-        $html .= '<tr>';
-        $html .= '<td class="meta-label">العميل / المستلم:</td><td class="meta-val">'.htmlspecialchars($customerName ?: 'عميل عام / بدون تحديد').'</td>';
-        $html .= '<td class="meta-label">المستودع المصدّر:</td><td class="meta-val">'.htmlspecialchars($warehouseName ?: 'المخزن الرئيسي').'</td>';
-        $html .= '</tr>';
-        if (! empty($notes)) {
-            $html .= '<tr>';
-            $html .= '<td class="meta-label">ملاحظات الشحن والتجهيز:</td><td colspan="3" class="meta-val">'.htmlspecialchars($notes).'</td>';
-            $html .= '</tr>';
-        }
-        $html .= '</table>';
-
-        // Items Table
-        $html .= '<table class="items-table">';
-        $html .= '<thead><tr>';
-        $html .= '<th style="width: 4%;">#</th>';
-        $html .= '<th style="width: 15%;">كود الصنف (SKU)</th>';
-        $html .= '<th style="width: 15%;">الباركود</th>';
-        $html .= '<th style="width: 30%;" class="text-right">اسم المنتج والتصنيف</th>';
-        $html .= '<th style="width: 8%;">الوحدة</th>';
+        $colIdx = 6;
         if ($showQty) {
-            $html .= '<th style="width: 10%;">الكمية</th>';
+            $headers[] = 'الكمية المطلوبة';
+            $columnTypes[$colIdx] = 'number';
+            $columnWidths[$colIdx] = 16;
+            $colIdx++;
         }
         if ($showPackages) {
-            $html .= '<th style="width: 10%;">الطرود/الكراتين</th>';
+            $headers[] = 'الطرود/الكراتين';
+            $columnTypes[$colIdx] = 'number';
+            $columnWidths[$colIdx] = 16;
+            $colIdx++;
         }
         if ($showPrice) {
-            $html .= '<th style="width: 10%;">سعر الوحدة</th>';
+            $headers[] = 'سعر الوحدة';
+            $columnTypes[$colIdx] = 'currency';
+            $columnWidths[$colIdx] = 16;
+            $colIdx++;
         }
         if ($showLineTotal) {
-            $html .= '<th style="width: 10%;">الإجمالي</th>';
+            $headers[] = 'إجمالي السعر';
+            $columnTypes[$colIdx] = 'currency';
+            $columnWidths[$colIdx] = 18;
+            $colIdx++;
         }
-        $html .= '<th>ملاحظات التعبئة</th>';
-        $html .= '</tr></thead><tbody>';
+        $headers[] = 'ملاحظات التعبئة والتجهيز';
+        $columnTypes[$colIdx] = 'text';
+        $columnWidths[$colIdx] = 26;
 
+        $rows = [];
         $idx = 1;
         foreach ($items as $item) {
             $qty = (float) ($item['qty'] ?? 0);
-            $packages = (float) ($item['packages_count'] ?? 0);
+            $packages = (int) ($item['packages_count'] ?? 0);
             $price = (float) ($item['price'] ?? 0);
             $lineTotal = (float) ($item['total'] ?? ($qty * $price));
 
-            $html .= '<tr>';
-            $html .= '<td>'.$idx++.'</td>';
-            $html .= '<td>'.htmlspecialchars((string) ($item['sku'] ?? '')).'</td>';
-            $html .= '<td>'.htmlspecialchars((string) ($item['barcode'] ?? '')).'</td>';
-            $html .= '<td class="text-right"><strong>'.htmlspecialchars((string) ($item['name'] ?? '')).'</strong></td>';
-            $html .= '<td>'.htmlspecialchars((string) ($item['unit'] ?? 'قطعة')).'</td>';
+            $row = [
+                $idx++,
+                (string) ($item['sku'] ?? ''),
+                (string) ($item['barcode'] ?? ''),
+                (string) ($item['name'] ?? ''),
+                (string) ($item['category_name'] ?? 'عام'),
+                (string) ($item['unit'] ?? 'قطعة'),
+            ];
             if ($showQty) {
-                $html .= '<td><strong>'.number_format($qty, 2).'</strong></td>';
+                $row[] = $qty;
             }
             if ($showPackages) {
-                $html .= '<td>'.($packages > 0 ? number_format($packages, 0) : '-').'</td>';
+                $row[] = $packages;
             }
             if ($showPrice) {
-                $html .= '<td>'.number_format($price, 2).' ج.م</td>';
+                $row[] = $price;
             }
             if ($showLineTotal) {
-                $html .= '<td><strong>'.number_format($lineTotal, 2).' ج.م</strong></td>';
+                $row[] = $lineTotal;
             }
-            $html .= '<td>'.htmlspecialchars((string) ($item['notes'] ?? '')).'</td>';
-            $html .= '</tr>';
+            $row[] = (string) ($item['notes'] ?? '');
+            $rows[] = $row;
         }
 
-        // Totals Row
-        $html .= '<tr class="total-row">';
-        $html .= '<td colspan="5" class="text-right"><strong>الإجمالي الكلي ('.count($items).' أصناف)</strong></td>';
+        // Totals summary row
+        $totalsRow = [
+            'الإجمالي',
+            '',
+            '',
+            count($items).' أصناف',
+            '',
+            '',
+        ];
         if ($showQty) {
-            $html .= '<td><strong>'.number_format($totalQty, 2).'</strong></td>';
+            $totalsRow[] = $totalQty;
         }
         if ($showPackages) {
-            $html .= '<td><strong>'.($totalPackages > 0 ? number_format($totalPackages, 0) : '-').'</strong></td>';
+            $totalsRow[] = $totalPackages;
         }
         if ($showPrice) {
-            $html .= '<td>-</td>';
+            $totalsRow[] = '';
         }
         if ($showLineTotal) {
-            $html .= '<td><strong>'.number_format($totalAmount, 2).' ج.م</strong></td>';
+            $totalsRow[] = $totalAmount;
         }
-        $html .= '<td>-</td>';
-        $html .= '</tr>';
+        $totalsRow[] = '';
+        $rows[] = $totalsRow;
 
-        $html .= '</tbody></table>';
+        $metaRows = [
+            [$company->company_name ?: 'شركة كيان التجارية', 'بيان وقائمة التعبئة والتجهيز رقم: '.$docNumber],
+            ['تاريخ الإصدار: '.$docDate, 'العميل: '.($customerName ?: 'عميل عام / بدون تحديد'), 'المستودع: '.($warehouseName ?: 'المخزن الرئيسي')],
+            (! empty($notes) ? ['ملاحظات: '.$notes] : []),
+            [],
+        ];
 
-        $html .= '<div style="margin-top: 25px; font-size: 11px; color: #64748b; text-align: center;">تم التصدير آلياً عبر نظام كيان ERP بتاريخ '.date('Y-m-d H:i').'</div>';
-        $html .= '</body></html>';
+        $xlsxContent = SimpleXlsxGenerator::create(
+            headers: $headers,
+            rows: $rows,
+            columnTypes: $columnTypes,
+            columnWidths: $columnWidths,
+            sheetTitle: 'قائمة التعبئة',
+            metaRows: $metaRows
+        );
 
-        $cleanFilename = 'packing_list_'.preg_replace('/[^a-zA-Z0-9_\-]/', '_', $docNumber).'.xls';
+        $cleanFilename = 'packing_list_'.preg_replace('/[^a-zA-Z0-9_\-]/', '_', $docNumber).'.xlsx';
 
-        return response($html, 200, [
-            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+        return response($xlsxContent, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => "attachment; filename=\"{$cleanFilename}\"",
         ]);
+    }
+
+    /**
+     * Inspect and match real-time warehouse stock for all items currently in the packing list builder.
+     */
+    public function inspectStock(Request $request): JsonResponse
+    {
+        $rawItems = $request->input('items', []);
+        if (is_string($rawItems)) {
+            $rawItems = json_decode($rawItems, true) ?: [];
+        }
+
+        $inspectedItems = [];
+        $availableCount = 0;
+        $zeroCount = 0;
+        $totalAvailValue = 0;
+
+        foreach ($rawItems as $it) {
+            $prod = null;
+            if (! empty($it['id'])) {
+                $prod = Product::with(['category', 'stockBalances'])->find($it['id']);
+            }
+            if (! $prod && ! empty($it['barcode'])) {
+                $prod = Product::with(['category', 'stockBalances'])->where('barcode', $it['barcode'])->first();
+            }
+            if (! $prod && ! empty($it['sku'])) {
+                $prod = Product::with(['category', 'stockBalances'])->where('sku', $it['sku'])->first();
+            }
+
+            $unit = ($prod && ! empty($prod->unit)) ? $prod->unit : ($it['unit'] ?? 'قطعة');
+            $cleanUnit = trim($unit);
+            $piecesPerUnit = 1;
+            if ($prod) {
+                if (in_array($cleanUnit, ['دسته', 'دستة', 'دزينة', 'دزينه'])) {
+                    $piecesPerUnit = ($prod->pieces_per_package > 1) ? (int) $prod->pieces_per_package : 12;
+                } elseif (in_array($cleanUnit, ['كرتونة', 'كرتونه'])) {
+                    $piecesPerUnit = ($prod->pieces_per_package > 1) ? (int) $prod->pieces_per_package : 24;
+                }
+            }
+
+            $totalStockPieces = $prod ? (float) $prod->total_stock : 0.0;
+            $stockInUnit = $piecesPerUnit > 1 ? ($totalStockPieces / $piecesPerUnit) : $totalStockPieces;
+            if ($piecesPerUnit > 1 && abs(round($stockInUnit) - $stockInUnit) < 0.05) {
+                $stockInUnit = (float) round($stockInUnit);
+            }
+            $breakdown = $prod ? $prod->formatStockBreakdown() : '0';
+            $minStockAlert = $prod ? (float) $prod->min_stock_alert : 0;
+            $price = (float) ($it['price'] ?? ($prod ? $prod->wholesale_price : 0));
+
+            $isInStock = ($stockInUnit > 0);
+            if ($isInStock) {
+                $availableCount++;
+                $totalAvailValue += ($stockInUnit * $price);
+            } else {
+                $zeroCount++;
+            }
+
+            $it['product_id'] = $prod?->id ?? ($it['id'] ?? null);
+            $it['total_stock_pieces'] = $totalStockPieces;
+            $it['stock_in_unit'] = round($stockInUnit, 2);
+            $it['stock_breakdown'] = $breakdown;
+            $it['min_stock_alert'] = $minStockAlert;
+            $it['pieces_per_unit'] = $piecesPerUnit;
+            $it['is_in_stock'] = $isInStock;
+
+            $inspectedItems[] = $it;
+        }
+
+        $totalCount = count($inspectedItems);
+        $ratio = $totalCount > 0 ? round(($availableCount / $totalCount) * 100, 1) : 0;
+
+        return response()->json([
+            'success' => true,
+            'items' => $inspectedItems,
+            'summary' => [
+                'total_items' => $totalCount,
+                'available_count' => $availableCount,
+                'in_stock_count' => $availableCount,
+                'zero_count' => $zeroCount,
+                'zero_stock_count' => $zeroCount,
+                'available_ratio' => $ratio,
+                'availability_rate' => $ratio,
+                'available_value' => round($totalAvailValue, 2),
+            ],
+        ]);
+    }
+
+    /**
+     * Import a customer order file (Excel / CSV) and instantly match with warehouse stock.
+     */
+    public function importCustomerOrder(Request $request): JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'max:20480'],
+            'warehouse_name' => ['nullable', 'string'],
+        ]);
+
+        $file = $request->file('file');
+        $originalName = $file->getClientOriginalName();
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        $grid = [];
+        if (in_array($ext, ['xlsx', 'xlsm'])) {
+            $grid = $this->parseXlsxGrid($file->getRealPath());
+        } else {
+            $grid = $this->parseCsvGrid($file->getRealPath());
+        }
+
+        if (empty($grid)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'تعذر قراءة البيانات من الملف المرفوع أو أن الملف فارغ.',
+            ], 422);
+        }
+
+        // Detect Header Row & Column Indexes
+        $headerRowIdx = -1;
+        $colMap = [
+            'barcode' => null,
+            'sku' => null,
+            'name' => null,
+            'unit' => null,
+            'price' => null,
+            'qty' => null,
+            'notes' => null,
+        ];
+
+        // Scan first 10 rows for recognizable headers
+        for ($r = 0; $r < min(10, count($grid)); $r++) {
+            $row = $grid[$r];
+            $matchedCols = 0;
+            foreach ($row as $colIdx => $cellVal) {
+                $clean = mb_strtolower(trim((string) $cellVal));
+
+                if (is_null($colMap['barcode']) && (str_contains($clean, 'باركود') || str_contains($clean, 'barcode'))) {
+                    $colMap['barcode'] = $colIdx;
+                    $matchedCols++;
+                } elseif (is_null($colMap['sku']) && (str_contains($clean, 'كود') || str_contains($clean, 'sku') || str_contains($clean, 'رمز'))) {
+                    $colMap['sku'] = $colIdx;
+                    $matchedCols++;
+                } elseif (is_null($colMap['name']) && (str_contains($clean, 'اسم') || str_contains($clean, 'صنف') || str_contains($clean, 'منتج') || str_contains($clean, 'بيان') || str_contains($clean, 'product') || str_contains($clean, 'name'))) {
+                    $colMap['name'] = $colIdx;
+                    $matchedCols++;
+                } elseif (is_null($colMap['qty']) && (str_contains($clean, 'كمية') || str_contains($clean, 'مطلوب') || str_contains($clean, 'qty') || str_contains($clean, 'count') || str_contains($clean, 'quantity'))) {
+                    $colMap['qty'] = $colIdx;
+                    $matchedCols++;
+                } elseif (is_null($colMap['unit']) && (str_contains($clean, 'وحدة') || str_contains($clean, 'unit') || str_contains($clean, 'uom'))) {
+                    $colMap['unit'] = $colIdx;
+                    $matchedCols++;
+                } elseif (is_null($colMap['price']) && (str_contains($clean, 'سعر') || str_contains($clean, 'price'))) {
+                    $colMap['price'] = $colIdx;
+                    $matchedCols++;
+                } elseif (is_null($colMap['notes']) && (str_contains($clean, 'ملاحظ') || str_contains($clean, 'note'))) {
+                    $colMap['notes'] = $colIdx;
+                    $matchedCols++;
+                }
+            }
+
+            if ($matchedCols >= 2) {
+                $headerRowIdx = $r;
+                break;
+            }
+        }
+
+        // If no header detected, default heuristic (SKU=1, Barcode=2, Name=3, Unit=5, Price=6)
+        if ($headerRowIdx === -1) {
+            $headerRowIdx = 0;
+            $colMap['sku'] = 1;
+            $colMap['barcode'] = 2;
+            $colMap['name'] = 3;
+            $colMap['unit'] = 5;
+            $colMap['price'] = 6;
+        }
+
+        $dataRows = array_slice($grid, $headerRowIdx + 1);
+
+        $barcodes = [];
+        $skus = [];
+        $names = [];
+
+        foreach ($dataRows as $row) {
+            $b = ! is_null($colMap['barcode']) && isset($row[$colMap['barcode']]) ? trim((string) $row[$colMap['barcode']]) : '';
+            $s = ! is_null($colMap['sku']) && isset($row[$colMap['sku']]) ? trim((string) $row[$colMap['sku']]) : '';
+            $n = ! is_null($colMap['name']) && isset($row[$colMap['name']]) ? trim((string) $row[$colMap['name']]) : '';
+
+            if ($b !== '') {
+                $barcodes[] = $b;
+            }
+            if ($s !== '') {
+                $skus[] = $s;
+            }
+            if ($n !== '') {
+                $names[] = $n;
+            }
+        }
+
+        $barcodes = array_unique(array_filter($barcodes));
+        $skus = array_unique(array_filter($skus));
+        $names = array_unique(array_filter($names));
+
+        $productsByBarcode = ! empty($barcodes) ? Product::with(['category', 'stockBalances'])->whereIn('barcode', $barcodes)->get()->keyBy('barcode') : collect();
+        $productsBySku = ! empty($skus) ? Product::with(['category', 'stockBalances'])->whereIn('sku', $skus)->get()->keyBy('sku') : collect();
+        $productsByName = ! empty($names) ? Product::with(['category', 'stockBalances'])->whereIn('name', $names)->get()->keyBy('name') : collect();
+
+        $matchedItems = [];
+        $unmatchedCount = 0;
+        $availableCount = 0;
+        $zeroCount = 0;
+
+        foreach ($dataRows as $row) {
+            $b = ! is_null($colMap['barcode']) && isset($row[$colMap['barcode']]) ? trim((string) $row[$colMap['barcode']]) : '';
+            $s = ! is_null($colMap['sku']) && isset($row[$colMap['sku']]) ? trim((string) $row[$colMap['sku']]) : '';
+            $n = ! is_null($colMap['name']) && isset($row[$colMap['name']]) ? trim((string) $row[$colMap['name']]) : '';
+
+            if ($b === '' && $s === '' && $n === '') {
+                continue;
+            }
+
+            $prod = null;
+            if ($b !== '' && isset($productsByBarcode[$b])) {
+                $prod = $productsByBarcode[$b];
+            } elseif ($s !== '' && isset($productsBySku[$s])) {
+                $prod = $productsBySku[$s];
+            } elseif ($n !== '' && isset($productsByName[$n])) {
+                $prod = $productsByName[$n];
+            }
+
+            if (! $prod) {
+                $unmatchedCount++;
+
+                continue;
+            }
+
+            $rawUnit = ! is_null($colMap['unit']) && isset($row[$colMap['unit']]) ? trim((string) $row[$colMap['unit']]) : '';
+            $unit = ($prod && ! empty($prod->unit)) ? $prod->unit : ($rawUnit ?: 'قطعة');
+            $cleanUnit = trim($unit);
+            $piecesPerUnit = 1;
+            if (in_array($cleanUnit, ['دسته', 'دستة', 'دزينة', 'دزينه'])) {
+                $piecesPerUnit = ($prod->pieces_per_package > 1) ? (int) $prod->pieces_per_package : 12;
+            } elseif (in_array($cleanUnit, ['كرتونة', 'كرتونه'])) {
+                $piecesPerUnit = ($prod->pieces_per_package > 1) ? (int) $prod->pieces_per_package : 24;
+            }
+
+            $totalStockPieces = (float) $prod->total_stock;
+            $stockInUnit = $piecesPerUnit > 1 ? ($totalStockPieces / $piecesPerUnit) : $totalStockPieces;
+            if ($piecesPerUnit > 1 && abs(round($stockInUnit) - $stockInUnit) < 0.05) {
+                $stockInUnit = (float) round($stockInUnit);
+            }
+            $breakdown = $prod->formatStockBreakdown();
+            $minStockAlert = (float) $prod->min_stock_alert;
+
+            $rawPrice = ! is_null($colMap['price']) && isset($row[$colMap['price']]) ? (float) preg_replace('/[^0-9.]/', '', (string) $row[$colMap['price']]) : 0;
+            $price = $rawPrice > 0 ? $rawPrice : (float) ($prod->distributor_price > 0 ? $prod->distributor_price : $prod->wholesale_price);
+
+            $rawQty = ! is_null($colMap['qty']) && isset($row[$colMap['qty']]) ? (float) preg_replace('/[^0-9.]/', '', (string) $row[$colMap['qty']]) : 0;
+
+            $isInStock = ($stockInUnit > 0);
+            if ($isInStock) {
+                $availableCount++;
+            } else {
+                $zeroCount++;
+            }
+
+            $notes = ! is_null($colMap['notes']) && isset($row[$colMap['notes']]) ? trim((string) $row[$colMap['notes']]) : '';
+            if (str_starts_with($notes, '#NAME?')) {
+                $notes = '';
+            }
+
+            $matchedItems[] = [
+                'id' => $prod->id,
+                'product_id' => $prod->id,
+                'sku' => $prod->sku ?: $s,
+                'barcode' => $prod->barcode ?: $b,
+                'name' => $prod->name ?: $n,
+                'category_name' => $prod->category?->name ?: 'عام',
+                'unit' => $unit,
+                'qty' => $rawQty,
+                'packages_count' => 0,
+                'price' => $price,
+                'price_tier' => 'distributor',
+                'wholesale_price' => (float) $prod->wholesale_price,
+                'retail_price' => (float) $prod->retail_price,
+                'distributor_price' => (float) $prod->distributor_price,
+                'cost_price' => (float) $prod->cost_price,
+                'total' => round($rawQty * $price, 2),
+                'notes' => $notes,
+                'total_stock_pieces' => $totalStockPieces,
+                'stock_in_unit' => round($stockInUnit, 2),
+                'stock_breakdown' => $breakdown,
+                'min_stock_alert' => $minStockAlert,
+                'pieces_per_unit' => $piecesPerUnit,
+                'is_in_stock' => $isInStock,
+            ];
+        }
+
+        $totalCount = count($matchedItems);
+        $ratio = $totalCount > 0 ? round(($availableCount / $totalCount) * 100, 1) : 0;
+
+        return response()->json([
+            'success' => true,
+            'message' => "تم فحص الشيت بنجاح ومطابقة {$totalCount} صنف مع رصيد المخزن.",
+            'items' => $matchedItems,
+            'summary' => [
+                'total_items' => $totalCount,
+                'available_count' => $availableCount,
+                'in_stock_count' => $availableCount,
+                'zero_count' => $zeroCount,
+                'zero_stock_count' => $zeroCount,
+                'available_ratio' => $ratio,
+                'availability_rate' => $ratio,
+            ],
+            'unmatched_count' => $unmatchedCount,
+            'filename' => $originalName,
+        ]);
+    }
+
+    /**
+     * Parse uploaded XLSX into grid array.
+     */
+    protected function parseXlsxGrid(string $path): array
+    {
+        $zip = new \ZipArchive;
+        if ($zip->open($path) !== true) {
+            return $this->parseCsvGrid($path);
+        }
+
+        $sharedStrings = [];
+        $stringsXmlContent = $zip->getFromName('xl/sharedStrings.xml');
+        if ($stringsXmlContent) {
+            $stringsXml = simplexml_load_string($stringsXmlContent);
+            if ($stringsXml && isset($stringsXml->si)) {
+                foreach ($stringsXml->si as $si) {
+                    if (isset($si->t)) {
+                        $sharedStrings[] = (string) $si->t;
+                    } elseif (isset($si->r)) {
+                        $text = '';
+                        foreach ($si->r as $r) {
+                            $text .= (string) $r->t;
+                        }
+                        $sharedStrings[] = $text;
+                    } else {
+                        $sharedStrings[] = '';
+                    }
+                }
+            }
+        }
+
+        $sheetXmlContent = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $zip->close();
+
+        if (! $sheetXmlContent) {
+            return [];
+        }
+
+        $sheetXml = simplexml_load_string($sheetXmlContent);
+        if (! $sheetXml || ! isset($sheetXml->sheetData->row)) {
+            return [];
+        }
+
+        $grid = [];
+        foreach ($sheetXml->sheetData->row as $row) {
+            $rowVals = [];
+            $maxCol = 0;
+            foreach ($row->c as $cell) {
+                $ref = (string) $cell['r'];
+                $colLetters = preg_replace('/[0-9]/', '', $ref);
+                $colIdx = 0;
+                $len = strlen($colLetters);
+                for ($i = 0; $i < $len; $i++) {
+                    $colIdx = $colIdx * 26 + (ord($colLetters[$i]) - 64);
+                }
+                $colIdx -= 1;
+                $maxCol = max($maxCol, $colIdx);
+
+                $t = (string) $cell['t'];
+                $val = '';
+                if ($t === 's') {
+                    $idx = (int) $cell->v;
+                    $val = $sharedStrings[$idx] ?? '';
+                } elseif ($t === 'inlineStr' && isset($cell->is->t)) {
+                    $val = (string) $cell->is->t;
+                } else {
+                    $val = (string) $cell->v;
+                }
+                $rowVals[$colIdx] = trim($val);
+            }
+
+            $fullRow = [];
+            for ($c = 0; $c <= $maxCol; $c++) {
+                $fullRow[$c] = $rowVals[$c] ?? '';
+            }
+            $grid[] = $fullRow;
+        }
+
+        return $grid;
+    }
+
+    /**
+     * Parse uploaded CSV into grid array.
+     */
+    protected function parseCsvGrid(string $path): array
+    {
+        $handle = fopen($path, 'r');
+        if (! $handle) {
+            return [];
+        }
+
+        $grid = [];
+        while (($row = fgetcsv($handle)) !== false) {
+            $grid[] = array_map('trim', $row);
+        }
+        fclose($handle);
+
+        return $grid;
+    }
+
+    /**
+     * Dedicated Customer Stock Availability Excel Export (.xlsx with 2 separate sheets: Available + Zero Stock).
+     */
+    public function exportCustomerStockExcel(Request $request): Response
+    {
+        $payload = $this->extractPayload($request);
+        $company = CompanySetting::getSettings();
+
+        $docNumber = $payload['doc_number'] ?: 'PL-'.date('Ymd');
+        $docDate = $payload['doc_date'] ?: date('Y-m-d');
+        $customerName = $payload['customer_name'] ?: 'العميل';
+        $warehouseName = $payload['warehouse_name'] ?: 'معرض المقطم';
+        $items = $payload['items'];
+
+        $availableRows = [];
+        $zeroRows = [];
+
+        $availIdx = 1;
+        $zeroIdx = 1;
+        $totalAvailQty = 0;
+        $totalAvailPieces = 0;
+        $totalAvailAmount = 0;
+
+        foreach ($items as $it) {
+            $prod = null;
+            if (! empty($it['id'])) {
+                $prod = Product::with(['category', 'stockBalances'])->find($it['id']);
+            }
+            if (! $prod && ! empty($it['barcode'])) {
+                $prod = Product::with(['category', 'stockBalances'])->where('barcode', $it['barcode'])->first();
+            }
+            if (! $prod && ! empty($it['sku'])) {
+                $prod = Product::with(['category', 'stockBalances'])->where('sku', $it['sku'])->first();
+            }
+
+            $unit = ($prod && ! empty($prod->unit)) ? $prod->unit : ($it['unit'] ?? 'قطعة');
+            $cleanUnit = trim($unit);
+            $piecesPerUnit = 1;
+            if ($prod) {
+                if (in_array($cleanUnit, ['دسته', 'دستة', 'دزينة', 'دزينه'])) {
+                    $piecesPerUnit = ($prod->pieces_per_package > 1) ? (int) $prod->pieces_per_package : 12;
+                } elseif (in_array($cleanUnit, ['كرتونة', 'كرتونه'])) {
+                    $piecesPerUnit = ($prod->pieces_per_package > 1) ? (int) $prod->pieces_per_package : 24;
+                }
+            }
+
+            $totalStockPieces = $prod ? (float) $prod->total_stock : 0.0;
+            $stockInUnit = $piecesPerUnit > 1 ? ($totalStockPieces / $piecesPerUnit) : $totalStockPieces;
+            if ($piecesPerUnit > 1 && abs(round($stockInUnit) - $stockInUnit) < 0.05) {
+                $stockInUnit = (float) round($stockInUnit);
+            }
+            $breakdown = $prod ? $prod->formatStockBreakdown() : '0';
+            $price = (float) ($it['price'] ?? ($prod ? $prod->wholesale_price : 0));
+            $allocatedQty = (float) ($it['qty'] ?? $stockInUnit);
+            if ($allocatedQty <= 0 && $stockInUnit > 0) {
+                $allocatedQty = $stockInUnit;
+            }
+
+            $sku = (string) ($it['sku'] ?? $prod?->sku ?? '');
+            $barcode = (string) ($it['barcode'] ?? $prod?->barcode ?? '');
+            $name = (string) ($it['name'] ?? $prod?->name ?? '');
+            $category = (string) ($it['category_name'] ?? $prod?->category?->name ?? 'عام');
+
+            if ($stockInUnit > 0) {
+                $lineTotal = round($price * $allocatedQty, 2);
+                $totalAvailQty += $allocatedQty;
+                $totalAvailPieces += $totalStockPieces;
+                $totalAvailAmount += $lineTotal;
+
+                $availableRows[] = [
+                    $availIdx++,
+                    $sku,
+                    $barcode,
+                    $name,
+                    $category,
+                    $unit,
+                    $price,
+                    round($allocatedQty, 2),
+                    (int) $totalStockPieces,
+                    round($stockInUnit, 2),
+                    $breakdown,
+                    $lineTotal,
+                ];
+            } else {
+                $zeroRows[] = [
+                    $zeroIdx++,
+                    $sku,
+                    $barcode,
+                    $name,
+                    $category,
+                    $unit,
+                    $price,
+                    0,
+                    'غير متوفر حالياً بالمخزن ✕',
+                ];
+            }
+        }
+
+        // Add summary totals row to available sheet
+        if (! empty($availableRows)) {
+            $availableRows[] = [
+                'الإجمالي العام',
+                '',
+                '',
+                count($availableRows).' أصناف متاحة',
+                '',
+                '',
+                '',
+                $totalAvailQty,
+                $totalAvailPieces,
+                '',
+                '',
+                $totalAvailAmount,
+            ];
+        }
+
+        $meta1 = [
+            [$company->company_name ?: 'شركة كيان التجارية', 'بيان الأصناف المتاحة بالمخزن لطلب العميل: '.$customerName],
+            ['رقم القائمة: '.$docNumber, 'تاريخ الإصدار: '.$docDate, 'المستودع: '.$warehouseName],
+            ['عدد الأصناف المتاحة للتسليم الفوري: '.count($availableRows).' صنف'],
+            [],
+        ];
+
+        $sheet1 = [
+            'sheetTitle' => 'الأصناف المتاحة بالمخزن',
+            'headers' => [
+                'م',
+                'كود الصنف (SKU)',
+                'الباركود',
+                'اسم المنتج / الصنف',
+                'التصنيف',
+                'الوحدة',
+                'سعر الوحدة (ج.م)',
+                'الكمية المعتمدة',
+                'الرصيد المتاح (قطع)',
+                'الرصيد المتاح بوحدة الصنف',
+                'تفصيل الرصيد الفعلي بالمخزن',
+                'إجمالي القيمة (ج.م)',
+            ],
+            'columnTypes' => [
+                0 => 'number',
+                1 => 'text', // Forced text for SKU
+                2 => 'text', // Forced text (@) for Barcode (NEVER scientific)
+                3 => 'text',
+                4 => 'text',
+                5 => 'text',
+                6 => 'currency',
+                7 => 'number',
+                8 => 'number',
+                9 => 'number',
+                10 => 'text',
+                11 => 'currency',
+            ],
+            'columnWidths' => [
+                0 => 6,
+                1 => 16,
+                2 => 16,
+                3 => 32,
+                4 => 16,
+                5 => 12,
+                6 => 16,
+                7 => 16,
+                8 => 18,
+                9 => 20,
+                10 => 28,
+                11 => 22,
+            ],
+            'rows' => $availableRows,
+            'metaRows' => $meta1,
+            'headerStyleId' => 7, // Green Header
+        ];
+
+        $meta2 = [
+            [$company->company_name ?: 'شركة كيان التجارية', 'بيان الأصناف غير المتوفرة (رصيد صفر) لطلب العميل: '.$customerName],
+            ['رقم القائمة: '.$docNumber, 'تاريخ الإصدار: '.$docDate, 'المستودع: '.$warehouseName],
+            ['عدد الأصناف غير المتوفرة حالياً: '.count($zeroRows).' صنف'],
+            [],
+        ];
+
+        $sheet2 = [
+            'sheetTitle' => 'أصناف غير متوفرة (رصيد صفر)',
+            'headers' => [
+                'م',
+                'كود الصنف (SKU)',
+                'الباركود',
+                'اسم المنتج / الصنف',
+                'التصنيف',
+                'الوحدة',
+                'سعر الوحدة (ج.م)',
+                'الرصيد الفعلي الحالي',
+                'حالة التوفر',
+            ],
+            'columnTypes' => [
+                0 => 'number',
+                1 => 'text', // Forced text for SKU
+                2 => 'text', // Forced text (@) for Barcode
+                3 => 'text',
+                4 => 'text',
+                5 => 'text',
+                6 => 'currency',
+                7 => 'number',
+                8 => 'badge_red',
+            ],
+            'columnWidths' => [
+                0 => 6,
+                1 => 16,
+                2 => 16,
+                3 => 32,
+                4 => 16,
+                5 => 12,
+                6 => 16,
+                7 => 20,
+                8 => 26,
+            ],
+            'rows' => $zeroRows,
+            'metaRows' => $meta2,
+            'headerStyleId' => 8, // Red Header
+        ];
+
+        $xlsxContent = SimpleXlsxGenerator::createTwoSheetWorkbook($sheet1, $sheet2);
+
+        $cleanFilename = 'customer_order_availability_'.preg_replace('/[^a-zA-Z0-9_\-]/', '_', $docNumber).'.xlsx';
+
+        return response($xlsxContent, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => "attachment; filename=\"{$cleanFilename}\"",
+        ]);
+    }
+
+    /**
+     * Direct 2-sheet Excel export from a saved packing list model.
+     */
+    public function exportCustomerStockExcelModel(PackingList $packingList): Response
+    {
+        $packingList->load('items');
+        $request = new Request([
+            'doc_number' => $packingList->packing_number,
+            'doc_date' => $packingList->packing_date ? $packingList->packing_date->format('Y-m-d') : date('Y-m-d'),
+            'customer_name' => $packingList->customer_name,
+            'warehouse_name' => $packingList->warehouse_name,
+            'notes' => $packingList->notes,
+            'items' => $packingList->items->map(function ($it) {
+                return [
+                    'id' => $it->product_id,
+                    'sku' => $it->sku,
+                    'barcode' => $it->barcode,
+                    'name' => $it->product_name,
+                    'category_name' => $it->category_name,
+                    'unit' => $it->unit,
+                    'price' => (float) $it->unit_price,
+                    'qty' => (float) $it->quantity,
+                ];
+            })->toArray(),
+        ]);
+
+        return $this->exportCustomerStockExcel($request);
     }
 
     /**
@@ -676,6 +1522,7 @@ class PackingListController extends Controller
             'كود الصنف (SKU)',
             'الباركود',
             'اسم الصنف',
+            'التصنيف',
             'الوحدة',
         ];
 
@@ -702,7 +1549,7 @@ class PackingListController extends Controller
         $idx = 1;
         foreach ($items as $item) {
             $qty = (float) ($item['qty'] ?? 0);
-            $packages = (float) ($item['packages_count'] ?? 0);
+            $packages = (int) ($item['packages_count'] ?? 0);
             $price = (float) ($item['price'] ?? 0);
             $lineTotal = (float) ($item['total'] ?? ($qty * $price));
 
@@ -711,20 +1558,21 @@ class PackingListController extends Controller
                 $item['sku'] ?? '',
                 $item['barcode'] ?? '',
                 $item['name'] ?? '',
+                $item['category_name'] ?? 'عام',
                 $item['unit'] ?? 'قطعة',
             ];
 
             if ($showQty) {
-                $row[] = $qty;
+                $row[] = number_format($qty, 2, '.', '');
             }
             if ($showPackages) {
-                $row[] = $packages > 0 ? $packages : '';
+                $row[] = $packages > 0 ? (int) $packages : 0;
             }
             if ($showPrice) {
-                $row[] = $price;
+                $row[] = number_format($price, 2, '.', '');
             }
             if ($showLineTotal) {
-                $row[] = $lineTotal;
+                $row[] = number_format($lineTotal, 2, '.', '');
             }
 
             $row[] = $item['notes'] ?? '';

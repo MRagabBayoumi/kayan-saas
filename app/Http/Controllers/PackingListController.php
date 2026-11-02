@@ -832,6 +832,77 @@ class PackingListController extends Controller
     }
 
     /**
+     * Bulk fetch products by ID, Barcode, or SKU to eliminate N+1 queries.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<string, Product>
+     */
+    protected function bulkMapProducts(array $items): array
+    {
+        $ids = [];
+        $barcodes = [];
+        $skus = [];
+
+        foreach ($items as $it) {
+            if (! empty($it['id'])) {
+                $ids[] = (int) $it['id'];
+            }
+            if (! empty($it['barcode'])) {
+                $barcodes[] = trim((string) $it['barcode']);
+            }
+            if (! empty($it['sku'])) {
+                $skus[] = trim((string) $it['sku']);
+            }
+        }
+
+        $ids = array_unique(array_filter($ids));
+        $barcodes = array_unique(array_filter($barcodes));
+        $skus = array_unique(array_filter($skus));
+
+        if (empty($ids) && empty($barcodes) && empty($skus)) {
+            return [];
+        }
+
+        $query = Product::with(['category', 'stockBalances']);
+        $query->where(function ($q) use ($ids, $barcodes, $skus) {
+            $hasCondition = false;
+            if (! empty($ids)) {
+                $q->whereIn('id', $ids);
+                $hasCondition = true;
+            }
+            if (! empty($barcodes)) {
+                if ($hasCondition) {
+                    $q->orWhereIn('barcode', $barcodes);
+                } else {
+                    $q->whereIn('barcode', $barcodes);
+                    $hasCondition = true;
+                }
+            }
+            if (! empty($skus)) {
+                if ($hasCondition) {
+                    $q->orWhereIn('sku', $skus);
+                } else {
+                    $q->whereIn('sku', $skus);
+                }
+            }
+        });
+
+        $products = $query->get();
+        $map = [];
+        foreach ($products as $p) {
+            $map['id:'.$p->id] = $p;
+            if ($p->barcode) {
+                $map['bc:'.trim((string) $p->barcode)] = $p;
+            }
+            if ($p->sku) {
+                $map['sku:'.trim((string) $p->sku)] = $p;
+            }
+        }
+
+        return $map;
+    }
+
+    /**
      * Inspect and match real-time warehouse stock for all items currently in the packing list builder.
      */
     public function inspectStock(Request $request): JsonResponse
@@ -846,16 +917,16 @@ class PackingListController extends Controller
         $zeroCount = 0;
         $totalAvailValue = 0;
 
+        $prodMap = $this->bulkMapProducts($rawItems);
+
         foreach ($rawItems as $it) {
             $prod = null;
-            if (! empty($it['id'])) {
-                $prod = Product::with(['category', 'stockBalances'])->find($it['id']);
-            }
-            if (! $prod && ! empty($it['barcode'])) {
-                $prod = Product::with(['category', 'stockBalances'])->where('barcode', $it['barcode'])->first();
-            }
-            if (! $prod && ! empty($it['sku'])) {
-                $prod = Product::with(['category', 'stockBalances'])->where('sku', $it['sku'])->first();
+            if (! empty($it['id']) && isset($prodMap['id:'.$it['id']])) {
+                $prod = $prodMap['id:'.$it['id']];
+            } elseif (! empty($it['barcode']) && isset($prodMap['bc:'.trim((string) $it['barcode'])])) {
+                $prod = $prodMap['bc:'.trim((string) $it['barcode'])];
+            } elseif (! empty($it['sku']) && isset($prodMap['sku:'.trim((string) $it['sku'])])) {
+                $prod = $prodMap['sku:'.trim((string) $it['sku'])];
             }
 
             $unit = ($prod && ! empty($prod->unit)) ? $prod->unit : ($it['unit'] ?? 'قطعة');
@@ -1268,16 +1339,16 @@ class PackingListController extends Controller
         $totalAvailPieces = 0;
         $totalAvailAmount = 0;
 
+        $prodMap = $this->bulkMapProducts($items);
+
         foreach ($items as $it) {
             $prod = null;
-            if (! empty($it['id'])) {
-                $prod = Product::with(['category', 'stockBalances'])->find($it['id']);
-            }
-            if (! $prod && ! empty($it['barcode'])) {
-                $prod = Product::with(['category', 'stockBalances'])->where('barcode', $it['barcode'])->first();
-            }
-            if (! $prod && ! empty($it['sku'])) {
-                $prod = Product::with(['category', 'stockBalances'])->where('sku', $it['sku'])->first();
+            if (! empty($it['id']) && isset($prodMap['id:'.$it['id']])) {
+                $prod = $prodMap['id:'.$it['id']];
+            } elseif (! empty($it['barcode']) && isset($prodMap['bc:'.trim((string) $it['barcode'])])) {
+                $prod = $prodMap['bc:'.trim((string) $it['barcode'])];
+            } elseif (! empty($it['sku']) && isset($prodMap['sku:'.trim((string) $it['sku'])])) {
+                $prod = $prodMap['sku:'.trim((string) $it['sku'])];
             }
 
             $unit = ($prod && ! empty($prod->unit)) ? $prod->unit : ($it['unit'] ?? 'قطعة');

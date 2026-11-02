@@ -269,6 +269,128 @@ class ProductImportService
     }
 
     /**
+     * Generate standard Excel (.xlsx) template with OpenXML and text-forced barcodes.
+     */
+    public function generateTemplateXlsx(): string
+    {
+        $headers = [
+            'كود الصنف (SKU)',
+            'اسم المنتج',
+            'التصنيف',
+            'الباركود (اختياري)',
+            'سعر التكلفة (ج.م)',
+            'سعر الجملة (ج.م)',
+            'سعر التجزئة (ج.م)',
+            'سعر الموزع (اختياري)',
+            'وحدة القياس',
+            'عدد القطع في الطرد',
+            'حد الطلب الأدنى',
+            'الكمية الافتتاحية (رصيد أول المدة)',
+            'تكلفة الرصيد الافتتاحي',
+            'المستودع المستلم',
+            'تاريخ الرصيد الافتتاحي',
+        ];
+
+        $sampleRows = [
+            [
+                'KY-26-1001',
+                'توكة شعر لؤلؤ أبيض كوري فاخر',
+                'توك شعر',
+                '6920011223344',
+                14.50,
+                25.00,
+                40.00,
+                22.50,
+                'دستة',
+                12,
+                10,
+                50.00,
+                14.50,
+                'المستودع الرئيسي',
+                date('Y-m-d'),
+            ],
+            [
+                'KY-26-1002',
+                'طوق شعر ستان كلاسيك وردي',
+                'أطواق وبكلات',
+                '6920011223355',
+                18.75,
+                32.50,
+                50.00,
+                29.00,
+                'قطعة',
+                24,
+                5,
+                100.00,
+                18.75,
+                'المستودع الرئيسي',
+                date('Y-m-d'),
+            ],
+            [
+                'KY-26-1003',
+                'بكلة شعر فراشة مرصعة كريستال',
+                'بكلات كريستال',
+                '',
+                11.25,
+                20.00,
+                35.00,
+                18.00,
+                'قطعة',
+                1,
+                12,
+                0.00,
+                '',
+                '',
+                '',
+            ],
+        ];
+
+        $columnTypes = [
+            0 => 'text',
+            1 => 'text',
+            2 => 'text',
+            3 => 'text',
+            4 => 'currency',
+            5 => 'currency',
+            6 => 'currency',
+            7 => 'currency',
+            8 => 'text',
+            9 => 'number',
+            10 => 'number',
+            11 => 'number',
+            12 => 'currency',
+            13 => 'text',
+            14 => 'text',
+        ];
+
+        $columnWidths = [
+            0 => 16,
+            1 => 32,
+            2 => 18,
+            3 => 18,
+            4 => 16,
+            5 => 16,
+            6 => 16,
+            7 => 16,
+            8 => 12,
+            9 => 16,
+            10 => 14,
+            11 => 20,
+            12 => 20,
+            13 => 20,
+            14 => 18,
+        ];
+
+        return SimpleXlsxGenerator::create(
+            headers: $headers,
+            rows: $sampleRows,
+            columnTypes: $columnTypes,
+            columnWidths: $columnWidths,
+            sheetTitle: 'قالب المنتجات'
+        );
+    }
+
+    /**
      * Parse uploaded file (CSV or XLSX) into normalized associative rows.
      */
     public function parseFile(UploadedFile $file): array
@@ -612,6 +734,7 @@ class ProductImportService
             'new_count' => 0,
             'update_count' => 0,
             'invalid_count' => 0,
+            'has_zero_prices_on_existing' => false,
         ];
 
         $seenInFileSkus = [];
@@ -764,13 +887,30 @@ class ProductImportService
                 $seenInFileSkus[$skuKey] = true;
             }
 
-            // Check Name Mismatch on Update
+            // Check Name Mismatch on Update & Price Zero Protection
             $isNameMismatch = false;
+            $preservePrices = false;
+            $fileHasZeroPrices = false;
             if ($existingProduct && ! empty($row['name'])) {
                 $cleanExisting = trim(preg_replace('/[^\p{L}\p{N}]/u', '', mb_strtolower($existingProduct->name)));
                 $cleanNew = trim(preg_replace('/[^\p{L}\p{N}]/u', '', mb_strtolower($row['name'])));
                 if ($cleanExisting !== '' && $cleanNew !== '' && ! str_contains($cleanExisting, $cleanNew) && ! str_contains($cleanNew, $cleanExisting)) {
                     $isNameMismatch = true;
+                }
+            }
+
+            if ($existingProduct && $action === 'update') {
+                $oldWholesale = (float) $existingProduct->wholesale_price;
+                $oldCost = (float) $existingProduct->cost_price;
+                $oldRetail = (float) $existingProduct->retail_price;
+                $fileWholesale = max(0, (float) $wholesalePrice);
+                $fileCost = max(0, (float) $costPrice);
+                $fileRetail = max(0, (float) $retailPrice);
+
+                $fileHasZeroPrices = ($fileWholesale <= 0 && $fileCost <= 0 && $fileRetail <= 0);
+                if (($oldWholesale > 0 || $oldCost > 0 || $oldRetail > 0) && ($fileHasZeroPrices || $fileWholesale <= 0)) {
+                    $preservePrices = true;
+                    $stats['has_zero_prices_on_existing'] = true;
                 }
             }
 
@@ -789,6 +929,8 @@ class ProductImportService
                 'name_mismatch' => $isNameMismatch,
                 'sku_adjusted' => $skuAdjusted,
                 'barcode_generated' => $barcodeGenerated,
+                'preserve_prices' => $preservePrices,
+                'file_has_zero_prices' => $fileHasZeroPrices,
                 'sku' => $sku,
                 'name' => $row['name'],
                 'category_name' => $row['category'] ?: 'عام',
@@ -828,11 +970,16 @@ class ProductImportService
      * Records new products, updates existing products, creates categories,
      * and initializes warehouse FIFO batches for opening inventory balances.
      */
-    public function executeImport(array $reviewedRows, bool $updateExisting = true, bool $createCategories = true, ?bool $canEditPrices = null): array
-    {
+    public function executeImport(
+        array $reviewedRows,
+        bool $updateExisting = true,
+        bool $createCategories = true,
+        ?bool $canEditPrices = null,
+        bool $updatePrices = true
+    ): array {
         $canEditPrices = $canEditPrices ?? (auth()->user()?->can('edit-product-prices') ?? false);
 
-        return DB::transaction(function () use ($reviewedRows, $updateExisting, $createCategories, $canEditPrices) {
+        return DB::transaction(function () use ($reviewedRows, $updateExisting, $createCategories, $canEditPrices, $updatePrices) {
             $insertedCount = 0;
             $updatedCount = 0;
             $skippedCount = 0;
@@ -899,9 +1046,9 @@ class ProductImportService
                     'is_active' => true,
                 ];
 
-                if (! $canEditPrices) {
+                if (! $canEditPrices || ! $updatePrices) {
                     if ($item['action'] === 'update') {
-                        // Protect existing prices from being overwritten by unauthorized users
+                        // Protect existing prices from being overwritten
                         unset(
                             $payload['cost_price'],
                             $payload['wholesale_price'],
@@ -911,13 +1058,15 @@ class ProductImportService
                         );
                     } else {
                         // For newly created items by users without price permissions, zero out prices
-                        $payload['cost_price'] = 0.00;
-                        $payload['wholesale_price'] = 0.00;
-                        $payload['retail_price'] = 0.00;
-                        $payload['distributor_price'] = null;
-                        $payload['opening_cost'] = null;
+                        if (! $canEditPrices) {
+                            $payload['cost_price'] = 0.00;
+                            $payload['wholesale_price'] = 0.00;
+                            $payload['retail_price'] = 0.00;
+                            $payload['distributor_price'] = null;
+                            $payload['opening_cost'] = null;
+                            $openingCost = 0.00;
+                        }
                     }
-                    $openingCost = 0.00;
                 }
 
                 if ($item['action'] === 'update') {
@@ -931,6 +1080,23 @@ class ProductImportService
                         }
 
                         if ($product) {
+                            // Smart Zero-Price Safeguard:
+                            // Even if updating prices is enabled, NEVER wipe existing positive prices in DB
+                            // with 0.00 or null if the uploaded file has empty/zero price fields.
+                            if ($updatePrices && $canEditPrices) {
+                                if ((float) ($item['wholesale_price'] ?? 0) <= 0 && (float) ($product->wholesale_price ?? 0) > 0) {
+                                    unset($payload['wholesale_price']);
+                                }
+                                if ((float) ($item['cost_price'] ?? 0) <= 0 && (float) ($product->cost_price ?? 0) > 0) {
+                                    unset($payload['cost_price']);
+                                }
+                                if ((float) ($item['retail_price'] ?? 0) <= 0 && (float) ($product->retail_price ?? 0) > 0) {
+                                    unset($payload['retail_price']);
+                                }
+                                if (empty($item['distributor_price']) && ! empty($product->distributor_price)) {
+                                    unset($payload['distributor_price']);
+                                }
+                            }
                             $hasStockHistory = $product->batches()->exists()
                                 || $product->stockBalances()->where('quantity', '>', 0)->exists()
                                 || ((float) $product->opening_quantity > 0);

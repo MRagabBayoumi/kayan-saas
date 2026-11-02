@@ -24,6 +24,14 @@ test('user can download pre-formatted CSV template with Arabic UTF-8 BOM', funct
         ->and($content)->toContain('سعر الجملة');
 });
 
+test('user can download pre-formatted XLSX template with OpenXML and text-forced codes', function () {
+    $response = $this->get(route('products.import.template', ['format' => 'xlsx']));
+
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    $response->assertHeader('Content-Disposition', 'attachment; filename="kayan_products_template.xlsx"');
+});
+
 test('import page renders upload interface and template download link', function () {
     $response = $this->get(route('products.import.form'));
 
@@ -133,6 +141,7 @@ test('confirming import inserts new records, updates existing records, and creat
 
     $response = $this->post(route('products.import.confirm'), [
         'update_existing' => '1',
+        'update_prices' => '1',
         'create_categories' => '1',
     ]);
 
@@ -361,4 +370,83 @@ test('barcode takes precedence over SKU and float numbers are sanitized to integ
         'barcode' => '10280',
         'pieces_per_package' => 12,
     ]);
+});
+
+test('updating existing product with update_prices disabled preserves existing prices in database', function () {
+    $cat = Category::create(['name' => 'مستلزمات', 'slug' => 'accessories']);
+    $product = Product::create([
+        'sku' => 'HB-260',
+        'name' => 'طقم فرشه أصلي',
+        'category_id' => $cat->id,
+        'barcode' => '10092',
+        'cost_price' => 200.00,
+        'wholesale_price' => 312.00,
+        'retail_price' => 450.00,
+        'unit' => 'دستة',
+        'is_active' => true,
+    ]);
+
+    $csvData = "\xEF\xBB\xBF"."كود الصنف,اسم المنتج,التصنيف,الباركود,سعر التكلفة,سعر الجملة,سعر التجزئة,سعر الموزع,وحدة القياس,عدد القطع في الطرد,حد الطلب الأدنى\n"
+        ."HB-260,طقم فرشه مطور ومحدث,مستلزمات,10092,0.00,0.00,0.00,,دستة,12,5\n";
+
+    $file = UploadedFile::fake()->createWithContent('test_update_no_prices.csv', $csvData);
+
+    $this->post(route('products.import.review'), ['import_file' => $file])->assertStatus(200);
+
+    $reviewData = session('import_review_data');
+    expect($reviewData['stats']['has_zero_prices_on_existing'])->toBeTrue()
+        ->and($reviewData['rows'][0]['preserve_prices'])->toBeTrue();
+
+    // Confirm with update_existing = 1 and update_prices = 0
+    $response = $this->post(route('products.import.confirm'), [
+        'update_existing' => '1',
+        'update_prices' => '0',
+        'create_categories' => '1',
+    ]);
+    $response->assertRedirect(route('products.index'));
+
+    $product->refresh();
+    // Name must be updated
+    expect($product->name)->toBe('طقم فرشه مطور ومحدث')
+        // Prices must be strictly preserved!
+        ->and((float) $product->wholesale_price)->toBe(312.00)
+        ->and((float) $product->cost_price)->toBe(200.00)
+        ->and((float) $product->retail_price)->toBe(450.00);
+});
+
+test('smart zero-price protection prevents overwriting database prices with 0.00 even if update_prices is enabled', function () {
+    $cat = Category::create(['name' => 'مستلزمات', 'slug' => 'accessories-2']);
+    $product = Product::create([
+        'sku' => 'HB-262',
+        'name' => 'فرشه خاصة',
+        'category_id' => $cat->id,
+        'barcode' => '10091',
+        'cost_price' => 150.00,
+        'wholesale_price' => 312.00,
+        'retail_price' => 400.00,
+        'unit' => 'دستة',
+        'is_active' => true,
+    ]);
+
+    $csvData = "\xEF\xBB\xBF"."كود الصنف,اسم المنتج,التصنيف,الباركود,سعر التكلفة,سعر الجملة,سعر التجزئة,سعر الموزع,وحدة القياس,عدد القطع في الطرد,حد الطلب الأدنى\n"
+        ."HB-262,فرشه خاصة مجددة,مستلزمات,10091,0.00,0.00,0.00,,دستة,12,5\n";
+
+    $file = UploadedFile::fake()->createWithContent('test_smart_protection.csv', $csvData);
+
+    $this->post(route('products.import.review'), ['import_file' => $file])->assertStatus(200);
+
+    // Confirm with update_prices = 1
+    $response = $this->post(route('products.import.confirm'), [
+        'update_existing' => '1',
+        'update_prices' => '1',
+        'create_categories' => '1',
+    ]);
+    $response->assertRedirect(route('products.index'));
+
+    $product->refresh();
+    expect($product->name)->toBe('فرشه خاصة مجددة')
+        // Prices must NOT be wiped to 0.00!
+        ->and((float) $product->wholesale_price)->toBe(312.00)
+        ->and((float) $product->cost_price)->toBe(150.00)
+        ->and((float) $product->retail_price)->toBe(400.00);
 });

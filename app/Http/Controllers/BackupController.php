@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BackupController extends Controller
@@ -94,7 +95,7 @@ class BackupController extends Controller
     /**
      * Download a specific backup archive.
      */
-    public function download(string $filename): StreamedResponse|\Symfony\Component\HttpFoundation\BinaryFileResponse|RedirectResponse
+    public function download(string $filename): StreamedResponse|BinaryFileResponse|RedirectResponse
     {
         $cleanFilename = basename($filename);
 

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class TenantManagerService
@@ -223,7 +224,7 @@ class TenantManagerService
 
         // Self-healing: if physical database lacks ERP tables, automatically migrate and seed
         try {
-            if (! \Illuminate\Support\Facades\Schema::hasTable('users')) {
+            if (! Schema::hasTable('users')) {
                 $this->migrateTenantDatabase($tenant->database_name);
                 $this->seedTenantAdmin(
                     $tenant->database_name,

@@ -57,7 +57,7 @@
             @endcan
 
             <!-- Customers -->
-            @if(auth()->user()->can('access-customers') || auth()->user()->can('manage-customers') || auth()->user()->can('access-sales'))
+            @if(auth()->user()?->can('access-customers') || auth()->user()?->can('manage-customers') || auth()->user()?->can('access-sales'))
             <a href="{{ route('customers.index') }}" class="erp-launcher-item">
                 <div class="erp-launcher-icon bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400">
                     <x-icon name="users" size="26" strokeWidth="1.75" />
@@ -110,7 +110,7 @@
             @endcan
 
             <!-- Finance & Treasuries -->
-            @if(auth()->user()->can('manage-treasuries') || auth()->user()->can('manage-company-settings') || auth()->user()->isAdmin())
+            @if(auth()->user()?->can('manage-treasuries') || auth()->user()?->can('manage-company-settings') || auth()->user()?->isAdmin())
             <a href="{{ route('treasuries.index') }}" class="erp-launcher-item">
                 <div class="erp-launcher-icon bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
                     <x-icon name="landmark" size="26" strokeWidth="1.75" />

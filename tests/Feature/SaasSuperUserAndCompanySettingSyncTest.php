@@ -29,12 +29,12 @@ class SaasSuperUserAndCompanySettingSyncTest extends TestCase
             'is_active' => true,
         ]);
 
-        $subdomain = 'naqaa' . strtolower(uniqid());
+        $subdomain = 'naqaa'.strtolower(uniqid());
 
         $tenant = Tenant::create([
             'name' => 'شركة النقاء التجارية',
             'subdomain' => $subdomain,
-            'database_name' => 'kayan_tenant_' . $subdomain,
+            'database_name' => 'kayan_tenant_'.$subdomain,
             'plan_name' => 'باقة متقدمة',
             'is_active' => true,
             'billing_cycle' => 'monthly',
@@ -52,16 +52,16 @@ class SaasSuperUserAndCompanySettingSyncTest extends TestCase
 
     public function test_tenant_sso_login_authenticates_superuser_and_redirects_to_dashboard(): void
     {
-        $subdomain = 'sso' . strtolower(uniqid());
+        $subdomain = 'sso'.strtolower(uniqid());
 
         $tenant = Tenant::create([
             'name' => 'شركة النقاء للتجارة',
             'subdomain' => $subdomain,
-            'database_name' => 'kayan_tenant_' . $subdomain,
+            'database_name' => 'kayan_tenant_'.$subdomain,
             'is_active' => true,
         ]);
 
-        $token = 'test_sso_token_' . uniqid();
+        $token = 'test_sso_token_'.uniqid();
         cache()->put("sso_impersonate_{$token}", [
             'tenant_id' => $tenant->id,
             'subdomain' => $tenant->subdomain,
@@ -80,12 +80,12 @@ class SaasSuperUserAndCompanySettingSyncTest extends TestCase
 
     public function test_tenant_login_screen_displays_tenant_company_name(): void
     {
-        $subdomain = 'salam' . strtolower(uniqid());
+        $subdomain = 'salam'.strtolower(uniqid());
 
         $tenant = Tenant::create([
             'name' => 'مؤسسة السلام العالمية',
             'subdomain' => $subdomain,
-            'database_name' => 'kayan_tenant_' . $subdomain,
+            'database_name' => 'kayan_tenant_'.$subdomain,
             'is_active' => true,
         ]);
 

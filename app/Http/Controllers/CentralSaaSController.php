@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CentralSaaSController extends Controller
@@ -587,7 +588,7 @@ class CentralSaaSController extends Controller
      */
     public function impersonate(Request $request, Tenant $tenant): RedirectResponse
     {
-        $token = \Illuminate\Support\Str::random(60);
+        $token = Str::random(60);
 
         cache()->put("sso_impersonate_{$token}", [
             'tenant_id' => $tenant->id,

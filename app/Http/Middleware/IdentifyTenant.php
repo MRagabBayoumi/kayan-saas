@@ -2,10 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\CompanySetting;
 use App\Models\Tenant;
 use App\Services\TenantManagerService;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class IdentifyTenant
@@ -52,16 +54,16 @@ class IdentifyTenant
 
         // Synchronize company settings in the tenant database with tenant's registered business name
         try {
-            $currentSettings = \Illuminate\Support\Facades\DB::table('company_settings')->first();
+            $currentSettings = DB::table('company_settings')->first();
             if (! $currentSettings || empty($currentSettings->company_name) || in_array($currentSettings->company_name, ['Kayan Fashion Accessories', 'شركة كيان للاستيراد والتوزيع'])) {
-                \Illuminate\Support\Facades\DB::table('company_settings')->updateOrInsert(
+                DB::table('company_settings')->updateOrInsert(
                     ['id' => 1],
                     [
                         'company_name' => $tenant->name,
                         'updated_at' => now(),
                     ]
                 );
-                \App\Models\CompanySetting::clearSettingsCache();
+                CompanySetting::clearSettingsCache();
             }
         } catch (\Throwable $e) {
         }

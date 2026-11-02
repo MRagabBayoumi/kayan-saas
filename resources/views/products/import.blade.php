@@ -45,89 +45,189 @@
     @endif
 
     @if(empty($reviewData))
-        <!-- STEP 1: UPLOAD FILE & TEMPLATE DOWNLOAD -->
-        <div class="grid grid-cols-[1fr_340px] gap-5">
-            <!-- Upload Box -->
-            <div class="erp-card">
-                <div class="erp-card-header">
-                    <div class="erp-card-title">
-                        <x-icon name="upload" size="18" />
-                        <span>رفع ملف البيانات للمراجعة والتدقيق</span>
+        <!-- STEP 1 & STEP 2 WORKFLOW GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch mb-6">
+            <!-- Step 1: Template & Guidelines (6 cols) -->
+            <div class="lg:col-span-6 flex flex-col">
+                <div class="erp-card h-full flex flex-col m-0" style="border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); background: #ffffff;">
+                    <div class="erp-card-header" style="padding: 14px 20px; border-bottom: 1px solid #f1f5f9; background: #fafafa; border-radius: 12px 12px 0 0;">
+                        <div class="erp-card-title" style="font-size: 14px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #059669; color: #ffffff; font-size: 12px; font-weight: 800;">1</span>
+                            <span>الخطوة 1: تنزيل قالب المنتجات والإرشادات</span>
+                        </div>
                     </div>
-                </div>
-                <div class="erp-card-body">
-                    <p class="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
-                        ارفع ملف إكسيل (<strong>.xlsx</strong>) أو ملف قيم مفصولة بفواصل (<strong>.csv</strong>). 
-                        سيقوم النظام بفحص محتويات الملف سطر بسطر ومقارنتها بقاعدة البيانات الحالية <code>kayan_erp</code> لاكتشاف الأصناف الجديدة، والتحقق من الأسعار، وتمييز الأصناف الموجودة مسبقاً قبل تنفيذ أي عملية حفظ.
-                    </p>
 
-                    <form id="uploadForm" action="{{ route('products.import.review') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
+                    <div class="erp-card-body" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1; gap: 18px;">
+                        <div>
+                            <p style="font-size: 13px; color: #475569; margin: 0 0 14px 0; line-height: 1.6;">
+                                يمكنك استيراد آلاف الأصناف والمنتجات دفعة واحدة مع تكويد الباركود وتحديث الأسعار والأرصدة الافتتاحية للمخازن بدقة وسرعة.
+                            </p>
 
-                        <div class="erp-form-group mb-5">
-                            <label for="importFile" class="erp-form-label font-bold mb-2">
-                                اختر ملف الإكسيل أو الـ CSV من جهازك:
-                            </label>
-                            <input 
-                                type="file" 
-                                id="importFile" 
-                                name="import_file" 
-                                accept=".csv,.xlsx,.xls,text/csv" 
-                                class="erp-input p-2.5 @error('import_file') erp-input-error @enderror" 
-                                required
-                            >
-                            @error('import_file')
-                                <small class="text-[var(--danger)] block mt-1">{{ $message }}</small>
-                            @enderror
+                            <!-- Download Guidelines Box -->
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 38px; height: 38px; border-radius: 10px; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; display: flex; align-items: center; justify-content: center;">
+                                            <x-icon name="file-text" size="20" />
+                                        </div>
+                                        <div>
+                                            <h4 style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 0 0 2px 0;">قالب استيراد المنتجات المعتمد</h4>
+                                            <span style="font-size: 12px; color: #059669; font-weight: 700;">ملف إكسيل رسمي (.xlsx) بحماية الباركود</span>
+                                        </div>
+                                    </div>
+                                    <span class="erp-badge erp-badge-success" style="font-size: 11px; padding: 4px 10px; font-weight: 700;">Excel .xlsx</span>
+                                </div>
+
+                                <ul style="font-size: 12px; color: #334155; margin: 0 0 16px 0; padding-right: 20px; line-height: 1.9;">
+                                    <li><strong>الباركود (Barcode):</strong> الأساس في التكويد والمطابقة لتمييز الأصناف ومنع التكرار.</li>
+                                    <li><strong>كود الصنف (SKU):</strong> كود تمييز الصنف (يُنشأ أو يُضبط آلياً لمنع التضارب).</li>
+                                    <li><strong>اسم المنتج والتصنيف:</strong> الاسم إلزامي بالعربية، والتصنيف يُنشأ تلقائياً إن لم يوجد.</li>
+                                    <li><strong>الأسعار والوحدات:</strong> التكلفة، الجملة، القطاعي، الموزع، ووحدة القياس.</li>
+                                    <li><strong>الرصيد الافتتاحي:</strong> كمية أول المدة وتكلفة الرصيد والمستودع المستلم (لتسجيل FIFO آلياً).</li>
+                                </ul>
+
+                                <div style="display: flex; gap: 10px;">
+                                    <a href="{{ route('products.import.template', ['format' => 'xlsx']) }}" 
+                                       class="erp-btn erp-btn-success" 
+                                       style="flex: 1; height: 44px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);">
+                                        <x-icon name="download" size="18" />
+                                        <span>تحميل القالب المنسق (Excel .xlsx)</span>
+                                    </a>
+                                    <a href="{{ route('products.import.template', ['format' => 'csv']) }}" 
+                                       class="erp-btn erp-btn-secondary" 
+                                       title="تحميل بصيغة CSV"
+                                       style="height: 44px; padding: 0 14px; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                                        <span>CSV</span>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="flex items-center justify-between border-t border-[var(--border-color)] pt-4">
-                            <button type="submit" id="uploadSubmitBtn" class="erp-btn erp-btn-primary py-2.5 px-6 font-bold">
-                                <x-icon name="search" size="16" />
-                                <span>فحص ومراجعة محتويات الملف</span>
-                            </button>
-                            <small class="text-[var(--text-muted)] text-[11px]">الحد الأقصى لحجم الملف: 10MB</small>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
 
-            <!-- Optional Template Info Card -->
-            <div class="erp-card">
-                <div class="erp-card-header">
-                    <div class="erp-card-title">
-                        <x-icon name="download" size="18" />
-                        <span>قالب البيانات الجاهز</span>
-                    </div>
-                </div>
-                <div class="erp-card-body flex flex-col gap-3.5">
-                    <div class="erp-alert erp-alert-info m-0 py-2.5 px-3 text-xs">
-                        <x-icon name="info" size="16" />
-                        <div>تنزيل القالب <strong>اختياري (Option)</strong> وليس فرضاً، والغرض منه مساعدتك في معرفة التنسيق الأمثل للأعمدة.</div>
+            <!-- Step 2: Upload File & Review (6 cols) -->
+            <div class="lg:col-span-6 flex flex-col">
+                <div class="erp-card h-full flex flex-col m-0" style="border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); background: #ffffff;">
+                    <div class="erp-card-header" style="padding: 14px 20px; border-bottom: 1px solid #f1f5f9; background: #fafafa; border-radius: 12px 12px 0 0;">
+                        <div class="erp-card-title" style="font-size: 14px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #ffffff; font-size: 12px; font-weight: 800;">2</span>
+                            <span>الخطوة 2: رفع ملف البيانات للمراجعة والتدقيق</span>
+                        </div>
                     </div>
 
-                    <a href="{{ route('products.import.template') }}" class="erp-btn erp-btn-secondary w-full justify-center p-2.5 font-bold border-[var(--primary)] text-[var(--primary)] inline-flex items-center gap-1.5">
-                        <x-icon name="download" size="16" />
-                        <span>تحميل القالب المنسق (CSV)</span>
-                    </a>
+                    <div class="erp-card-body" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1; gap: 16px;">
+                        <form id="uploadForm" action="{{ route('products.import.review') }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; gap: 16px;">
+                            @csrf
+                            <div style="font-size: 12px; color: #64748b; line-height: 1.5;">
+                                ارفع ملف Excel أو CSV المعبأ بالأصناف. سيقوم النظام بفحص الملف سطر بسطر ومقارنته بالمخزون الحالي قبل أي عملية حفظ.
+                            </div>
 
-                    <div>
-                        <strong class="block text-xs text-[var(--text-main)] mb-1.5 font-bold">الأعمدة المدعومة في الملف:</strong>
-                        <ul class="text-[11px] text-[var(--text-muted)] my-0 mx-4 leading-loose">
-                            <li><strong>الباركود (Barcode):</strong> الأساس الأول في التكويد والمطابقة لتمييز الأصناف بدقة.</li>
-                            <li><strong>كود الصنف (SKU):</strong> كود تمييز الصنف (يُنشأ أو يُضبط آلياً لمنع التضارب).</li>
-                            <li><strong>اسم المنتج:</strong> إلزامي بالعربية.</li>
-                            <li><strong>التصنيف:</strong> اختياري (يُنشأ تلقائياً إن لم يوجد).</li>
-                            <li><strong>الأسعار:</strong> التكلفة، الجملة، القطاعي، وسعر الموزع (أرقام صحيحة أو عشرية).</li>
-                            <li><strong>المواصفات:</strong> وحدة القياس وعدد القطع في الطرد / الكرتونة (أرقام صحيحة).</li>
-                            <li><strong>حد الطلب الأدنى:</strong> رقم صحيح لتنبيه النواقص.</li>
-                            <li><strong>الرصيد الافتتاحي:</strong> كمية أول المدة، تكلفة الرصيد، واسم المستودع المستلم (لتسجيل FIFO آلياً).</li>
-                        </ul>
+                            <!-- Interactive Styled Upload Dropzone -->
+                            <div 
+                                id="productDropzone"
+                                style="border: 2px dashed #cbd5e1; background: #f8fafc; border-radius: 12px; padding: 22px 16px; text-align: center; cursor: pointer; transition: all 0.2s ease; min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center;"
+                                onclick="document.getElementById('products_import_file').click()"
+                                onmouseover="this.style.borderColor='var(--primary)'; this.style.backgroundColor='#fcfbfe';"
+                                onmouseout="this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#f8fafc';"
+                                ondragover="event.preventDefault(); this.style.borderColor='var(--primary)'; this.style.backgroundColor='#fcfbfe';"
+                                ondragleave="this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#f8fafc';"
+                                ondrop="event.preventDefault(); this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#f8fafc'; handleProductDropFile(event)"
+                            >
+                                <input 
+                                    type="file" 
+                                    id="products_import_file" 
+                                    name="import_file" 
+                                    accept=".csv,.xlsx,.xls,text/csv" 
+                                    class="hidden" 
+                                    required 
+                                    onchange="handleProductFileSelect(this)"
+                                />
+
+                                <div id="productDropzonePrompt" style="display: flex; flex-direction: column; align-items: center;">
+                                    <div style="width: 46px; height: 46px; border-radius: 12px; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                                        <x-icon name="upload-cloud" size="26" />
+                                    </div>
+                                    <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
+                                        اضغط لاختيار ملف المنتجات أو اسحبه وأفلته هنا
+                                    </div>
+                                    <div style="font-size: 12px; color: #64748b;">
+                                        يدعم ملفات <strong>Excel (.xlsx)</strong> أو ملفات <strong>CSV (.csv)</strong> بحد أقصى 15MB
+                                    </div>
+                                </div>
+
+                                <div id="productFileSelectedBadge" style="display: none; align-items: center; gap: 12px; background: #ffffff; padding: 12px 18px; border-radius: 10px; border: 1.5px solid #10b981; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+                                    <div style="width: 36px; height: 36px; border-radius: 8px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; shrink-0;">
+                                        <x-icon name="check" size="22" />
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div id="productSelectedFileName" style="font-size: 13px; font-weight: 700; color: #0f172a; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></div>
+                                        <div id="productSelectedFileSize" style="font-size: 11px; color: #64748b;"></div>
+                                    </div>
+                                    <button type="button" onclick="event.stopPropagation(); clearProductSelectedFile();" style="margin-right: 12px; font-size: 12px; color: #ef4444; font-weight: 700; background: none; border: none; cursor: pointer; text-decoration: underline;">
+                                        تغيير الملف
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Footer Actions -->
+                            <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 10px; border-top: 1px solid #f1f5f9;">
+                                <button type="submit" id="uploadSubmitBtn" class="erp-btn erp-btn-primary" style="width: 100%; height: 44px; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; box-shadow: 0 2px 4px rgba(113, 75, 103, 0.2);">
+                                    <x-icon name="search" size="18" />
+                                    <span>فحص ومراجعة محتويات الملف</span>
+                                </button>
+
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #64748b;">
+                                    <x-icon name="shield" size="14" class="text-emerald-600" />
+                                    <span>فحص استرشادي آمن؛ لا يتم حفظ أو تعديل أي صنف إلا بعد مراجعة شاشة التدقيق وتأكيدك.</span>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
 
+        <script>
+            function handleProductFileSelect(input) {
+                if (input.files && input.files[0]) {
+                    displayProductFileInfo(input.files[0]);
+                }
+            }
+
+            function handleProductDropFile(event) {
+                if (event.dataTransfer.files && event.dataTransfer.files[0]) {
+                    const input = document.getElementById('products_import_file');
+                    input.files = event.dataTransfer.files;
+                    displayProductFileInfo(event.dataTransfer.files[0]);
+                }
+            }
+
+            function displayProductFileInfo(file) {
+                const prompt = document.getElementById('productDropzonePrompt');
+                const badge = document.getElementById('productFileSelectedBadge');
+                const nameEl = document.getElementById('productSelectedFileName');
+                const sizeEl = document.getElementById('productSelectedFileSize');
+
+                if (prompt && badge && nameEl && sizeEl) {
+                    prompt.style.display = 'none';
+                    badge.style.display = 'flex';
+                    nameEl.textContent = file.name;
+                    const sizeKb = (file.size / 1024).toFixed(1);
+                    sizeEl.textContent = sizeKb > 1024 ? (sizeKb / 1024).toFixed(2) + ' MB' : sizeKb + ' KB';
+                }
+            }
+
+            function clearProductSelectedFile() {
+                const input = document.getElementById('products_import_file');
+                const prompt = document.getElementById('productDropzonePrompt');
+                const badge = document.getElementById('productFileSelectedBadge');
+
+                if (input) input.value = '';
+                if (prompt) prompt.style.display = 'flex';
+                if (badge) badge.style.display = 'none';
+            }
+        </script>
     @else
         <!-- STEP 2: PRE-IMPORT REVIEW & COMPARISON AGAINST DATABASE -->
         <!-- KPI Summary Cards -->
@@ -178,16 +278,28 @@
             @csrf
 
             <div class="flex flex-wrap items-center justify-between gap-3.5">
-                <div class="flex flex-wrap items-center gap-5">
-                    <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[var(--text-main)]">
+                <div class="flex flex-wrap items-center gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[var(--text-main)]" title="تحديث الاسم، التصنيف، الباركود، التعبئة، والحد الأدنى">
                         <input type="checkbox" name="update_existing" value="1" checked class="w-4 h-4 accent-[var(--primary)]">
-                        <span>تحديث أسعار وبيانات الأصناف الموجودة مسبقاً</span>
+                        <span>تحديث بيانات ومواصفات الأصناف المسجلة مسبقاً</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[var(--text-main)]" title="إلغاء التحديد يحافظ على كافة أسعارك الحالية في قاعدة البيانات دون أي تغيير">
+                        <input type="checkbox" name="update_prices" value="1" {{ empty($reviewData['stats']['has_zero_prices_on_existing']) ? 'checked' : '' }} class="w-4 h-4 accent-[var(--primary)]">
+                        <span>تحديث الأسعار للأصناف المسجلة مسبقاً (إلغاء التحديد يحافظ على أسعارك الحالية)</span>
                     </label>
 
                     <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[var(--text-main)]">
                         <input type="checkbox" name="create_categories" value="1" checked class="w-4 h-4 accent-[var(--primary)]">
                         <span>إنشاء التصنيفات الجديدة تلقائياً إذا لم تكن موجودة</span>
                     </label>
+
+                    @if(!empty($reviewData['stats']['has_zero_prices_on_existing']))
+                        <div class="w-full flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            <x-icon name="shield-check" size="16" class="text-amber-600 shrink-0" />
+                            <span>حماية ذكية للأسعار: تم رصد أسعار صفرية بالملف لأصناف قائمة — تم إلغاء تحديد تحديث الأسعار تلقائياً لحماية أسعار النظام من التصفير.</span>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -293,11 +405,20 @@
 
                                 <!-- Wholesale Price with Comparison -->
                                 <td class="text-left font-numeric">
-                                    <strong class="text-[var(--success-text)]">{{ number_format((float)$row['wholesale_price'], 2) }}</strong>
-                                    @if($row['existing_product'])
-                                        <small class="block text-[10px] text-[var(--text-muted)]">
-                                            السابق: {{ number_format($row['existing_product']['old_wholesale_price'], 2) }}
-                                        </small>
+                                    @if(!empty($row['preserve_prices']) && $row['existing_product'])
+                                        <div class="flex flex-col gap-0.5">
+                                            <strong class="text-[var(--success-text)]">{{ number_format($row['existing_product']['old_wholesale_price'], 2) }}</strong>
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-amber-700 bg-amber-50 px-1 py-0.5 rounded border border-amber-200 w-fit">
+                                                سعر النظام محفوظ (بالملف: 0.00)
+                                            </span>
+                                        </div>
+                                    @else
+                                        <strong class="text-[var(--success-text)]">{{ number_format((float)$row['wholesale_price'], 2) }}</strong>
+                                        @if($row['existing_product'])
+                                            <small class="block text-[10px] text-[var(--text-muted)]">
+                                                السابق: {{ number_format($row['existing_product']['old_wholesale_price'], 2) }}
+                                            </small>
+                                        @endif
                                     @endif
                                 </td>
 
@@ -376,6 +497,11 @@
                                                 </span>
                                                 <span>الباركود مسجل لمنتج آخر: (<strong>{{ $row['existing_product']['name'] }}</strong>) بينما اسم الصنف بالملف هو (<strong>{{ $row['name'] }}</strong>). التأكيد سيستبدل بيانات الصنف القديم!</span>
                                             </div>
+                                        @elseif(!empty($row['preserve_prices']))
+                                            <span class="text-emerald-700 text-xs font-medium flex items-center gap-1">
+                                                <x-icon name="shield-check" size="13" class="text-emerald-600 shrink-0" />
+                                                <span>صنف مسجل مسبقاً (<strong>{{ $row['existing_product']['name'] }}</strong>) — سيتم تحديث المواصفات والباركود مع الحفاظ على الأسعار الحالية دون تصفير.</span>
+                                            </span>
                                         @else
                                             <span class="text-[var(--warning)] text-xs">
                                                 صنف مسجل مسبقاً (<strong>{{ $row['existing_product']['name'] }}</strong>) — سيتم تحديث الأسعار والمواصفات.
